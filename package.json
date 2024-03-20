@@ -1,0 +1,28 @@
+{
+  "name": "creek-po-converter-backend",
+  "version": "1.0.0",
+  "description": "The backend for creek-po-converter. Takes in a pdf/HTML file, parses information required and presents as a docx file",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/michael86/creek-po-converter-backend.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/michael86/creek-po-converter-backend/issues"
+  },
+  "homepage": "https://github.com/michael86/creek-po-converter-backend#readme",
+  "dependencies": {
+    "pdf-parse": "^1.1.1",
+    "pdf2table": "^0.0.2",
+    "pdfjs-dist": "^4.0.379",
+    "typescript": "^5.4.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.30"
+  }
+}
