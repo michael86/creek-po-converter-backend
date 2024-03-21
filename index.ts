@@ -9,7 +9,7 @@ app.use(express.json());
 app.use(express.static("./public"));
 app.use(cors());
 
-// app.use("/account", validateToken, require("./routes/account"));
+app.use("/pdf", require("./routes/pdf"));
 
 const port = process.env.PORT || 6005;
 app.listen(6005, async () => {

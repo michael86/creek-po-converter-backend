@@ -1,7 +1,7 @@
 const pdf2table = require("pdf2table");
 const fs = require("fs/promises");
 const path = require("path");
-const testFolder = path.resolve(__dirname, "../pdf");
+const pdfFolder = path.resolve(__dirname, "../public/pdf");
 
 type Rows = string[][];
 
@@ -74,7 +74,7 @@ const getPurchaseOrder = (rows: Rows) => {
 };
 
 export const processFile = async (file: string, cb: CallableFunction) => {
-  const fileData = await fs.readFile(path.resolve(testFolder, file));
+  const fileData = await fs.readFile(path.resolve(pdfFolder, file));
 
   pdf2table.parse(fileData, function (err: string, rows: Rows) {
     if (err) return console.log(err);
@@ -89,15 +89,16 @@ export const processFile = async (file: string, cb: CallableFunction) => {
         ORDER_REFERENCE,
         PURCHASE_ORDER,
       });
+      return;
     }
 
     cb(null);
   });
 };
 
-type Data = { DATA: []; ORDER_PREFERENCE: string; PURCHASE_ORDER: string };
+type Data = { DATA: []; ORDER_REFERENCE: string; PURCHASE_ORDER: string };
 export const testFiles = async () => {
-  const dir = await fs.readdir(testFolder);
+  const dir = await fs.readdir(pdfFolder);
   const retval: Data[] = [];
   for (const file of dir) {
     await processFile(file, (data: Data) => {
