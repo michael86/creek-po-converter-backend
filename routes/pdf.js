@@ -10,6 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const extract_pdf_1 = require("../modules/extract_pdf");
+const { insertDataToDb } = require("../sql/queries");
 const express = require("express");
 const multer = require("multer");
 const router = express.Router();
@@ -18,7 +19,7 @@ const storage = multer.diskStorage({
         cb(null, "public/pdf/");
     },
     filename: (req, file, cb) => {
-        cb(null, Date.now() + "-" + file.originalname);
+        cb(null, file.originalname);
     },
 });
 const uploadStorage = multer({ storage: storage });
@@ -27,17 +28,20 @@ router.post("/process", uploadStorage.single("pdf"), function (req, res) {
         try {
             if (!req.file)
                 throw new Error("no file fount");
-            (0, extract_pdf_1.processFile)(req.file.filename, (data) => {
+            (0, extract_pdf_1.processFile)(req.file.filename, (data) => __awaiter(this, void 0, void 0, function* () {
                 console.log("data ", data);
                 if (!data)
                     throw new Error("Failed to parse data from file");
-                console.log(`PO: \x1b[31m${data.PURCHASE_ORDER}\x1b[37m`);
-                console.log(`Order REf: \x1b[31m${data.ORDER_REFERENCE}\x1b[37m`);
-                data.DATA.forEach((entry) => {
-                    console.log(`Sku: \x1b[31m${entry[0]} | QTY: \x1b[31m${entry[1]}\x1b[37m`);
-                });
-            });
-            res.send({ success: 1 });
+                // console.log(`PO: \x1b[31m${data.PURCHASE_ORDER}\x1b[37m`);
+                // console.log(`Order REf: \x1b[31m${data.ORDER_REFERENCE}\x1b[37m`);
+                // data.DATA.forEach((entry) => {
+                //   console.log(`Sku: \x1b[31m${entry[0]} | QTY: \x1b[31m${entry[1]}\x1b[37m`);
+                // });
+                const inserted = yield insertDataToDb(data);
+                if (!inserted)
+                    throw new Error("failed to insert into database");
+                res.send({ status: 1 });
+            }));
         }
         catch (err) {
             console.log(`Error Processing PDF`);

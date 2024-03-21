@@ -9,17 +9,21 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const { createSqlConnection, runQuery } = require("./sql/connection");
+const mysql = require("mysql");
 const express = require("express");
 const app = express();
 const cors = require("cors");
+const port = process.env.PORT || 6005;
 require("dotenv").config();
 app.use(express.json());
 app.use(express.static("./public"));
 app.use(cors());
 app.use("/pdf", require("./routes/pdf"));
-const port = process.env.PORT || 6005;
 app.listen(6005, () => __awaiter(void 0, void 0, void 0, function* () {
     console.log(`listening port ${port}\nServer started`);
+    console.log("connecting to database");
+    createSqlConnection();
 }));
 //uncomment to test files
 // (async () => {
