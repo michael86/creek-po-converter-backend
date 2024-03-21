@@ -55,6 +55,15 @@ const queries = {
       return false;
     }
   },
+  fetchPurchaseOrders: async () => {
+    try {
+      const data = await rq(`SELECT purchase_order FROM purchase_order`, []);
+      return [...data];
+    } catch (error) {
+      console.log(error);
+      return false;
+    }
+  },
 };
 
 module.exports = queries;
