@@ -10,7 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const extract_pdf_1 = require("../modules/extract_pdf");
-const { insertDataToDb } = require("../sql/queries");
+const { insertDataToDb, fetchPurchaseOrders } = require("../sql/queries");
 const express = require("express");
 const multer = require("multer");
 const router = express.Router();
@@ -49,4 +49,10 @@ router.post("/process", uploadStorage.single("pdf"), function (req, res) {
         }
     });
 });
+router.get("/fetch", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log("hello");
+    const purchaseOrders = yield fetchPurchaseOrders();
+    console.log(purchaseOrders);
+    res.send({ status: 1 });
+}));
 module.exports = router;

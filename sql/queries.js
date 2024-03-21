@@ -57,5 +57,15 @@ const queries = {
             return false;
         }
     }),
+    fetchPurchaseOrders: () => __awaiter(void 0, void 0, void 0, function* () {
+        try {
+            const data = yield rq(`SELECT purchase_order FROM purchase_order`, []);
+            return [...data];
+        }
+        catch (error) {
+            console.log(error);
+            return false;
+        }
+    }),
 };
 module.exports = queries;

@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { processFile } from "../modules/extract_pdf";
-const { insertDataToDb } = require("../sql/queries");
+const { insertDataToDb, fetchPurchaseOrders } = require("../sql/queries");
 
 const express = require("express");
 const multer = require("multer");
@@ -55,4 +55,11 @@ router.post(
   }
 );
 
+router.get("/fetch", async (req: Request, res: Response) => {
+  console.log("hello");
+
+  const purchaseOrders = await fetchPurchaseOrders();
+  console.log(purchaseOrders);
+  res.send({ status: 1, data: purchaseOrders });
+});
 module.exports = router;
