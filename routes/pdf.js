@@ -49,10 +49,10 @@ router.post("/process", uploadStorage.single("pdf"), function (req, res) {
         }
     });
 });
-router.get("/fetch", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log("hello");
+router.get("/fetch/:id?", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log("hello ", req.params.id);
     const purchaseOrders = yield fetchPurchaseOrders();
     console.log(purchaseOrders);
-    res.send({ status: 1 });
+    res.send({ status: 1, data: purchaseOrders });
 }));
 module.exports = router;
