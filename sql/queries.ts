@@ -64,6 +64,36 @@ const queries = {
       return false;
     }
   },
+
+  fetchPurchaseOrder: async (id: string) => {
+    console.log("id ", id);
+    try {
+      let poId = await rq(`SELECT id FROM purchase_order WHERE purchase_order = ?`, [id]);
+      if (!poId[0].id) throw new Error(`purchase_order Failed to find ${id}`);
+      poId = poId[0].id;
+
+      let refId = await rq(`SELECT order_reference FROM po_or WHERE purchase_order = ?`, [poId]);
+      if (!refId[0].order_reference) throw new Error(`po_or Failed to find ${id}`);
+      refId = refId[0].order_reference;
+
+      let orderRef = await rq(`SELECT order_reference FROM order_reference WHERE id = ?`, [refId]);
+
+      if (!orderRef[0].order_reference) throw new Error(`order_reference Failed to find ${id}`);
+      orderRef = orderRef[0].order_reference;
+
+      const partNumerRelations = await rq(
+        `SELECT part_number FROM po_pn WHERE purchase_order = ? `,
+        [poId]
+      );
+
+      // console.log("partNumerRelations ", partNumerRelations);
+
+      //   return [...data];
+    } catch (error) {
+      console.log(error);
+      return false;
+    }
+  },
 };
 
 module.exports = queries;
