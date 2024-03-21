@@ -19,9 +19,11 @@
   "dependencies": {
     "@pdfme/common": "^3.4.1",
     "@pdfme/generator": "^3.4.1",
+    "@types/express": "^4.17.21",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.1",
+    "multer": "^1.4.5-lts.1",
     "pdf-parse": "^1.1.1",
     "pdf2table": "^0.0.2",
     "pdfjs-dist": "^4.0.379",

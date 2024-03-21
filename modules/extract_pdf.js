@@ -13,7 +13,7 @@ exports.testFiles = exports.processFile = void 0;
 const pdf2table = require("pdf2table");
 const fs = require("fs/promises");
 const path = require("path");
-const testFolder = path.resolve(__dirname, "../pdf");
+const pdfFolder = path.resolve(__dirname, "../public/pdf");
 const PREFIXES = [
     "econn",
     "ecapt",
@@ -77,7 +77,7 @@ const getPurchaseOrder = (rows) => {
     return filtered[0][1];
 };
 const processFile = (file, cb) => __awaiter(void 0, void 0, void 0, function* () {
-    const fileData = yield fs.readFile(path.resolve(testFolder, file));
+    const fileData = yield fs.readFile(path.resolve(pdfFolder, file));
     pdf2table.parse(fileData, function (err, rows) {
         if (err)
             return console.log(err);
@@ -90,13 +90,14 @@ const processFile = (file, cb) => __awaiter(void 0, void 0, void 0, function* ()
                 ORDER_REFERENCE,
                 PURCHASE_ORDER,
             });
+            return;
         }
         cb(null);
     });
 });
 exports.processFile = processFile;
 const testFiles = () => __awaiter(void 0, void 0, void 0, function* () {
-    const dir = yield fs.readdir(testFolder);
+    const dir = yield fs.readdir(pdfFolder);
     const retval = [];
     for (const file of dir) {
         yield (0, exports.processFile)(file, (data) => {
