@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { processFile } from "../modules/extract_pdf";
-const { insertDataToDb, fetchPurchaseOrders } = require("../sql/queries");
+const { insertDataToDb, fetchPurchaseOrders, fetchPurchaseOrder } = require("../sql/queries");
 
 const express = require("express");
 const multer = require("multer");
@@ -32,7 +32,6 @@ router.post(
       type Data = { DATA: []; ORDER_REFERENCE: string; PURCHASE_ORDER: string };
 
       processFile(req.file.filename, async (data: Data) => {
-        console.log("data ", data);
         if (!data) throw new Error("Failed to parse data from file");
 
         // console.log(`PO: \x1b[31m${data.PURCHASE_ORDER}\x1b[37m`);
@@ -56,10 +55,13 @@ router.post(
 );
 
 router.get("/fetch/:id?", async (req: Request, res: Response) => {
-  console.log("hello ", req.params.id);
+  if (!req.params.id) {
+    const purchaseOrders = await fetchPurchaseOrders();
+    res.send({ status: 1, data: purchaseOrders });
+    return;
+  }
 
-  const purchaseOrders = await fetchPurchaseOrders();
-  console.log(purchaseOrders);
-  res.send({ status: 1, data: purchaseOrders });
+  const purchaseOrder = await fetchPurchaseOrder(req.params.id);
+  res.send();
 });
 module.exports = router;

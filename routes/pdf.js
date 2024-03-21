@@ -10,7 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const extract_pdf_1 = require("../modules/extract_pdf");
-const { insertDataToDb, fetchPurchaseOrders } = require("../sql/queries");
+const { insertDataToDb, fetchPurchaseOrders, fetchPurchaseOrder } = require("../sql/queries");
 const express = require("express");
 const multer = require("multer");
 const router = express.Router();
@@ -29,7 +29,6 @@ router.post("/process", uploadStorage.single("pdf"), function (req, res) {
             if (!req.file)
                 throw new Error("no file fount");
             (0, extract_pdf_1.processFile)(req.file.filename, (data) => __awaiter(this, void 0, void 0, function* () {
-                console.log("data ", data);
                 if (!data)
                     throw new Error("Failed to parse data from file");
                 // console.log(`PO: \x1b[31m${data.PURCHASE_ORDER}\x1b[37m`);
@@ -50,9 +49,12 @@ router.post("/process", uploadStorage.single("pdf"), function (req, res) {
     });
 });
 router.get("/fetch/:id?", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log("hello ", req.params.id);
-    const purchaseOrders = yield fetchPurchaseOrders();
-    console.log(purchaseOrders);
-    res.send({ status: 1, data: purchaseOrders });
+    if (!req.params.id) {
+        const purchaseOrders = yield fetchPurchaseOrders();
+        res.send({ status: 1, data: purchaseOrders });
+        return;
+    }
+    const purchaseOrder = yield fetchPurchaseOrder(req.params.id);
+    res.send();
 }));
 module.exports = router;
