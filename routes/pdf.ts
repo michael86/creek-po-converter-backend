@@ -55,8 +55,8 @@ router.post(
   }
 );
 
-router.get("/fetch", async (req: Request, res: Response) => {
-  console.log("hello");
+router.get("/fetch/:id?", async (req: Request, res: Response) => {
+  console.log("hello ", req.params.id);
 
   const purchaseOrders = await fetchPurchaseOrders();
   console.log(purchaseOrders);
