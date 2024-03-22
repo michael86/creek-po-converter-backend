@@ -66,7 +66,6 @@ const queries = {
   },
 
   fetchPurchaseOrder: async (id: string) => {
-    console.log("id ", id);
     try {
       let poId = await rq(`SELECT id FROM purchase_order WHERE purchase_order = ?`, [id]);
       if (!poId[0].id) throw new Error(`purchase_order Failed to find ${id}`);
@@ -86,9 +85,27 @@ const queries = {
         [poId]
       );
 
-      // console.log("partNumerRelations ", partNumerRelations);
+      const partNumbers: string[][] = [];
+      for (const relation of partNumerRelations) {
+        const partNumber = await rq(`select part from part_number where id = ?`, [
+          relation.part_number,
+        ]);
+        const qtyRelation = await rq(`select count from pn_count where part_number = ?`, [
+          relation.part_number,
+        ]);
 
-      //   return [...data];
+        for (const count of qtyRelation) {
+          const qty = await rq(`SELECT quantity FROM count WHERE id = ?`, [count.count]);
+
+          partNumbers.push([partNumber[0].part, qty[0].quantity]);
+        }
+      }
+
+      return {
+        purchaseOrder: id,
+        orderRef,
+        partNumbers,
+      };
     } catch (error) {
       console.log(error);
       return false;

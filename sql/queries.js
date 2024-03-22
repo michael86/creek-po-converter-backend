@@ -68,7 +68,6 @@ const queries = {
         }
     }),
     fetchPurchaseOrder: (id) => __awaiter(void 0, void 0, void 0, function* () {
-        console.log("id ", id);
         try {
             let poId = yield rq(`SELECT id FROM purchase_order WHERE purchase_order = ?`, [id]);
             if (!poId[0].id)
@@ -78,15 +77,29 @@ const queries = {
             if (!refId[0].order_reference)
                 throw new Error(`po_or Failed to find ${id}`);
             refId = refId[0].order_reference;
-            console.log("refId ", refId);
             let orderRef = yield rq(`SELECT order_reference FROM order_reference WHERE id = ?`, [refId]);
-            console.log("orderRef ", orderRef);
             if (!orderRef[0].order_reference)
                 throw new Error(`order_reference Failed to find ${id}`);
             orderRef = orderRef[0].order_reference;
             const partNumerRelations = yield rq(`SELECT part_number FROM po_pn WHERE purchase_order = ? `, [poId]);
-            console.log("partNumerRelations ", partNumerRelations);
-            //   return [...data];
+            const partNumbers = [];
+            for (const relation of partNumerRelations) {
+                const partNumber = yield rq(`select part from part_number where id = ?`, [
+                    relation.part_number,
+                ]);
+                const qtyRelation = yield rq(`select count from pn_count where part_number = ?`, [
+                    relation.part_number,
+                ]);
+                for (const count of qtyRelation) {
+                    const qty = yield rq(`SELECT quantity FROM count WHERE id = ?`, [count.count]);
+                    partNumbers.push([partNumber[0].part, qty[0].quantity]);
+                }
+            }
+            return {
+                purchaseOrder: id,
+                orderRef,
+                partNumbers,
+            };
         }
         catch (error) {
             console.log(error);

@@ -62,6 +62,6 @@ router.get("/fetch/:id?", async (req: Request, res: Response) => {
   }
 
   const purchaseOrder = await fetchPurchaseOrder(req.params.id);
-  res.send();
+  res.send({ status: 1, data: purchaseOrder });
 });
 module.exports = router;

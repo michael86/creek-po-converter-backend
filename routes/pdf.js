@@ -55,6 +55,6 @@ router.get("/fetch/:id?", (req, res) => __awaiter(void 0, void 0, void 0, functi
         return;
     }
     const purchaseOrder = yield fetchPurchaseOrder(req.params.id);
-    res.send();
+    res.send({ status: 1, data: purchaseOrder });
 }));
 module.exports = router;
