@@ -4,7 +4,7 @@ const sha256 = require("sha256");
 const express = require("express");
 const router = express.Router();
 
-router.post("/login", async (req: Request, res: Response) => {
+router.post("/register", async (req: Request, res: Response) => {
   let { email, password } = req.body.data;
   if (!email || !password || !email.includes("@creekviewelectronics.co.uk")) {
     res.send({ status: 0 });
