@@ -1,3 +1,5 @@
+import { create } from "domain";
+
 type Data = { DATA: []; ORDER_REFERENCE: string; PURCHASE_ORDER: string };
 const { runQuery: rq } = require("./connection");
 
@@ -109,6 +111,30 @@ const queries = {
     } catch (error) {
       console.log(error);
       return false;
+    }
+  },
+
+  selectEmail: async (email: string) => {
+    try {
+      const inUse = await rq("select email from users where email = ?", [email]);
+      return inUse.length;
+    } catch (error) {
+      console.log(error);
+      return;
+    }
+  },
+
+  createUser: async (email: string, password: string) => {
+    try {
+      const created = await rq("insert into users (email, password) values (?, ?)", [
+        email,
+        password,
+      ]);
+      console.log(created);
+      return created.insertId;
+    } catch (error) {
+      console.log(error);
+      return;
     }
   },
 };
