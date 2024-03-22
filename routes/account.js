@@ -13,7 +13,7 @@ const { selectEmail, createUser } = require("../sql/queries");
 const sha256 = require("sha256");
 const express = require("express");
 const router = express.Router();
-router.post("/login", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.post("/register", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     let { email, password } = req.body.data;
     if (!email || !password || !email.includes("@creekviewelectronics.co.uk")) {
         res.send({ status: 0 });
