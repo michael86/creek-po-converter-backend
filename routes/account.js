@@ -9,23 +9,24 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const { createSqlConnection } = require("./sql/connection");
+const { selectEmail, createUser } = require("../sql/queries");
+const sha256 = require("sha256");
 const express = require("express");
-const app = express();
-const cors = require("cors");
-const port = process.env.PORT || 6005;
-require("dotenv").config();
-app.use(express.json());
-app.use(express.static("./public"));
-app.use(cors());
-app.use("/pdf", require("./routes/pdf"));
-app.use("/account", require("./routes/account"));
-app.listen(6005, () => __awaiter(void 0, void 0, void 0, function* () {
-    console.log(`listening port ${port}\nServer started`);
-    console.log("connecting to database");
-    createSqlConnection();
+const router = express.Router();
+router.post("/login", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    let { email, password } = req.body.data;
+    if (!email || !password || !email.includes("@creekviewelectronics.co.uk")) {
+        res.send({ status: 0 });
+        return;
+    }
+    const emailUsed = yield selectEmail(email);
+    if (emailUsed) {
+        res.send({ status: 2 });
+        return;
+    }
+    password = sha256(password);
+    const userCreated = yield createUser(email, password);
+    console.log("userCreated ", userCreated);
+    res.send({ status: 1 });
 }));
-//uncomment to test files
-// (async () => {
-//   const data = await testFiles();
-// })();
+module.exports = router;

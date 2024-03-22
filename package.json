@@ -28,6 +28,7 @@
     "pdf-parse": "^1.1.1",
     "pdf2table": "^0.0.2",
     "pdfjs-dist": "^4.0.379",
+    "sha256": "^0.2.0",
     "typescript": "^5.4.2"
   },
   "devDependencies": {

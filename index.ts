@@ -1,7 +1,5 @@
-import { processFile, testFiles } from "./modules/extract_pdf";
-const { createSqlConnection, runQuery } = require("./sql/connection");
-
-const mysql = require("mysql");
+import { testFiles } from "./modules/extract_pdf";
+const { createSqlConnection } = require("./sql/connection");
 const express = require("express");
 const app = express();
 const cors = require("cors");
@@ -13,6 +11,7 @@ app.use(express.static("./public"));
 app.use(cors());
 
 app.use("/pdf", require("./routes/pdf"));
+app.use("/account", require("./routes/account"));
 
 app.listen(6005, async () => {
   console.log(`listening port ${port}\nServer started`);

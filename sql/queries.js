@@ -8,6 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+Object.defineProperty(exports, "__esModule", { value: true });
 const { runQuery: rq } = require("./connection");
 const queries = {
     insertDataToDb: (data) => __awaiter(void 0, void 0, void 0, function* () {
@@ -104,6 +105,30 @@ const queries = {
         catch (error) {
             console.log(error);
             return false;
+        }
+    }),
+    selectEmail: (email) => __awaiter(void 0, void 0, void 0, function* () {
+        try {
+            const inUse = yield rq("select email from users where email = ?", [email]);
+            return inUse.length;
+        }
+        catch (error) {
+            console.log(error);
+            return;
+        }
+    }),
+    createUser: (email, password) => __awaiter(void 0, void 0, void 0, function* () {
+        try {
+            const created = yield rq("insert into users (email, password) values (?, ?)", [
+                email,
+                password,
+            ]);
+            console.log(created);
+            return created.insertId;
+        }
+        catch (error) {
+            console.log(error);
+            return;
         }
     }),
 };
