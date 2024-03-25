@@ -179,5 +179,29 @@ const queries = {
             return;
         }
     }),
+    setTokenToNull: (email, token) => __awaiter(void 0, void 0, void 0, function* () {
+        try {
+            const userId = yield rq(`SELECT id from users where email = ?`, [email]);
+            if (!userId[0].id)
+                return;
+            const relation = yield rq(`select token from user_token where user = ?`, userId[0].id);
+            if (!relation[0].token)
+                return;
+            const _token = yield rq(`select token from tokens where id = ?`, [relation[0].token]);
+            if (!_token[0].token)
+                return;
+            if (_token[0].token !== token)
+                return;
+            const tokenRemoved = yield rq(`UPDATE tokens SET token = null WHERE id = ?`, relation[0].token);
+            console.log("tokenRemoved ", tokenRemoved);
+            if (!tokenRemoved.affectedRows)
+                return;
+            return true;
+        }
+        catch (error) {
+            console.log(`Failed to log out user: ${error}`);
+            return;
+        }
+    }),
 };
 module.exports = queries;

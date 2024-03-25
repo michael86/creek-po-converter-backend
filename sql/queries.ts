@@ -189,6 +189,33 @@ const queries = {
       return;
     }
   },
+  setTokenToNull: async (email: string, token: string) => {
+    try {
+      const userId = await rq(`SELECT id from users where email = ?`, [email]);
+      if (!userId[0].id) return;
+
+      const relation = await rq(`select token from user_token where user = ?`, userId[0].id);
+      if (!relation[0].token) return;
+
+      const _token = await rq(`select token from tokens where id = ?`, [relation[0].token]);
+
+      if (!_token[0].token) return;
+
+      if (_token[0].token !== token) return;
+
+      const tokenRemoved = await rq(
+        `UPDATE tokens SET token = null WHERE id = ?`,
+        relation[0].token
+      );
+
+      if (!tokenRemoved.affectedRows) return;
+
+      return true;
+    } catch (error) {
+      console.log(`Failed to log out user: ${error}`);
+      return;
+    }
+  },
 };
 
 module.exports = queries;
