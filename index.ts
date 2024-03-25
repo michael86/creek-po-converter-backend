@@ -1,4 +1,4 @@
-import { testFiles } from "./modules/extract_pdf";
+import { testFiles } from "./utils/extract_pdf";
 const { createSqlConnection } = require("./sql/connection");
 const express = require("express");
 const app = express();

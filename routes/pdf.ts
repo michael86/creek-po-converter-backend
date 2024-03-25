@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { processFile } from "../modules/extract_pdf";
+import { processFile } from "../utils/extract_pdf";
 const { insertDataToDb, fetchPurchaseOrders, fetchPurchaseOrder } = require("../sql/queries");
 
 const express = require("express");

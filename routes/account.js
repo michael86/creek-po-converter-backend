@@ -10,6 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const { selectEmail, createUser, validateLogin } = require("../sql/queries");
+const tokens_1 = require("../utils/tokens");
 const sha256 = require("sha256");
 const express = require("express");
 const router = express.Router();
@@ -29,7 +30,7 @@ router.post("/register", (req, res) => __awaiter(void 0, void 0, void 0, functio
         const userCreated = yield createUser(email, password);
         if (!userCreated)
             throw new Error(`createUser: ${userCreated}`);
-        res.send({ status: 1 });
+        res.send({ status: 1, token: userCreated });
     }
     catch (error) {
         console.log("registration error ", error);
@@ -40,6 +41,7 @@ router.post("/login", (req, res) => __awaiter(void 0, void 0, void 0, function* 
     try {
         let { email, password } = req.body.data;
         if (!email || !password || !email.includes("@creekviewelectronics.co.uk")) {
+            console.log("not valid");
             res.send({ status: 0 });
             return;
         }
@@ -53,10 +55,24 @@ router.post("/login", (req, res) => __awaiter(void 0, void 0, void 0, function* 
             res.send({ status: 2 });
             return;
         }
+        const token = (0, tokens_1.generateToken)();
+        if (!token)
+            throw new Error(`Failed to generate token ${token}`);
+        // const tokenStored = await storeToken(token, user.id);
         res.send({ status: 1 });
     }
     catch (error) {
         console.log("Log in error ", error);
+        res.send({ status: 0 });
+    }
+}));
+router.get("token-valid/:token", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { token } = req.params;
+    console.log(token);
+    try {
+    }
+    catch (error) {
+        console.log("Error validating token ", error);
         res.send({ status: 0 });
     }
 }));

@@ -9,6 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const tokens_1 = require("../utils/tokens");
 const { runQuery: rq } = require("./connection");
 const queries = {
     insertDataToDb: (data) => __awaiter(void 0, void 0, void 0, function* () {
@@ -119,12 +120,23 @@ const queries = {
     }),
     createUser: (email, password) => __awaiter(void 0, void 0, void 0, function* () {
         try {
-            const created = yield rq("insert into users (email, password) values (?, ?)", [
-                email,
-                password,
+            const user = yield rq("insert into users (email, password) values (?, ?)", [email, password]);
+            if (!user.insertId)
+                throw new Error(`Failed to create new user ${user}`);
+            const token = (0, tokens_1.generateToken)();
+            if (!token)
+                throw new Error(`Failed to create new user (token) ${token}`);
+            const tokenId = yield rq(`INSERT INTO tokens (token) VALUES (?)`, [token]);
+            if (!tokenId.insertId)
+                throw new Error(`Failed to create new user (token insert) ${tokenId}`);
+            const relation = yield rq(`INSERT INTO user_token (user, token) VALUES (?, ? )`, [
+                user.insertId,
+                tokenId.insertId,
             ]);
-            console.log(created);
-            return created.insertId;
+            console.log("relation ", relation);
+            if (!relation.insertId)
+                throw new Error(`Failed to create user (user/token relation) ${relation}}`);
+            return token;
         }
         catch (error) {
             console.log(error);
@@ -133,13 +145,19 @@ const queries = {
     }),
     validateLogin: (email) => __awaiter(void 0, void 0, void 0, function* () {
         try {
-            const user = yield rq(`SELECT email, password FROM users WHERE email = ?`, [email]);
+            const user = yield rq(`SELECT  password, id FROM users WHERE email = ?`, [email]);
             return user;
         }
         catch (error) {
             console.log("Validate login ", error);
             return;
         }
+    }),
+    storeToken: (token, id) => __awaiter(void 0, void 0, void 0, function* () {
+        try {
+            // const tokenId = await rq(`insert into tokens`)
+        }
+        catch (error) { }
     }),
 };
 module.exports = queries;
