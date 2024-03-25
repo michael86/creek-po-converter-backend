@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const { selectEmail, createUser, validateLogin } = require("../sql/queries");
+const { selectEmail, createUser, validateLogin, validateUserToken } = require("../sql/queries");
 const tokens_1 = require("../utils/tokens");
 const sha256 = require("sha256");
 const express = require("express");
@@ -66,10 +66,12 @@ router.post("/login", (req, res) => __awaiter(void 0, void 0, void 0, function* 
         res.send({ status: 0 });
     }
 }));
-router.get("token-valid/:token", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { token } = req.params;
-    console.log(token);
+router.get("/validate-token/:token?/:email?", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { token, email } = req.params;
     try {
+        if (!token || !email)
+            throw new Error(`validate token failed ${token}`);
+        res.send({ valid: yield validateUserToken(email, token) });
     }
     catch (error) {
         console.log("Error validating token ", error);

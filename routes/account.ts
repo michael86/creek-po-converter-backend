@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-const { selectEmail, createUser, validateLogin } = require("../sql/queries");
+const { selectEmail, createUser, validateLogin, validateUserToken } = require("../sql/queries");
 import { generateToken } from "../utils/tokens";
 
 const sha256 = require("sha256");
@@ -66,11 +66,11 @@ router.post("/login", async (req: Request, res: Response) => {
   }
 });
 
-router.get("token-valid/:token", async (req: Request, res: Response) => {
-  const { token } = req.params;
-  console.log(token);
-
+router.get("/validate-token/:token?/:email?", async (req: Request, res: Response) => {
+  const { token, email } = req.params;
   try {
+    if (!token || !email) throw new Error(`validate token failed ${token}`);
+    res.send({ valid: await validateUserToken(email, token) });
   } catch (error) {
     console.log("Error validating token ", error);
     res.send({ status: 0 });
