@@ -141,7 +141,7 @@ const queries = {
         user.insertId,
         tokenId.insertId,
       ]);
-      console.log("relation ", relation);
+
       if (!relation.insertId)
         throw new Error(`Failed to create user (user/token relation) ${relation}}`);
 
@@ -166,6 +166,28 @@ const queries = {
     try {
       // const tokenId = await rq(`insert into tokens`)
     } catch (error) {}
+  },
+
+  validateUserToken: async (email: string, token: string) => {
+    try {
+      let user = await rq(`Select id from users Where email = ? `, [email]);
+      if (!user.length) return;
+      user = user[0].id;
+
+      let userTokenId = await rq(`select token from user_token where user = ?`, [user]);
+
+      if (!userTokenId[0].token) return;
+      userTokenId = userTokenId[0].token;
+
+      let _token = await rq(`select token from tokens where id = ?`, [userTokenId]);
+      if (!_token[0].token) return;
+      _token = _token[0].token;
+
+      return _token === token;
+    } catch (error) {
+      console.log("Failed to validate User Token ", error);
+      return;
+    }
   },
 };
 
