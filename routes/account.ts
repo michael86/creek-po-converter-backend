@@ -1,4 +1,6 @@
-import { Request, Response } from "express";
+import { RequestHandler } from "express";
+import { generateToken } from "../utils/tokens";
+
 const {
   selectEmail,
   createUser,
@@ -7,13 +9,12 @@ const {
   setTokenToNull,
   updateUserToken,
 } = require("../sql/queries");
-import { generateToken } from "../utils/tokens";
 
 const sha256 = require("sha256");
 const express = require("express");
 const router = express.Router();
 
-router.post("/register", async (req: Request, res: Response) => {
+const handleRegister: RequestHandler = async (req, res) => {
   try {
     let { email, password } = req.body.data;
     if (!email || !password || !email.includes("@creekviewelectronics.co.uk")) {
@@ -36,9 +37,9 @@ router.post("/register", async (req: Request, res: Response) => {
     console.log("registration error ", error);
     res.send({ status: 0 });
   }
-});
+};
 
-router.post("/login", async (req: Request, res: Response) => {
+const handleLogin: RequestHandler = async (req, res) => {
   try {
     let { email, password } = req.body.data;
 
@@ -73,9 +74,9 @@ router.post("/login", async (req: Request, res: Response) => {
     console.log("Log in error ", error);
     res.send({ status: 0 });
   }
-});
+};
 
-router.get("/validate-token/:token?/:email?", async (req: Request, res: Response) => {
+const validateToken: RequestHandler = async (req, res) => {
   const { token, email } = req.params;
   try {
     if (!token || !email) throw new Error(`validate token failed ${token}`);
@@ -84,16 +85,16 @@ router.get("/validate-token/:token?/:email?", async (req: Request, res: Response
     console.log("Error validating token ", error);
     res.send({ status: 0 });
   }
-});
+};
 
-router.post("/logout", async (req: Request, res: Response) => {
-  const { token, email } = req.body;
-
+const handleLogout: RequestHandler = async (req, res) => {
+  const { token, email } = req.headers;
+  console.log(req.headers);
   try {
     if (!token || !email)
       throw new Error(`Failed to log out user \n TOKEN: ${token}\n EMAIL: ${email}`);
 
-    const loggedout = await setTokenToNull(token);
+    const loggedout = await setTokenToNull(email, token);
     if (!loggedout) throw new Error(`Failed to log out user ${loggedout}`);
 
     res.send({ status: 1 });
@@ -101,6 +102,10 @@ router.post("/logout", async (req: Request, res: Response) => {
     console.log(error);
     res.send({ status: 0 });
   }
-});
+};
 
+router.post("/register", handleRegister);
+router.post("/login", handleLogin);
+router.get("/validate-token/:token?/:email?", validateToken);
+router.post("/logout", handleLogout);
 module.exports = router;

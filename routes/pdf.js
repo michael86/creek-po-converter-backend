@@ -31,15 +31,10 @@ router.post("/process", uploadStorage.single("pdf"), function (req, res) {
             (0, extract_pdf_1.processFile)(req.file.filename, (data) => __awaiter(this, void 0, void 0, function* () {
                 if (!data)
                     throw new Error("Failed to parse data from file");
-                // console.log(`PO: \x1b[31m${data.PURCHASE_ORDER}\x1b[37m`);
-                // console.log(`Order REf: \x1b[31m${data.ORDER_REFERENCE}\x1b[37m`);
-                // data.DATA.forEach((entry) => {
-                //   console.log(`Sku: \x1b[31m${entry[0]} | QTY: \x1b[31m${entry[1]}\x1b[37m`);
-                // });
                 const inserted = yield insertDataToDb(data);
                 if (!inserted)
                     throw new Error("failed to insert into database");
-                res.send({ status: 1 });
+                res.send({ status: 1, token: req.headers.newToken });
             }));
         }
         catch (err) {
@@ -51,10 +46,10 @@ router.post("/process", uploadStorage.single("pdf"), function (req, res) {
 router.get("/fetch/:id?", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     if (!req.params.id) {
         const purchaseOrders = yield fetchPurchaseOrders();
-        res.send({ status: 1, data: purchaseOrders });
+        res.send({ status: 1, data: purchaseOrders, token: req.headers.newToken });
         return;
     }
     const purchaseOrder = yield fetchPurchaseOrder(req.params.id);
-    res.send({ status: 1, data: purchaseOrder });
+    res.send({ status: 1, data: purchaseOrder, token: req.headers.newToken });
 }));
 module.exports = router;

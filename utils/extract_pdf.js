@@ -14,6 +14,7 @@ const pdf2table = require("pdf2table");
 const fs = require("fs/promises");
 const path = require("path");
 const pdfFolder = path.resolve(__dirname, "../public/pdf");
+// Prefixes to match against in PDF content
 const PREFIXES = [
     "econn",
     "ecapt",
@@ -49,6 +50,7 @@ const PREFIXES = [
     "epcb",
     "ecirb",
 ];
+// Extracts relevant data from table rows
 const getData = (rows) => {
     const data = [];
     rows.forEach((row) => {
@@ -64,47 +66,64 @@ const getData = (rows) => {
     });
     return data;
 };
+// Extracts order reference from table rows
 const getOrderReference = (rows) => {
+    var _a;
     let filtered = rows.filter((row) => row.length === 3 && row[0].toLowerCase().includes("order refer"));
-    if (!filtered[0][1])
-        throw new Error("failed to get order reference");
+    if (!((_a = filtered[0]) === null || _a === void 0 ? void 0 : _a[1]))
+        throw new Error("Failed to get order reference");
     return filtered[0][1];
 };
+// Extracts purchase order from table rows
 const getPurchaseOrder = (rows) => {
+    var _a;
     let filtered = rows.filter((row) => row.length === 3 && row[0].toLowerCase().includes("our p.o"));
-    if (!filtered[0][1])
-        throw new Error("failed to get P.O");
+    if (!((_a = filtered[0]) === null || _a === void 0 ? void 0 : _a[1]))
+        throw new Error("Failed to get P.O");
     return filtered[0][1];
 };
+// Processes a single PDF file
 const processFile = (file, cb) => __awaiter(void 0, void 0, void 0, function* () {
-    const fileData = yield fs.readFile(path.resolve(pdfFolder, file));
-    pdf2table.parse(fileData, function (err, rows) {
-        if (err)
-            return console.log(err);
-        const DATA = getData(rows);
-        const ORDER_REFERENCE = getOrderReference(rows);
-        const PURCHASE_ORDER = getPurchaseOrder(rows);
-        if (DATA.length) {
-            cb({
-                DATA,
-                ORDER_REFERENCE,
-                PURCHASE_ORDER,
-            });
-            return;
-        }
+    try {
+        const fileData = yield fs.readFile(path.resolve(pdfFolder, file));
+        pdf2table.parse(fileData, function (err, rows) {
+            if (err)
+                return console.log(err);
+            const DATA = getData(rows);
+            const ORDER_REFERENCE = getOrderReference(rows);
+            const PURCHASE_ORDER = getPurchaseOrder(rows);
+            if (DATA.length) {
+                cb({
+                    DATA,
+                    ORDER_REFERENCE,
+                    PURCHASE_ORDER,
+                });
+                return;
+            }
+            cb(null);
+        });
+    }
+    catch (error) {
+        console.error(`Error processing file ${file}: `, error);
         cb(null);
-    });
+    }
 });
 exports.processFile = processFile;
 const testFiles = () => __awaiter(void 0, void 0, void 0, function* () {
-    const dir = yield fs.readdir(pdfFolder);
-    const retval = [];
-    for (const file of dir) {
-        yield (0, exports.processFile)(file, (data) => {
-            if (data)
-                retval.push(data);
-        });
+    try {
+        const dir = yield fs.readdir(pdfFolder);
+        const retval = [];
+        for (const file of dir) {
+            yield (0, exports.processFile)(file, (data) => {
+                if (data)
+                    retval.push(data);
+            });
+        }
+        return retval;
     }
-    return retval;
+    catch (error) {
+        console.error("Error reading PDF files: ", error);
+        return [];
+    }
 });
 exports.testFiles = testFiles;

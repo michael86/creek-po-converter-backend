@@ -9,12 +9,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const { selectEmail, createUser, validateLogin, validateUserToken, setTokenToNull, updateUserToken, } = require("../sql/queries");
 const tokens_1 = require("../utils/tokens");
+const { selectEmail, createUser, validateLogin, validateUserToken, setTokenToNull, updateUserToken, } = require("../sql/queries");
 const sha256 = require("sha256");
 const express = require("express");
 const router = express.Router();
-router.post("/register", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const handleRegister = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         let { email, password } = req.body.data;
         if (!email || !password || !email.includes("@creekviewelectronics.co.uk")) {
@@ -36,8 +36,8 @@ router.post("/register", (req, res) => __awaiter(void 0, void 0, void 0, functio
         console.log("registration error ", error);
         res.send({ status: 0 });
     }
-}));
-router.post("/login", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+});
+const handleLogin = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         let { email, password } = req.body.data;
         if (!email || !password || !email.includes("@creekviewelectronics.co.uk")) {
@@ -67,8 +67,8 @@ router.post("/login", (req, res) => __awaiter(void 0, void 0, void 0, function* 
         console.log("Log in error ", error);
         res.send({ status: 0 });
     }
-}));
-router.get("/validate-token/:token?/:email?", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+});
+const validateToken = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { token, email } = req.params;
     try {
         if (!token || !email)
@@ -79,13 +79,14 @@ router.get("/validate-token/:token?/:email?", (req, res) => __awaiter(void 0, vo
         console.log("Error validating token ", error);
         res.send({ status: 0 });
     }
-}));
-router.post("/logout", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { token, email } = req.body;
+});
+const handleLogout = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { token, email } = req.headers;
+    console.log(req.headers);
     try {
         if (!token || !email)
             throw new Error(`Failed to log out user \n TOKEN: ${token}\n EMAIL: ${email}`);
-        const loggedout = yield setTokenToNull(token);
+        const loggedout = yield setTokenToNull(email, token);
         if (!loggedout)
             throw new Error(`Failed to log out user ${loggedout}`);
         res.send({ status: 1 });
@@ -94,5 +95,9 @@ router.post("/logout", (req, res) => __awaiter(void 0, void 0, void 0, function*
         console.log(error);
         res.send({ status: 0 });
     }
-}));
+});
+router.post("/register", handleRegister);
+router.post("/login", handleLogin);
+router.get("/validate-token/:token?/:email?", validateToken);
+router.post("/logout", handleLogout);
 module.exports = router;

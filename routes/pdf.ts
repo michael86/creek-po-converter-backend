@@ -33,19 +33,11 @@ router.post(
 
       processFile(req.file.filename, async (data: Data) => {
         if (!data) throw new Error("Failed to parse data from file");
-
-        // console.log(`PO: \x1b[31m${data.PURCHASE_ORDER}\x1b[37m`);
-        // console.log(`Order REf: \x1b[31m${data.ORDER_REFERENCE}\x1b[37m`);
-
-        // data.DATA.forEach((entry) => {
-        //   console.log(`Sku: \x1b[31m${entry[0]} | QTY: \x1b[31m${entry[1]}\x1b[37m`);
-        // });
-
         const inserted = await insertDataToDb(data);
 
         if (!inserted) throw new Error("failed to insert into database");
 
-        res.send({ status: 1 });
+        res.send({ status: 1, token: req.headers.newToken });
       });
     } catch (err) {
       console.log(`Error Processing PDF`);
@@ -57,11 +49,10 @@ router.post(
 router.get("/fetch/:id?", async (req: Request, res: Response) => {
   if (!req.params.id) {
     const purchaseOrders = await fetchPurchaseOrders();
-    res.send({ status: 1, data: purchaseOrders });
+    res.send({ status: 1, data: purchaseOrders, token: req.headers.newToken });
     return;
   }
-
   const purchaseOrder = await fetchPurchaseOrder(req.params.id);
-  res.send({ status: 1, data: purchaseOrder });
+  res.send({ status: 1, data: purchaseOrder, token: req.headers.newToken });
 });
 module.exports = router;
