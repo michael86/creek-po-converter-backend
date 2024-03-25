@@ -110,7 +110,6 @@ const queries = {
     selectEmail: (email) => __awaiter(void 0, void 0, void 0, function* () {
         try {
             const inUse = yield rq("select email from users where email = ?", [email]);
-            console.log(`in use `, inUse);
             return inUse.length;
         }
         catch (error) {
@@ -129,6 +128,16 @@ const queries = {
         }
         catch (error) {
             console.log(error);
+            return;
+        }
+    }),
+    validateLogin: (email) => __awaiter(void 0, void 0, void 0, function* () {
+        try {
+            const user = yield rq(`SELECT email, password FROM users WHERE email = ?`, [email]);
+            return user;
+        }
+        catch (error) {
+            console.log("Validate login ", error);
             return;
         }
     }),
