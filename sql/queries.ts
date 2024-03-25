@@ -181,7 +181,8 @@ const queries = {
       let _token = await rq(`select token from tokens where id = ?`, [userTokenId]);
       if (!_token[0].token) return;
       _token = _token[0].token;
-
+      console.log("_token ", _token);
+      console.log("token ", token);
       return _token === token;
     } catch (error) {
       console.log("Failed to validate User Token ", error);
@@ -191,6 +192,7 @@ const queries = {
   setTokenToNull: async (email: string, token: string) => {
     try {
       const userId = await rq(`SELECT id from users where email = ?`, [email]);
+
       if (!userId[0].id) return;
 
       const relation = await rq(`select token from user_token where user = ?`, userId[0].id);
@@ -227,8 +229,6 @@ const queries = {
         token,
         relation[0].token,
       ]);
-
-      console.log(_token);
 
       return true;
     } catch (error) {

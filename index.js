@@ -9,6 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const middleware_1 = require("./middleware");
 const { createSqlConnection } = require("./sql/connection");
 const express = require("express");
 const app = express();
@@ -18,7 +19,7 @@ require("dotenv").config();
 app.use(express.json());
 app.use(express.static("./public"));
 app.use(cors());
-app.use("/pdf", require("./routes/pdf"));
+app.use("/pdf", middleware_1.validateToken, require("./routes/pdf"));
 app.use("/account", require("./routes/account"));
 app.listen(6005, () => __awaiter(void 0, void 0, void 0, function* () {
     console.log(`listening port ${port}\nServer started`);

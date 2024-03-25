@@ -172,6 +172,8 @@ const queries = {
             if (!_token[0].token)
                 return;
             _token = _token[0].token;
+            console.log("_token ", _token);
+            console.log("token ", token);
             return _token === token;
         }
         catch (error) {
@@ -214,7 +216,6 @@ const queries = {
                 token,
                 relation[0].token,
             ]);
-            console.log(_token);
             return true;
         }
         catch (error) {
