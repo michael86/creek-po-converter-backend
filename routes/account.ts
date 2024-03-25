@@ -5,6 +5,7 @@ const {
   validateLogin,
   validateUserToken,
   setTokenToNull,
+  updateUserToken,
 } = require("../sql/queries");
 import { generateToken } from "../utils/tokens";
 
@@ -63,9 +64,11 @@ router.post("/login", async (req: Request, res: Response) => {
     const token = generateToken();
     if (!token) throw new Error(`Failed to generate token ${token}`);
 
-    // const tokenStored = await storeToken(token, user.id);
+    const tokenStored = await updateUserToken(email, token);
+    if (!tokenStored)
+      throw new Error(`Failed to update user token on logging in %\n ${tokenStored}`);
 
-    res.send({ status: 1 });
+    res.send({ status: 1, token });
   } catch (error) {
     console.log("Log in error ", error);
     res.send({ status: 0 });
@@ -90,7 +93,7 @@ router.post("/logout", async (req: Request, res: Response) => {
     if (!token || !email)
       throw new Error(`Failed to log out user \n TOKEN: ${token}\n EMAIL: ${email}`);
 
-    const loggedout = await setTokenToNull(email, token);
+    const loggedout = await setTokenToNull(token);
     if (!loggedout) throw new Error(`Failed to log out user ${loggedout}`);
 
     res.send({ status: 1 });

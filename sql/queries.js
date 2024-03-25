@@ -193,13 +193,32 @@ const queries = {
             if (_token[0].token !== token)
                 return;
             const tokenRemoved = yield rq(`UPDATE tokens SET token = null WHERE id = ?`, relation[0].token);
-            console.log("tokenRemoved ", tokenRemoved);
             if (!tokenRemoved.affectedRows)
                 return;
             return true;
         }
         catch (error) {
             console.log(`Failed to log out user: ${error}`);
+            return;
+        }
+    }),
+    updateUserToken: (email, token) => __awaiter(void 0, void 0, void 0, function* () {
+        try {
+            const userId = yield rq(`SELECT id from users where email = ?`, [email]);
+            if (!userId[0].id)
+                return;
+            const relation = yield rq(`select token from user_token where user = ?`, userId[0].id);
+            if (!relation[0].token)
+                return;
+            const _token = yield rq(`update tokens set token = ? where id = ?`, [
+                token,
+                relation[0].token,
+            ]);
+            console.log(_token);
+            return true;
+        }
+        catch (error) {
+            console.log(`Failed to update user token: ${error}`);
             return;
         }
     }),

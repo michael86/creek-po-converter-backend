@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const { selectEmail, createUser, validateLogin, validateUserToken, setTokenToNull, } = require("../sql/queries");
+const { selectEmail, createUser, validateLogin, validateUserToken, setTokenToNull, updateUserToken, } = require("../sql/queries");
 const tokens_1 = require("../utils/tokens");
 const sha256 = require("sha256");
 const express = require("express");
@@ -58,8 +58,10 @@ router.post("/login", (req, res) => __awaiter(void 0, void 0, void 0, function* 
         const token = (0, tokens_1.generateToken)();
         if (!token)
             throw new Error(`Failed to generate token ${token}`);
-        // const tokenStored = await storeToken(token, user.id);
-        res.send({ status: 1 });
+        const tokenStored = yield updateUserToken(email, token);
+        if (!tokenStored)
+            throw new Error(`Failed to update user token on logging in %\n ${tokenStored}`);
+        res.send({ status: 1, token });
     }
     catch (error) {
         console.log("Log in error ", error);
@@ -83,7 +85,7 @@ router.post("/logout", (req, res) => __awaiter(void 0, void 0, void 0, function*
     try {
         if (!token || !email)
             throw new Error(`Failed to log out user \n TOKEN: ${token}\n EMAIL: ${email}`);
-        const loggedout = yield setTokenToNull(email, token);
+        const loggedout = yield setTokenToNull(token);
         if (!loggedout)
             throw new Error(`Failed to log out user ${loggedout}`);
         res.send({ status: 1 });

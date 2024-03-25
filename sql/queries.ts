@@ -1,4 +1,3 @@
-import { create } from "domain";
 import { generateToken } from "../utils/tokens";
 
 type Data = { DATA: []; ORDER_REFERENCE: string; PURCHASE_ORDER: string };
@@ -213,6 +212,27 @@ const queries = {
       return true;
     } catch (error) {
       console.log(`Failed to log out user: ${error}`);
+      return;
+    }
+  },
+  updateUserToken: async (email: string, token: string) => {
+    try {
+      const userId = await rq(`SELECT id from users where email = ?`, [email]);
+      if (!userId[0].id) return;
+
+      const relation = await rq(`select token from user_token where user = ?`, userId[0].id);
+      if (!relation[0].token) return;
+
+      const _token = await rq(`update tokens set token = ? where id = ?`, [
+        token,
+        relation[0].token,
+      ]);
+
+      console.log(_token);
+
+      return true;
+    } catch (error) {
+      console.log(`Failed to update user token: ${error}`);
       return;
     }
   },
