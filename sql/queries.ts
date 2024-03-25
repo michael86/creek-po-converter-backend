@@ -117,7 +117,7 @@ const queries = {
   selectEmail: async (email: string) => {
     try {
       const inUse = await rq("select email from users where email = ?", [email]);
-      console.log(`in use `, inUse);
+
       return inUse.length;
     } catch (error) {
       console.log(error);
@@ -135,6 +135,16 @@ const queries = {
       return created.insertId;
     } catch (error) {
       console.log(error);
+      return;
+    }
+  },
+
+  validateLogin: async (email: string) => {
+    try {
+      const user = await rq(`SELECT email, password FROM users WHERE email = ?`, [email]);
+      return user;
+    } catch (error) {
+      console.log("Validate login ", error);
       return;
     }
   },
