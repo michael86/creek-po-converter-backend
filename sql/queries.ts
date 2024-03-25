@@ -1,4 +1,5 @@
 import { create } from "domain";
+import { generateToken } from "../utils/tokens";
 
 type Data = { DATA: []; ORDER_REFERENCE: string; PURCHASE_ORDER: string };
 const { runQuery: rq } = require("./connection");
@@ -127,12 +128,24 @@ const queries = {
 
   createUser: async (email: string, password: string) => {
     try {
-      const created = await rq("insert into users (email, password) values (?, ?)", [
-        email,
-        password,
+      const user = await rq("insert into users (email, password) values (?, ?)", [email, password]);
+      if (!user.insertId) throw new Error(`Failed to create new user ${user}`);
+
+      const token = generateToken();
+      if (!token) throw new Error(`Failed to create new user (token) ${token}`);
+
+      const tokenId = await rq(`INSERT INTO tokens (token) VALUES (?)`, [token]);
+      if (!tokenId.insertId) throw new Error(`Failed to create new user (token insert) ${tokenId}`);
+
+      const relation = await rq(`INSERT INTO user_token (user, token) VALUES (?, ? )`, [
+        user.insertId,
+        tokenId.insertId,
       ]);
-      console.log(created);
-      return created.insertId;
+      console.log("relation ", relation);
+      if (!relation.insertId)
+        throw new Error(`Failed to create user (user/token relation) ${relation}}`);
+
+      return token;
     } catch (error) {
       console.log(error);
       return;
@@ -141,12 +154,18 @@ const queries = {
 
   validateLogin: async (email: string) => {
     try {
-      const user = await rq(`SELECT email, password FROM users WHERE email = ?`, [email]);
+      const user = await rq(`SELECT  password, id FROM users WHERE email = ?`, [email]);
       return user;
     } catch (error) {
       console.log("Validate login ", error);
       return;
     }
+  },
+
+  storeToken: async (token: string, id: number) => {
+    try {
+      // const tokenId = await rq(`insert into tokens`)
+    } catch (error) {}
   },
 };
 

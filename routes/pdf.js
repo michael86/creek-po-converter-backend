@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const extract_pdf_1 = require("../modules/extract_pdf");
+const extract_pdf_1 = require("../utils/extract_pdf");
 const { insertDataToDb, fetchPurchaseOrders, fetchPurchaseOrder } = require("../sql/queries");
 const express = require("express");
 const multer = require("multer");
