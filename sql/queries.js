@@ -110,6 +110,7 @@ const queries = {
     selectEmail: (email) => __awaiter(void 0, void 0, void 0, function* () {
         try {
             const inUse = yield rq("select email from users where email = ?", [email]);
+            console.log(`in use `, inUse);
             return inUse.length;
         }
         catch (error) {

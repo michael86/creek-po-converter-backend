@@ -117,6 +117,7 @@ const queries = {
   selectEmail: async (email: string) => {
     try {
       const inUse = await rq("select email from users where email = ?", [email]);
+      console.log(`in use `, inUse);
       return inUse.length;
     } catch (error) {
       console.log(error);
