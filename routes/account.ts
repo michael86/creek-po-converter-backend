@@ -5,6 +5,7 @@ const express = require("express");
 const router = express.Router();
 
 router.post("/register", async (req: Request, res: Response) => {
+<<<<<<< HEAD
   try {
     let { email, password } = req.body.data;
     if (!email || !password || !email.includes("@creekviewelectronics.co.uk")) {
@@ -25,6 +26,10 @@ router.post("/register", async (req: Request, res: Response) => {
     res.send({ status: 1 });
   } catch (error) {
     console.log("registration error ", error);
+=======
+  let { email, password } = req.body.data;
+  if (!email || !password || !email.includes("@creekviewelectronics.co.uk")) {
+>>>>>>> 24ab32862e1dc26b59062530126ae77496b6346a
     res.send({ status: 0 });
   }
 });
