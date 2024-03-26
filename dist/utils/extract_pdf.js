@@ -53,17 +53,21 @@ const PREFIXES = [
 // Extracts relevant data from table rows
 const getData = (rows) => {
     const data = [];
-    rows.forEach((row) => {
+    rows.forEach((row, index) => {
+        console.log("row", row);
         row.forEach((string) => {
             PREFIXES.forEach((prefix) => {
                 var _a;
                 string = string.toLowerCase();
                 if (string.includes(prefix) && ((_a = row[1]) === null || _a === void 0 ? void 0 : _a.toLowerCase()) !== "stencil") {
                     row.length > 4 && data.push([row[1], Math.floor(+row[row.length - 2]).toString()]);
+                    console.log(row);
+                    console.log("description ", rows[index + 1]);
                 }
             });
         });
     });
+    console.log("data ", data);
     return data;
 };
 // Extracts order reference from table rows

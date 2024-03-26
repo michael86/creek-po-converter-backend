@@ -55,6 +55,10 @@ const queries = {
             return true;
         }
         catch (error) {
+            if ((error instanceof Error && error.message.includes("ER_DUP_ENTRY")) ||
+                (typeof error === "string" && error.includes("ER_DUP_ENTRY"))) {
+                return "dupe";
+            }
             console.log(`failed to insert data to db `, error);
             return false;
         }
@@ -210,10 +214,7 @@ const queries = {
             const relation = yield rq(`select token from user_token where user = ?`, userId[0].id);
             if (!relation[0].token)
                 return;
-            const _token = yield rq(`update tokens set token = ? where id = ?`, [
-                token,
-                relation[0].token,
-            ]);
+            yield rq(`update tokens set token = ? where id = ?`, [token, relation[0].token]);
             return true;
         }
         catch (error) {

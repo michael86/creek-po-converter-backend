@@ -47,16 +47,21 @@ const PREFIXES = [
 const getData = (rows: Rows) => {
   const data: string[][] = [];
 
-  rows.forEach((row) => {
+  rows.forEach((row, index) => {
+    console.log("row", row);
     row.forEach((string) => {
       PREFIXES.forEach((prefix) => {
         string = string.toLowerCase();
         if (string.includes(prefix) && row[1]?.toLowerCase() !== "stencil") {
           row.length > 4 && data.push([row[1], Math.floor(+row[row.length - 2]).toString()]);
+          console.log(row);
+          console.log("description ", rows[index + 1]);
         }
       });
     });
   });
+
+  console.log("data ", data);
 
   return data;
 };

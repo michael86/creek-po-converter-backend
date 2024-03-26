@@ -33,8 +33,15 @@ const process = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 return;
             }
             const inserted = yield insertDataToDb(data);
-            if (!inserted)
-                throw new Error("failed to insert into database");
+            if (inserted === "dupe") {
+                res.send({ status: 4, token: req.headers.newToken });
+                return;
+            }
+            if (inserted) {
+                console.log(`Error Processing PDF ${inserted}`);
+                res.status(500).send({ status: 2 });
+                return new Error("failed to insert into database");
+            }
             res.send({ status: 1, token: req.headers.newToken });
         }));
     }
