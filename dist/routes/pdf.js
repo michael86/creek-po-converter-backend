@@ -37,16 +37,16 @@ const process = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 res.send({ status: 4, token: req.headers.newToken });
                 return;
             }
-            if (inserted) {
-                console.log(`Error Processing PDF ${inserted}`);
+            if (!inserted) {
+                console.log(`Error Processing PDF (inserted) ${inserted}`);
                 res.status(500).send({ status: 2 });
-                return new Error("failed to insert into database");
+                return;
             }
             res.send({ status: 1, token: req.headers.newToken });
         }));
     }
     catch (err) {
-        console.log(`Error Processing PDF ${err}`);
+        console.log(`Error Processing PDF (err) ${err}`);
         res.status(500).send({ status: 2 });
     }
 });

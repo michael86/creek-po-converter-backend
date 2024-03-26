@@ -54,21 +54,22 @@ const PREFIXES = [
 const getData = (rows) => {
     const data = [];
     rows.forEach((row, index) => {
-        console.log("row", row);
-        row.forEach((string) => {
-            PREFIXES.forEach((prefix) => {
-                var _a;
-                string = string.toLowerCase();
-                if (string.includes(prefix) && ((_a = row[1]) === null || _a === void 0 ? void 0 : _a.toLowerCase()) !== "stencil") {
-                    row.length > 4 && data.push([row[1], Math.floor(+row[row.length - 2]).toString()]);
-                    console.log(row);
-                    console.log("description ", rows[index + 1]);
-                }
-            });
+        const lowerCasedRow = row.map((entry) => entry.toLowerCase());
+        const nextRow = rows[index + 1] || [];
+        lowerCasedRow.forEach((string, stringIndex) => {
+            if (shouldIncludeString(string, lowerCasedRow, stringIndex)) {
+                const quantityIndex = row.length - 2;
+                const quantity = Math.floor(+row[quantityIndex]).toString();
+                const nextRowFirstElement = nextRow[0] || "";
+                data.push([row[1], quantity, nextRowFirstElement]);
+            }
         });
     });
     console.log("data ", data);
     return data;
+};
+const shouldIncludeString = (string, row, index) => {
+    return PREFIXES.some((prefix) => string.includes(prefix) && row[1] !== "stencil" && row.length > 4);
 };
 // Extracts order reference from table rows
 const getOrderReference = (rows) => {

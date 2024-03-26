@@ -19,7 +19,10 @@ const queries = {
       const skuCountIds: number[][] = [];
 
       for (const part of data.DATA) {
-        const sku = await rq(`insert into part_number (part) values (?)`, [part[0]]);
+        const sku = await rq(`insert into part_number (part, description) values (?, ?)`, [
+          part[0],
+          part[2],
+        ]);
         const quantity = await rq(`INSERT INTO \`count\` (quantity) VALUES (?);`, [
           Number(part[1]),
         ]);
@@ -96,7 +99,7 @@ const queries = {
 
       const partNumbers: string[][] = [];
       for (const relation of partNumerRelations) {
-        const partNumber = await rq(`select part from part_number where id = ?`, [
+        const partNumber = await rq(`select part, description from part_number where id = ?`, [
           relation.part_number,
         ]);
         const qtyRelation = await rq(`select count from pn_count where part_number = ?`, [
@@ -106,7 +109,7 @@ const queries = {
         for (const count of qtyRelation) {
           const qty = await rq(`SELECT quantity FROM count WHERE id = ?`, [count.count]);
 
-          partNumbers.push([partNumber[0].part, qty[0].quantity]);
+          partNumbers.push([partNumber[0].part, qty[0].quantity, partNumber[0].description]);
         }
       }
 
