@@ -34,7 +34,6 @@ const process: RequestHandler = async (req, res) => {
 
     processFile(req.file.filename, async (data: Data) => {
       if (!data) {
-        console.log("No data in file");
         res.send({ status: 3, token: req.headers.newToken });
 
         return;
@@ -46,7 +45,7 @@ const process: RequestHandler = async (req, res) => {
       res.send({ status: 1, token: req.headers.newToken });
     });
   } catch (err) {
-    console.log(`Error Processing PDF`);
+    console.log(`Error Processing PDF ${err}`);
     res.status(500).send({ status: 2 });
   }
 };

@@ -16,7 +16,6 @@ const validateToken = (req, res, next) => __awaiter(void 0, void 0, void 0, func
     if (shouldSkipValidation(req.path) || req.path.includes("validate-token")) {
         return next();
     }
-    console.log("running middleware");
     try {
         const { email, token } = req.headers;
         if (!email || !token) {
@@ -24,7 +23,6 @@ const validateToken = (req, res, next) => __awaiter(void 0, void 0, void 0, func
             return res.status(400).send({ error: "Email or token missing" });
         }
         const valid = yield validateUserToken(email, token);
-        console.log("valid ", valid);
         if (!valid) {
             console.error("Token validation failed: Invalid token or email");
             return res.status(400).send({ error: "Token validation failed" });

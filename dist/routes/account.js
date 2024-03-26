@@ -41,7 +41,6 @@ const handleLogin = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
     try {
         let { email, password } = req.body.data;
         if (!email || !password || !email.includes("@creekviewelectronics.co.uk")) {
-            console.log("not valid");
             res.send({ status: 0 });
             return;
         }
@@ -82,7 +81,6 @@ const validateToken = (req, res) => __awaiter(void 0, void 0, void 0, function* 
 });
 const handleLogout = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { token, email } = req.headers;
-    console.log(req.headers);
     try {
         if (!token || !email)
             throw new Error(`Failed to log out user \n TOKEN: ${token}\n EMAIL: ${email}`);
