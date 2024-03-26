@@ -44,7 +44,6 @@ const handleLogin: RequestHandler = async (req, res) => {
     let { email, password } = req.body.data;
 
     if (!email || !password || !email.includes("@creekviewelectronics.co.uk")) {
-      console.log("not valid");
       res.send({ status: 0 });
       return;
     }
@@ -89,7 +88,7 @@ const validateToken: RequestHandler = async (req, res) => {
 
 const handleLogout: RequestHandler = async (req, res) => {
   const { token, email } = req.headers;
-  console.log(req.headers);
+
   try {
     if (!token || !email)
       throw new Error(`Failed to log out user \n TOKEN: ${token}\n EMAIL: ${email}`);

@@ -6,7 +6,7 @@ export const validateToken: RequestHandler = async (req, res, next) => {
   if (shouldSkipValidation(req.path) || req.path.includes("validate-token")) {
     return next();
   }
-  console.log("running middleware");
+
   try {
     const { email, token } = req.headers;
 
@@ -16,7 +16,7 @@ export const validateToken: RequestHandler = async (req, res, next) => {
     }
 
     const valid = await validateUserToken(email, token);
-    console.log("valid ", valid);
+
     if (!valid) {
       console.error("Token validation failed: Invalid token or email");
       return res.status(400).send({ error: "Token validation failed" });
