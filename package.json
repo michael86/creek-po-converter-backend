@@ -32,6 +32,7 @@
     "typescript": "^5.4.2"
   },
   "devDependencies": {
+    "@types/multer": "^1.4.11",
     "@types/node": "^20.11.30"
   }
 }
