@@ -48,22 +48,28 @@ const getData = (rows: Rows) => {
   const data: string[][] = [];
 
   rows.forEach((row, index) => {
-    console.log("row", row);
-    row.forEach((string) => {
-      PREFIXES.forEach((prefix) => {
-        string = string.toLowerCase();
-        if (string.includes(prefix) && row[1]?.toLowerCase() !== "stencil") {
-          row.length > 4 && data.push([row[1], Math.floor(+row[row.length - 2]).toString()]);
-          console.log(row);
-          console.log("description ", rows[index + 1]);
-        }
-      });
+    const lowerCasedRow = row.map((entry) => entry.toLowerCase());
+    const nextRow = rows[index + 1] || [];
+
+    lowerCasedRow.forEach((string, stringIndex) => {
+      if (shouldIncludeString(string, lowerCasedRow, stringIndex)) {
+        const quantityIndex = row.length - 2;
+        const quantity = Math.floor(+row[quantityIndex]).toString();
+        const nextRowFirstElement = nextRow[0] || "";
+        data.push([row[1], quantity, nextRowFirstElement]);
+      }
     });
   });
 
   console.log("data ", data);
 
   return data;
+};
+
+const shouldIncludeString = (string: string, row: string[], index: number): boolean => {
+  return PREFIXES.some(
+    (prefix) => string.includes(prefix) && row[1] !== "stencil" && row.length > 4
+  );
 };
 
 // Extracts order reference from table rows

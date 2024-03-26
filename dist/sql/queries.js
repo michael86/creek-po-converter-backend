@@ -26,7 +26,10 @@ const queries = {
                 throw new Error(order);
             const skuCountIds = [];
             for (const part of data.DATA) {
-                const sku = yield rq(`insert into part_number (part) values (?)`, [part[0]]);
+                const sku = yield rq(`insert into part_number (part, description) values (?, ?)`, [
+                    part[0],
+                    part[2],
+                ]);
                 const quantity = yield rq(`INSERT INTO \`count\` (quantity) VALUES (?);`, [
                     Number(part[1]),
                 ]);
@@ -90,7 +93,7 @@ const queries = {
             const partNumerRelations = yield rq(`SELECT part_number FROM po_pn WHERE purchase_order = ? `, [poId]);
             const partNumbers = [];
             for (const relation of partNumerRelations) {
-                const partNumber = yield rq(`select part from part_number where id = ?`, [
+                const partNumber = yield rq(`select part, description from part_number where id = ?`, [
                     relation.part_number,
                 ]);
                 const qtyRelation = yield rq(`select count from pn_count where part_number = ?`, [
@@ -98,7 +101,7 @@ const queries = {
                 ]);
                 for (const count of qtyRelation) {
                     const qty = yield rq(`SELECT quantity FROM count WHERE id = ?`, [count.count]);
-                    partNumbers.push([partNumber[0].part, qty[0].quantity]);
+                    partNumbers.push([partNumber[0].part, qty[0].quantity, partNumber[0].description]);
                 }
             }
             return {
