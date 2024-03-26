@@ -9,9 +9,24 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const extract_pdf_1 = require("./modules/extract_pdf");
+const middleware_1 = require("./middleware");
+const { createSqlConnection } = require("./sql/connection");
+const express = require("express");
+const app = express();
+const cors = require("cors");
+const port = process.env.PORT || 6005;
+require("dotenv").config();
+app.use(express.json());
+app.use(express.static("./public"));
+app.use(cors());
+app.use("/pdf", middleware_1.validateToken, require("./routes/pdf"));
+app.use("/account", require("./routes/account"));
+app.listen(6005, () => __awaiter(void 0, void 0, void 0, function* () {
+    console.log(`listening port ${port}\nServer started`);
+    console.log("connecting to database");
+    createSqlConnection();
+}));
 //uncomment to test files
-(() => __awaiter(void 0, void 0, void 0, function* () {
-    const data = yield (0, extract_pdf_1.testFiles)();
-    console.log(data);
-}))();
+// (async () => {
+//   const data = await testFiles();
+// })();

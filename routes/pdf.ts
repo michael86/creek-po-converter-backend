@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { Request, Response, RequestHandler } from "express";
 import { processFile } from "../utils/extract_pdf";
 const { insertDataToDb, fetchPurchaseOrders, fetchPurchaseOrder } = require("../sql/queries");
 
@@ -8,45 +8,50 @@ const multer = require("multer");
 const router = express.Router();
 
 const storage = multer.diskStorage({
-  destination: (req: Request, file: any, cb: Function) => {
+  destination: (
+    _req: Request,
+    _file: Express.Multer.File,
+    cb: (error: Error | null, destination: string) => void
+  ) => {
     cb(null, "public/pdf/");
   },
-  filename: (req: Request, file: any, cb: Function) => {
+  filename: (
+    _req: Request,
+    file: Express.Multer.File,
+    cb: (error: Error | null, filename: string) => void
+  ) => {
     cb(null, file.originalname);
   },
 });
 
-interface MulterRequest extends Request {
-  file: any;
-}
-
 const uploadStorage = multer({ storage: storage });
 
-router.post(
-  "/process",
-  uploadStorage.single("pdf"),
-  async function (req: MulterRequest, res: Response) {
-    try {
-      if (!req.file) throw new Error("no file fount");
+const process: RequestHandler = async (req, res) => {
+  try {
+    if (!req.file) throw new Error("no file fount");
 
-      type Data = { DATA: []; ORDER_REFERENCE: string; PURCHASE_ORDER: string };
+    type Data = { DATA: []; ORDER_REFERENCE: string; PURCHASE_ORDER: string };
 
-      processFile(req.file.filename, async (data: Data) => {
-        if (!data) throw new Error("Failed to parse data from file");
-        const inserted = await insertDataToDb(data);
+    processFile(req.file.filename, async (data: Data) => {
+      if (!data) {
+        console.log("No data in file");
+        res.send({ status: 3, token: req.headers.newToken });
 
-        if (!inserted) throw new Error("failed to insert into database");
+        return;
+      }
 
-        res.send({ status: 1, token: req.headers.newToken });
-      });
-    } catch (err) {
-      console.log(`Error Processing PDF`);
-      res.status(500).send({ status: 2 });
-    }
+      const inserted = await insertDataToDb(data);
+      if (!inserted) throw new Error("failed to insert into database");
+
+      res.send({ status: 1, token: req.headers.newToken });
+    });
+  } catch (err) {
+    console.log(`Error Processing PDF`);
+    res.status(500).send({ status: 2 });
   }
-);
+};
 
-router.get("/fetch/:id?", async (req: Request, res: Response) => {
+const fetch: RequestHandler = async (req, res) => {
   if (!req.params.id) {
     const purchaseOrders = await fetchPurchaseOrders();
     res.send({ status: 1, data: purchaseOrders, token: req.headers.newToken });
@@ -54,5 +59,8 @@ router.get("/fetch/:id?", async (req: Request, res: Response) => {
   }
   const purchaseOrder = await fetchPurchaseOrder(req.params.id);
   res.send({ status: 1, data: purchaseOrder, token: req.headers.newToken });
-});
+};
+
+router.post("/process", uploadStorage.single("pdf"), process);
+router.get("/fetch/:id?", fetch);
 module.exports = router;
