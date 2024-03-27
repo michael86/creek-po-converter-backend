@@ -63,7 +63,11 @@ const process: RequestHandler = async (req, res) => {
 const fetch: RequestHandler = async (req, res) => {
   if (!req.params.id) {
     const purchaseOrders = await fetchPurchaseOrders();
-    res.send({ status: 1, data: purchaseOrders, token: req.headers.newToken });
+    res.send({
+      status: 1,
+      data: purchaseOrders.map((po: { purchaseOrder: string }) => po.purchaseOrder),
+      token: req.headers.newToken,
+    });
     return;
   }
   const purchaseOrder = await fetchPurchaseOrder(req.params.id);

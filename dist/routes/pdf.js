@@ -53,7 +53,11 @@ const process = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
 const fetch = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     if (!req.params.id) {
         const purchaseOrders = yield fetchPurchaseOrders();
-        res.send({ status: 1, data: purchaseOrders, token: req.headers.newToken });
+        res.send({
+            status: 1,
+            data: purchaseOrders.map((po) => po.purchaseOrder),
+            token: req.headers.newToken,
+        });
         return;
     }
     const purchaseOrder = yield fetchPurchaseOrder(req.params.id);
