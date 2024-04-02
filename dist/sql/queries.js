@@ -59,7 +59,7 @@ const queries = {
                 (typeof error === "string" && error.includes("ER_DUP_ENTRY"))) {
                 return "dupe";
             }
-            console.log(`failed to insert data to db `, error);
+            console.error(`failed to insert data to db `, error);
             return false;
         }
     }),
@@ -69,7 +69,7 @@ const queries = {
             return [...data];
         }
         catch (error) {
-            console.log(error);
+            console.error(error);
             return false;
         }
     }),
@@ -102,11 +102,10 @@ const queries = {
                 ]);
                 for (const count of qtyRelation) {
                     const qty = yield rq(`SELECT quantity FROM total_ordered WHERE id = ?`, [count.count]);
-                    console.log("qty ", qty);
                     retval.partNumbers[partNumber[0].part] = {
                         name: partNumber[0].part,
                         totalOrdered: qty[0].quantity,
-                        quantityReceived: qty[0].quantity,
+                        quantityAwaited: qty[0].quantity,
                         partial: partNumber[0].partial_delivery,
                         description: partNumber[0].description,
                     };
@@ -129,7 +128,7 @@ const queries = {
             return inUse.length;
         }
         catch (error) {
-            console.log(error);
+            console.error(error);
             return;
         }
     }),
@@ -155,7 +154,7 @@ const queries = {
             return token;
         }
         catch (error) {
-            console.log(error);
+            console.error(error);
             return;
         }
     }),
@@ -165,15 +164,9 @@ const queries = {
             return user;
         }
         catch (error) {
-            console.log("Validate login ", error);
+            console.error("Validate login ", error);
             return;
         }
-    }),
-    storeToken: (token, id) => __awaiter(void 0, void 0, void 0, function* () {
-        try {
-            // const tokenId = await rq(`insert into tokens`)
-        }
-        catch (error) { }
     }),
     validateUserToken: (email, token) => __awaiter(void 0, void 0, void 0, function* () {
         try {
@@ -192,7 +185,7 @@ const queries = {
             return _token === token;
         }
         catch (error) {
-            console.log("Failed to validate User Token ", error);
+            console.error("Failed to validate User Token ", error);
             return;
         }
     }),
@@ -215,7 +208,7 @@ const queries = {
             return true;
         }
         catch (error) {
-            console.log(`Failed to log out user: ${error}`);
+            console.error(`Failed to log out user: ${error}`);
             return;
         }
     }),
@@ -231,8 +224,32 @@ const queries = {
             return true;
         }
         catch (error) {
-            console.log(`Failed to update user token: ${error}`);
+            console.error(`Failed to update user token: ${error}`);
             return;
+        }
+    }),
+    patchPartialStatus: (order, name) => __awaiter(void 0, void 0, void 0, function* () {
+        try {
+            const id = yield rq(`SELECT id from purchase_order WHERE purchase_order = ?`, [order]);
+            if (!id[0])
+                throw new Error(`Failed to select id for purchase order ${order}`);
+            const partIds = yield rq(`SELECT id, part as name from part_number WHERE part = ?`, [
+                name,
+            ]);
+            let target;
+            for (const part of partIds) {
+                if (part.name.toLowerCase() === name.toLowerCase()) {
+                    target = part.id;
+                    break;
+                }
+            }
+            const res = yield rq(`UPDATE part_number SET partial_delivery = 1 Where id = ?`, [target]);
+            if (!res.affectedRows)
+                throw new Error(`Failed to set partial_delivery to 1 for id ${target}`);
+            return true;
+        }
+        catch (error) {
+            return error;
         }
     }),
 };
