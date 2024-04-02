@@ -252,5 +252,35 @@ const queries = {
             return error;
         }
     }),
+    addParcelsToOrder: (parcels, purchaseOrder, part) => __awaiter(void 0, void 0, void 0, function* () {
+        try {
+            const parcelIds = [];
+            for (const parcel of parcels) {
+                const res = yield rq(`insert into amount_received (amount_received) values (?)`, [parcel]);
+                if (!res.insertId)
+                    throw new Error(`Failed to insert new parcel ${parcels}`);
+                parcelIds.push(res.insertId);
+            }
+            const purchaseId = yield rq("select id from purchase_order where purchase_order = ?", [
+                purchaseOrder,
+            ]);
+            if (!purchaseId[0].id)
+                throw new Error(`Failed to select id for purchase ${purchaseOrder}`);
+            const partId = yield rq("Select id from part_number where part = ? ", [part]);
+            console.log("erm?", partId);
+            if (!partId[0].id)
+                throw new Error(`Failed to select id for part_number ${part}`);
+            for (const id of parcelIds) {
+                const result = yield rq("insert into pn_received (part_number, amount_received) values (?,?)", [partId[0].id, id]);
+                console.log(result);
+                if (!result.insertId)
+                    throw new Error(`Failed to create relation between parcel and part\nParcel: ${parcels}\nPart: ${part} `);
+            }
+            return true;
+        }
+        catch (error) {
+            return error;
+        }
+    }),
 };
 module.exports = queries;

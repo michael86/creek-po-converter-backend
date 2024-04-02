@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const { patchPartialStatus } = require("../sql/queries");
+const { patchPartialStatus, addParcelsToOrder } = require("../sql/queries");
 const express = require("express");
 const router = express.Router();
 const updatePartNumber = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -25,5 +25,20 @@ const updatePartNumber = (req, res) => __awaiter(void 0, void 0, void 0, functio
         res.status(500).send({ status: 0 });
     }
 });
+const addParcel = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { parcels, purchaseOrder, part } = req.body;
+        if (!parcels || !purchaseOrder || !part) {
+            res.status(400).send();
+            return;
+        }
+        const result = yield addParcelsToOrder(parcels, purchaseOrder, part);
+    }
+    catch (error) {
+        console.log(`error trying to add new parcels to order ${error}`);
+    }
+    res.send({ token: req.headers.newToken });
+});
 router.patch("/set-partial/:order?/:name?", updatePartNumber);
+router.put("/add-parcel/", addParcel);
 module.exports = router;

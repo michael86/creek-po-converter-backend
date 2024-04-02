@@ -1,5 +1,5 @@
 import { RequestHandler } from "express";
-const { patchPartialStatus } = require("../sql/queries");
+const { patchPartialStatus, addParcelsToOrder } = require("../sql/queries");
 
 const express = require("express");
 const router = express.Router();
@@ -17,5 +17,23 @@ const updatePartNumber: RequestHandler = async (req, res) => {
   }
 };
 
+type AddParcelBody = { parcels: number[]; purchaseOrder: string; part: string };
+const addParcel: RequestHandler = async (req, res) => {
+  try {
+    const { parcels, purchaseOrder, part }: AddParcelBody = req.body;
+    if (!parcels || !purchaseOrder || !part) {
+      res.status(400).send();
+      return;
+    }
+
+    const result = await addParcelsToOrder(parcels, purchaseOrder, part);
+  } catch (error) {
+    console.log(`error trying to add new parcels to order ${error}`);
+  }
+
+  res.send({ token: req.headers.newToken });
+};
+
 router.patch("/set-partial/:order?/:name?", updatePartNumber);
+router.put("/add-parcel/", addParcel);
 module.exports = router;
