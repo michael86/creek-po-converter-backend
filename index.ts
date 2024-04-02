@@ -13,6 +13,7 @@ app.use(cors());
 
 app.use("/pdf", validateToken, require("./routes/pdf"));
 app.use("/account", require("./routes/account"));
+app.use("/purchase/", validateToken, require("./routes/purchase_orders"));
 
 app.listen(6005, async () => {
   console.log(`listening port ${port}\nServer started`);

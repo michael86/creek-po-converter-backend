@@ -9,7 +9,7 @@ export type PurchaseOrder = {
   partNumbers: {
     [key: string]: {
       name: string;
-      quantityReceived: number[][];
+      quantityAwaited: number[][];
       partial: 1 | 0;
       totalOrdered: number;
       description: string;
@@ -125,7 +125,7 @@ const queries = {
           retval.partNumbers[partNumber[0].part] = {
             name: partNumber[0].part,
             totalOrdered: qty[0].quantity,
-            quantityReceived: qty[0].quantity,
+            quantityAwaited: qty[0].quantity,
             partial: partNumber[0].partial_delivery,
             description: partNumber[0].description,
           };
@@ -185,11 +185,7 @@ const queries = {
       return;
     }
   },
-  storeToken: async (token: string, id: number) => {
-    try {
-      // const tokenId = await rq(`insert into tokens`)
-    } catch (error) {}
-  },
+
   validateUserToken: async (email: string, token: string) => {
     try {
       let user = await rq(`Select id from users Where email = ? `, [email]);
@@ -248,6 +244,32 @@ const queries = {
     } catch (error) {
       console.error(`Failed to update user token: ${error}`);
       return;
+    }
+  },
+  patchPartialStatus: async (order: string, name: string) => {
+    type PartIds = { id: number; name: string }[];
+    try {
+      const id = await rq(`SELECT id from purchase_order WHERE purchase_order = ?`, [order]);
+      if (!id[0]) throw new Error(`Failed to select id for purchase order ${order}`);
+      const partIds: PartIds = await rq(`SELECT id, part as name from part_number WHERE part = ?`, [
+        name,
+      ]);
+
+      let target;
+      for (const part of partIds) {
+        if (part.name.toLowerCase() === name.toLowerCase()) {
+          target = part.id;
+          break;
+        }
+      }
+
+      const res = await rq(`UPDATE part_number SET partial_delivery = 1 Where id = ?`, [target]);
+      if (!res.affectedRows)
+        throw new Error(`Failed to set partial_delivery to 1 for id ${target}`);
+
+      return true;
+    } catch (error) {
+      return error;
     }
   },
 };
