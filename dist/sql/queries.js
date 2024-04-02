@@ -26,12 +26,9 @@ const queries = {
                 throw new Error(order);
             const skuCountIds = [];
             for (const part of data.DATA) {
-                const sku = yield rq(`insert into part_number (part, description) values (?, ?)`, [
-                    part[0],
-                    part[2],
-                ]);
-                const quantity = yield rq(`INSERT INTO \`count\` (quantity) VALUES (?);`, [
-                    Number(part[1]),
+                const [sku, quantity] = yield Promise.all([
+                    rq(`insert into part_number (part, description) values (?, ?)`, [part[0], part[2]]),
+                    rq(`INSERT INTO \`total_ordered\` (quantity) VALUES (?);`, [Number(part[1])]),
                 ]);
                 if (!sku.insertId || !quantity.insertId)
                     throw new Error(`sku: ${sku} \n qty: ${quantity}`);
@@ -91,28 +88,39 @@ const queries = {
                 throw new Error(`order_reference Failed to find ${id}`);
             orderRef = orderRef[0].order_reference;
             const partNumerRelations = yield rq(`SELECT part_number FROM po_pn WHERE purchase_order = ? `, [poId]);
-            const partNumbers = [];
+            const retval = {
+                purchaseOrder: id,
+                orderRef,
+                partNumbers: {},
+            };
             for (const relation of partNumerRelations) {
-                const partNumber = yield rq(`select part, description from part_number where id = ?`, [
-                    relation.part_number,
-                ]);
-                const qtyRelation = yield rq(`select count from pn_count where part_number = ?`, [
-                    relation.part_number,
+                const [partNumber, qtyRelation] = yield Promise.all([
+                    rq(`select part, description, partial_delivery from part_number where id = ?`, [
+                        relation.part_number,
+                    ]),
+                    rq(`select count from pn_count where part_number = ?`, [relation.part_number]),
                 ]);
                 for (const count of qtyRelation) {
-                    const qty = yield rq(`SELECT quantity FROM count WHERE id = ?`, [count.count]);
-                    partNumbers.push([partNumber[0].part, qty[0].quantity, partNumber[0].description]);
+                    const qty = yield rq(`SELECT quantity FROM total_ordered WHERE id = ?`, [count.count]);
+                    console.log("qty ", qty);
+                    retval.partNumbers[partNumber[0].part] = {
+                        name: partNumber[0].part,
+                        totalOrdered: qty[0].quantity,
+                        quantityReceived: qty[0].quantity,
+                        partial: partNumber[0].partial_delivery,
+                        description: partNumber[0].description,
+                    };
                 }
             }
             return {
                 purchaseOrder: id,
                 orderRef,
-                partNumbers,
+                partNumbers: retval.partNumbers,
             };
         }
         catch (error) {
-            console.log(error);
-            return false;
+            console.error(error);
+            return null;
         }
     }),
     selectEmail: (email) => __awaiter(void 0, void 0, void 0, function* () {
@@ -127,10 +135,12 @@ const queries = {
     }),
     createUser: (email, password) => __awaiter(void 0, void 0, void 0, function* () {
         try {
-            const user = yield rq("insert into users (email, password) values (?, ?)", [email, password]);
+            const [user, token] = yield Promise.all([
+                rq("insert into users (email, password) values (?, ?)", [email, password]),
+                (0, tokens_1.generateToken)(),
+            ]);
             if (!user.insertId)
                 throw new Error(`Failed to create new user ${user}`);
-            const token = (0, tokens_1.generateToken)();
             if (!token)
                 throw new Error(`Failed to create new user (token) ${token}`);
             const tokenId = yield rq(`INSERT INTO tokens (token) VALUES (?)`, [token]);
