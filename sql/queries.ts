@@ -272,6 +272,41 @@ const queries = {
       return error;
     }
   },
+  addParcelsToOrder: async (parcels: number[], purchaseOrder: string, part: string) => {
+    try {
+      const parcelIds: number[] = [];
+      for (const parcel of parcels) {
+        const res = await rq(`insert into amount_received (amount_received) values (?)`, [parcel]);
+        if (!res.insertId) throw new Error(`Failed to insert new parcel ${parcels}`);
+        parcelIds.push(res.insertId);
+      }
+
+      const purchaseId = await rq("select id from purchase_order where purchase_order = ?", [
+        purchaseOrder,
+      ]);
+      if (!purchaseId[0].id) throw new Error(`Failed to select id for purchase ${purchaseOrder}`);
+
+      const partId = await rq("Select id from part_number where part = ? ", [part]);
+      console.log("erm?", partId);
+      if (!partId[0].id) throw new Error(`Failed to select id for part_number ${part}`);
+
+      for (const id of parcelIds) {
+        const result = await rq(
+          "insert into pn_received (part_number, amount_received) values (?,?)",
+          [partId[0].id, id]
+        );
+        console.log(result);
+        if (!result.insertId)
+          throw new Error(
+            `Failed to create relation between parcel and part\nParcel: ${parcels}\nPart: ${part} `
+          );
+      }
+
+      return true;
+    } catch (error) {
+      return error;
+    }
+  },
 };
 
 module.exports = queries;
