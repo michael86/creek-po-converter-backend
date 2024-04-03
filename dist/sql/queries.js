@@ -127,7 +127,6 @@ const queries = {
                     (_a = retval.partNumbers[partNumber[0].part].partsReceived) === null || _a === void 0 ? void 0 : _a.push(total.amount_received);
                 }
             }
-            console.log("retval ", retval.partNumbers);
             return {
                 purchaseOrder: id,
                 orderRef,
