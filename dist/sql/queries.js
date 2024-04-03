@@ -74,6 +74,7 @@ const queries = {
         }
     }),
     fetchPurchaseOrder: (id) => __awaiter(void 0, void 0, void 0, function* () {
+        var _a;
         try {
             let poId = yield rq(`SELECT id FROM purchase_order WHERE purchase_order = ?`, [id]);
             if (!poId[0].id)
@@ -94,23 +95,39 @@ const queries = {
                 partNumbers: {},
             };
             for (const relation of partNumerRelations) {
-                const [partNumber, qtyRelation] = yield Promise.all([
+                const [partNumber, qtyRelation, partsReceived] = yield Promise.all([
                     rq(`select part, description, partial_delivery from part_number where id = ?`, [
                         relation.part_number,
                     ]),
                     rq(`select count from pn_count where part_number = ?`, [relation.part_number]),
+                    rq(`select amount_received from pn_received where part_number = ?`, [
+                        relation.part_number,
+                    ]),
                 ]);
+                retval.partNumbers[partNumber[0].part] = {
+                    name: partNumber[0].part,
+                    totalOrdered: undefined,
+                    quantityAwaited: undefined,
+                    partial: partNumber[0].partial_delivery,
+                    description: partNumber[0].description,
+                    partsReceived: undefined,
+                };
                 for (const count of qtyRelation) {
                     const qty = yield rq(`SELECT quantity FROM total_ordered WHERE id = ?`, [count.count]);
-                    retval.partNumbers[partNumber[0].part] = {
-                        name: partNumber[0].part,
-                        totalOrdered: qty[0].quantity,
-                        quantityAwaited: qty[0].quantity,
-                        partial: partNumber[0].partial_delivery,
-                        description: partNumber[0].description,
-                    };
+                    retval.partNumbers[partNumber[0].part].totalOrdered = qty[0].quantity;
+                    retval.partNumbers[partNumber[0].part].quantityAwaited = qty[0].quantity;
+                }
+                retval.partNumbers[partNumber[0].part].partsReceived = partsReceived.length
+                    ? []
+                    : undefined;
+                for (const { amount_received } of partsReceived) {
+                    const [total] = yield rq(`select amount_received from amount_received where id = ?`, [
+                        amount_received,
+                    ]);
+                    (_a = retval.partNumbers[partNumber[0].part].partsReceived) === null || _a === void 0 ? void 0 : _a.push(total.amount_received);
                 }
             }
+            console.log("retval ", retval.partNumbers);
             return {
                 purchaseOrder: id,
                 orderRef,
@@ -267,12 +284,10 @@ const queries = {
             if (!purchaseId[0].id)
                 throw new Error(`Failed to select id for purchase ${purchaseOrder}`);
             const partId = yield rq("Select id from part_number where part = ? ", [part]);
-            console.log("erm?", partId);
             if (!partId[0].id)
                 throw new Error(`Failed to select id for part_number ${part}`);
             for (const id of parcelIds) {
                 const result = yield rq("insert into pn_received (part_number, amount_received) values (?,?)", [partId[0].id, id]);
-                console.log(result);
                 if (!result.insertId)
                     throw new Error(`Failed to create relation between parcel and part\nParcel: ${parcels}\nPart: ${part} `);
             }
