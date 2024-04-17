@@ -33,6 +33,7 @@ const process: RequestHandler = async (req, res) => {
     type Data = { DATA: []; ORDER_REFERENCE: string; PURCHASE_ORDER: string };
 
     processFile(req.file.filename, async (data: Data) => {
+      console.log('data ', data)
       if (!data) {
         res.send({ status: 3, token: req.headers.newToken });
 
