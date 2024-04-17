@@ -2,8 +2,8 @@
 -- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
--- Host: localhost
--- Generation Time: Apr 17, 2024 at 01:50 PM
+-- Host: 127.0.0.1
+-- Generation Time: Apr 17, 2024 at 02:53 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -255,6 +255,18 @@ INSERT INTO `po_pn` (`id`, `purchase_order`, `part_number`) VALUES
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `prefixes`
+--
+
+CREATE TABLE `prefixes` (
+  `id` int(11) NOT NULL,
+  `prefix` varchar(255) NOT NULL,
+  `date_created` datetime NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `purchase_order`
 --
 
@@ -358,6 +370,7 @@ CREATE TABLE `users` (
   `id` int(11) NOT NULL,
   `email` varchar(255) NOT NULL,
   `password` varchar(255) NOT NULL,
+  `role` int(11) DEFAULT NULL CHECK (`role` < 6),
   `date_created` datetime NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -365,13 +378,26 @@ CREATE TABLE `users` (
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id`, `email`, `password`, `date_created`) VALUES
-(1, 'michaelh@creekviewelectronics.co.uk', 'e434f534525192c75677c3815ff15b32877dded69826b5128fd1deec918a9e9a', '2024-04-16 10:54:49'),
-(2, 'georges@creekviewelectronics.co.uk', 'a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3', '2024-04-16 11:02:41'),
-(3, 'rsmith@creekviewelectronics.co.uk', 'e4b5b1f45677c45cc04438cf1b16f3420edaf44567d13163083e1e1789ecaa5e', '2024-04-16 11:07:28'),
-(4, 'joes@creekviewelectronics.co.uk', 'a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3', '2024-04-16 11:16:09'),
-(5, 'purchasing@creekviewelectronics.co.uk', 'a91a1dcc4b6e39cdd2ecb70a761a227dde1327b132d542c6587e200c138cc845', '2024-04-16 11:34:38'),
-(6, 'richardc@creekviewelectronics.co.uk', 'e1c8844e7c6b98db5479e173161c73d7ce6c9e9b6bfd444e6de708bcf2b2387f', '2024-04-16 12:01:14');
+INSERT INTO `users` (`id`, `email`, `password`, `role`, `date_created`) VALUES
+(1, 'michaelh@creekviewelectronics.co.uk', 'e434f534525192c75677c3815ff15b32877dded69826b5128fd1deec918a9e9a', 5, '2024-04-16 10:54:49'),
+(2, 'georges@creekviewelectronics.co.uk', 'a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3', 4, '2024-04-16 11:02:41'),
+(3, 'rsmith@creekviewelectronics.co.uk', 'e4b5b1f45677c45cc04438cf1b16f3420edaf44567d13163083e1e1789ecaa5e', 5, '2024-04-16 11:07:28'),
+(4, 'joes@creekviewelectronics.co.uk', 'a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3', 4, '2024-04-16 11:16:09'),
+(5, 'purchasing@creekviewelectronics.co.uk', 'a91a1dcc4b6e39cdd2ecb70a761a227dde1327b132d542c6587e200c138cc845', 0, '2024-04-16 11:34:38'),
+(6, 'richardc@creekviewelectronics.co.uk', 'e1c8844e7c6b98db5479e173161c73d7ce6c9e9b6bfd444e6de708bcf2b2387f', 0, '2024-04-16 12:01:14');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `user_log`
+--
+
+CREATE TABLE `user_log` (
+  `id` int(11) NOT NULL,
+  `user` int(11) NOT NULL,
+  `action` int(11) NOT NULL,
+  `date_created` datetime NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -444,6 +470,12 @@ ALTER TABLE `po_pn`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `prefixes`
+--
+ALTER TABLE `prefixes`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `purchase_order`
 --
 ALTER TABLE `purchase_order`
@@ -468,6 +500,12 @@ ALTER TABLE `total_ordered`
 ALTER TABLE `users`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `email` (`email`);
+
+--
+-- Indexes for table `user_log`
+--
+ALTER TABLE `user_log`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `user_token`
@@ -523,6 +561,12 @@ ALTER TABLE `po_pn`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
 
 --
+-- AUTO_INCREMENT for table `prefixes`
+--
+ALTER TABLE `prefixes`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `purchase_order`
 --
 ALTER TABLE `purchase_order`
@@ -545,6 +589,12 @@ ALTER TABLE `total_ordered`
 --
 ALTER TABLE `users`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+
+--
+-- AUTO_INCREMENT for table `user_log`
+--
+ALTER TABLE `user_log`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `user_token`
