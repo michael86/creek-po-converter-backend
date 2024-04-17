@@ -176,7 +176,7 @@ const queries = {
     }),
     validateLogin: (email) => __awaiter(void 0, void 0, void 0, function* () {
         try {
-            const user = yield rq(`SELECT  password, id FROM users WHERE email = ?`, [email]);
+            const user = yield rq(`SELECT password, id FROM users WHERE email = ?`, [email]);
             return user;
         }
         catch (error) {
@@ -294,6 +294,19 @@ const queries = {
         }
         catch (error) {
             return error;
+        }
+    }),
+    getUserRole: (email) => __awaiter(void 0, void 0, void 0, function* () {
+        var _b;
+        try {
+            const role = yield rq("select role from users where email =? ", [email]);
+            if (!((_b = role[0]) === null || _b === void 0 ? void 0 : _b.role))
+                return;
+            return role[0].role;
+        }
+        catch (error) {
+            console.error(error);
+            return;
         }
     }),
 };

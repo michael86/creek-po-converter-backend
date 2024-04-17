@@ -8,6 +8,7 @@ const {
   validateUserToken,
   setTokenToNull,
   updateUserToken,
+  getUserRole,
 } = require("../sql/queries");
 
 const sha256 = require("sha256");
@@ -34,7 +35,7 @@ const handleRegister: RequestHandler = async (req, res) => {
     if (!userCreated) throw new Error(`createUser: ${userCreated}`);
     res.send({ status: 1, token: userCreated });
   } catch (error) {
-    console.log("registration error ", error);
+    console.error("registration error ", error);
     res.send({ status: 0 });
   }
 };
@@ -56,6 +57,7 @@ const handleLogin: RequestHandler = async (req, res) => {
     }
 
     user = user[0];
+
     if (sha256(password) !== user.password) {
       res.send({ status: 2 });
       return;
@@ -68,9 +70,9 @@ const handleLogin: RequestHandler = async (req, res) => {
     if (!tokenStored)
       throw new Error(`Failed to update user token on logging in %\n ${tokenStored}`);
 
-    res.send({ status: 1, token });
+    res.send({ status: 1, token, role: await getUserRole(email) });
   } catch (error) {
-    console.log("Log in error ", error);
+    console.error(error);
     res.send({ status: 0 });
   }
 };
@@ -79,9 +81,16 @@ const validateToken: RequestHandler = async (req, res) => {
   const { token, email } = req.params;
   try {
     if (!token || !email) throw new Error(`validate token failed ${token}`);
-    res.send({ valid: await validateUserToken(email, token) });
+    const valid = await validateUserToken(email, token);
+
+    if (!valid) {
+      res.send({ valid });
+      return;
+    }
+
+    res.send({ valid, role: await getUserRole(email) });
   } catch (error) {
-    console.log("Error validating token ", error);
+    console.error("Error validating token ", error);
     res.send({ status: 0 });
   }
 };
@@ -98,7 +107,7 @@ const handleLogout: RequestHandler = async (req, res) => {
 
     res.send({ status: 1 });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.send({ status: 0 });
   }
 };

@@ -28,7 +28,7 @@ const process = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         if (!req.file)
             throw new Error("no file fount");
         (0, extract_pdf_1.processFile)(req.file.filename, (data) => __awaiter(void 0, void 0, void 0, function* () {
-            console.log('data ', data);
+            console.log("data ", data);
             if (!data) {
                 res.send({ status: 3, token: req.headers.newToken });
                 return;
@@ -39,7 +39,7 @@ const process = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 return;
             }
             if (!inserted) {
-                console.log(`Error Processing PDF (inserted) ${inserted}`);
+                console.error(`Error Processing PDF (inserted) ${inserted}`);
                 res.status(500).send({ status: 2 });
                 return;
             }
@@ -47,7 +47,7 @@ const process = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         }));
     }
     catch (err) {
-        console.log(`Error Processing PDF (err) ${err}`);
+        console.error(`Error Processing PDF (err) ${err}`);
         res.status(500).send({ status: 2 });
     }
 });
