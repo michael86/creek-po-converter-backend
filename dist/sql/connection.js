@@ -10,29 +10,37 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 require("dotenv").config();
 const mysql = require("mysql");
-const connection = mysql.createConnection({
+const pool = mysql.createPool({
+    connectionLimit: 10,
     port: process.env.SQL_PORT,
     database: process.env.SQL_NAME,
-    user: 'root',
-    password: '',
+    user: "root",
+    password: "",
     host: process.env.SQL_URL,
 });
 const createSqlConnection = () => {
-    connection.connect(function (err) {
+    pool.getConnection(function (err, connection) {
         if (err) {
-            console.error("error connecting: " + err.stack);
+            console.error(err);
             return;
         }
-        console.log("connected as id " + connection.threadId);
+        console.log(`Database started and connected as ${connection.threadId}\nReleasing connection`);
+        connection.destroy();
     });
 };
 function asyncMySQL(query, vars) {
     return new Promise((resolve, reject) => {
-        connection.query(query, vars, (error, results) => {
-            if (error) {
-                reject(error);
-            }
-            resolve(results);
+        pool.getConnection(function (err, connection) {
+            if (err)
+                throw err;
+            connection.query(query, vars, (error, results) => {
+                if (error) {
+                    reject(error);
+                }
+                resolve(results);
+                //REturn the connection to the pool
+                connection.destroy();
+            });
         });
     });
 }

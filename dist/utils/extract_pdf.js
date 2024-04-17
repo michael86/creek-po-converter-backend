@@ -14,45 +14,16 @@ const pdf2table = require("pdf2table");
 const fs = require("fs/promises");
 const path = require("path");
 const pdfFolder = path.resolve(__dirname, "../public/pdf");
-// Prefixes to match against in PDF content
-const PREFIXES = [
-    "econn",
-    "ecapt",
-    "erest",
-    "einci",
-    "etras",
-    "etran",
-    "eleds",
-    "ecry",
-    "esensor",
-    "emodu",
-    "epart",
-    "efix",
-    "etool",
-    "epcbs",
-    "ewire",
-    "ecilp",
-    "efuse",
-    "elink",
-    "erely",
-    "eswtc",
-    "ediod",
-    "se000",
-    "eindu",
-    "econv",
-    "ereg",
-    "ether",
-    "emtwk",
-    "epotn",
-    "esold",
-    "etrim",
-    "ebat",
-    "epcb",
-    "ecirb",
-    "sstatt",
-    "emark",
-    "carriage"
-];
+const { runQuery } = require("../sql/connection");
+let PREFIXES;
+/**
+ * Initiate our prefixes from the database
+ */
+(() => __awaiter(void 0, void 0, void 0, function* () {
+    const p = yield runQuery("select prefix from prefixes", []);
+    PREFIXES = p.map((packet) => packet.prefix);
+    console.log("prefixes established");
+}))();
 // Extracts relevant data from table rows
 const getData = (rows) => {
     const data = [];
@@ -68,7 +39,6 @@ const getData = (rows) => {
             }
         });
     });
-    console.log("data ", data);
     return data;
 };
 const shouldIncludeString = (string, row, index) => {

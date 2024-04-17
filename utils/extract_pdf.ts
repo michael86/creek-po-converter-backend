@@ -3,48 +3,20 @@ const fs = require("fs/promises");
 const path = require("path");
 
 const pdfFolder = path.resolve(__dirname, "../public/pdf");
+const { runQuery } = require("../sql/connection");
 
 type Rows = string[][];
 
-// Prefixes to match against in PDF content
-const PREFIXES = [
-  "econn",
-  "ecapt",
-  "erest",
-  "einci",
-  "etras",
-  "etran",
-  "eleds",
-  "ecry",
-  "esensor",
-  "emodu",
-  "epart",
-  "efix",
-  "etool",
-  "epcbs",
-  "ewire",
-  "ecilp",
-  "efuse",
-  "elink",
-  "erely",
-  "eswtc",
-  "ediod",
-  "se000",
-  "eindu",
-  "econv",
-  "ereg",
-  "ether",
-  "emtwk",
-  "epotn",
-  "esold",
-  "etrim",
-  "ebat",
-  "epcb",
-  "ecirb",
-  "sstatt",
-  "emark",
-  "carriage"
-];
+let PREFIXES: string[];
+
+/**
+ * Initiate our prefixes from the database
+ */
+(async () => {
+  const p = await runQuery("select prefix from prefixes", []);
+  PREFIXES = p.map((packet: { prefix: string }) => packet.prefix);
+  console.log("prefixes established");
+})();
 
 // Extracts relevant data from table rows
 const getData = (rows: Rows) => {
@@ -63,8 +35,6 @@ const getData = (rows: Rows) => {
       }
     });
   });
-
-  console.log("data ", data);
 
   return data;
 };

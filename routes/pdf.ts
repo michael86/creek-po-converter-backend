@@ -33,7 +33,7 @@ const process: RequestHandler = async (req, res) => {
     type Data = { DATA: []; ORDER_REFERENCE: string; PURCHASE_ORDER: string };
 
     processFile(req.file.filename, async (data: Data) => {
-      console.log('data ', data)
+      console.log("data ", data);
       if (!data) {
         res.send({ status: 3, token: req.headers.newToken });
 
@@ -48,7 +48,7 @@ const process: RequestHandler = async (req, res) => {
       }
 
       if (!inserted) {
-        console.log(`Error Processing PDF (inserted) ${inserted}`);
+        console.error(`Error Processing PDF (inserted) ${inserted}`);
         res.status(500).send({ status: 2 });
         return;
       }
@@ -56,7 +56,7 @@ const process: RequestHandler = async (req, res) => {
       res.send({ status: 1, token: req.headers.newToken });
     });
   } catch (err) {
-    console.log(`Error Processing PDF (err) ${err}`);
+    console.error(`Error Processing PDF (err) ${err}`);
     res.status(500).send({ status: 2 });
   }
 };

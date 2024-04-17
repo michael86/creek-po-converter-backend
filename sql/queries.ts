@@ -1,3 +1,4 @@
+import { GetUserRole } from "../types/queries";
 import { generateToken } from "../utils/tokens";
 const { runQuery: rq } = require("./connection");
 
@@ -18,7 +19,9 @@ export type PurchaseOrder = {
   };
 };
 
-const queries = {
+const queries: {
+  // getUserRole: GetUserRole
+} = {
   insertDataToDb: async (data: Data) => {
     try {
       const purchase = await rq(`insert into purchase_order (purchase_order) values (?)`, [
@@ -146,7 +149,7 @@ const queries = {
           const [total] = await rq(`select amount_received from amount_received where id = ?`, [
             amount_received,
           ]);
-          
+
           retval.partNumbers[partNumber[0].part].partsReceived?.push(total.amount_received);
         }
       }
@@ -198,7 +201,8 @@ const queries = {
   },
   validateLogin: async (email: string) => {
     try {
-      const user = await rq(`SELECT  password, id FROM users WHERE email = ?`, [email]);
+      const user = await rq(`SELECT password, id FROM users WHERE email = ?`, [email]);
+
       return user;
     } catch (error) {
       console.error("Validate login ", error);
@@ -325,6 +329,17 @@ const queries = {
       return true;
     } catch (error) {
       return error;
+    }
+  },
+
+  getUserRole: async (email: string) => {
+    try {
+      const role = await rq("select role from users where email =? ", [email]);
+      if (!role[0]?.role) return;
+      return role[0].role;
+    } catch (error) {
+      console.error(error);
+      return;
     }
   },
 };
