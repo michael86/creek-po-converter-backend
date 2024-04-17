@@ -49,6 +49,9 @@ const PREFIXES = [
     "ebat",
     "epcb",
     "ecirb",
+    "sstatt",
+    "emark",
+    "carriage"
 ];
 // Extracts relevant data from table rows
 const getData = (rows) => {

@@ -28,6 +28,7 @@ const process = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         if (!req.file)
             throw new Error("no file fount");
         (0, extract_pdf_1.processFile)(req.file.filename, (data) => __awaiter(void 0, void 0, void 0, function* () {
+            console.log('data ', data);
             if (!data) {
                 res.send({ status: 3, token: req.headers.newToken });
                 return;
