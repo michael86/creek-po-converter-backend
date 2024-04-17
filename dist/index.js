@@ -22,6 +22,7 @@ app.use(cors());
 app.use("/pdf", middleware_1.validateToken, require("./routes/pdf"));
 app.use("/account", require("./routes/account"));
 app.use("/purchase/", middleware_1.validateToken, require("./routes/purchase_orders"));
+app.use("/parts/", middleware_1.validateToken, require("./routes/parts"));
 app.listen(6005, () => __awaiter(void 0, void 0, void 0, function* () {
     console.log(`listening port ${port}\nServer started`);
     console.log("connecting to database");
