@@ -11,6 +11,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.validateToken = void 0;
 const tokens_1 = require("../utils/tokens");
+const express_validator_1 = require("express-validator");
 const { validateUserToken, updateUserToken } = require("../sql/queries");
 const validateToken = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     if (shouldSkipValidation(req.path) || req.path.includes("validate-token")) {
@@ -18,6 +19,8 @@ const validateToken = (req, res, next) => __awaiter(void 0, void 0, void 0, func
     }
     try {
         const { email, token } = req.headers;
+        const emailSafe = (0, express_validator_1.check)(email).isEmail();
+        console.log("emailSafe ", emailSafe);
         if (!email || !token) {
             console.error("Email or token missing");
             return res.status(400).send({ error: "Email or token missing" });

@@ -1,5 +1,6 @@
 import { RequestHandler } from "express";
 import { generateToken } from "../utils/tokens";
+import { validateQuery } from "../middleware/validate";
 
 const {
   selectEmail,
@@ -114,6 +115,6 @@ const handleLogout: RequestHandler = async (req, res) => {
 
 router.post("/register", handleRegister);
 router.post("/login", handleLogin);
-router.get("/validate-token/:token?/:email?", validateToken);
+router.get("/validate-token/:token?/:email?", validateQuery, validateToken);
 router.post("/logout", handleLogout);
 module.exports = router;

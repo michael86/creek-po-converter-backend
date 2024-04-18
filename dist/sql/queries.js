@@ -12,6 +12,17 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const tokens_1 = require("../utils/tokens");
 const { runQuery: rq } = require("./connection");
 const queries = {
+    fetchPrefixes: () => __awaiter(void 0, void 0, void 0, function* () {
+        try {
+            const prefixes = yield rq(`select prefix from prefixes`, []);
+            if (!prefixes[0])
+                throw new Error(`Failed to fetch prefixes ${prefixes}`);
+            return prefixes.map((entry) => entry.prefix);
+        }
+        catch (error) {
+            console.error(error);
+        }
+    }),
     insertDataToDb: (data) => __awaiter(void 0, void 0, void 0, function* () {
         try {
             const purchase = yield rq(`insert into purchase_order (purchase_order) values (?)`, [

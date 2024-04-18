@@ -1,4 +1,3 @@
-import { GetUserRole } from "../types/queries";
 import { generateToken } from "../utils/tokens";
 const { runQuery: rq } = require("./connection");
 
@@ -19,9 +18,20 @@ export type PurchaseOrder = {
   };
 };
 
+type sqlReturn = { [key: string]: string | number }[];
 const queries: {
   // getUserRole: GetUserRole
 } = {
+  fetchPrefixes: async () => {
+    try {
+      const prefixes: sqlReturn = await rq(`select prefix from prefixes`, []);
+      if (!prefixes[0]) throw new Error(`Failed to fetch prefixes ${prefixes}`);
+      return prefixes.map((entry) => entry.prefix);
+    } catch (error) {
+      console.error(error);
+    }
+  },
+
   insertDataToDb: async (data: Data) => {
     try {
       const purchase = await rq(`insert into purchase_order (purchase_order) values (?)`, [
