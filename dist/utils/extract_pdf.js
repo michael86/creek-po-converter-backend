@@ -14,24 +14,19 @@ const pdf2table = require("pdf2table");
 const fs = require("fs/promises");
 const path = require("path");
 const pdfFolder = path.resolve(__dirname, "../public/pdf");
-const { runQuery } = require("../sql/connection");
-let PREFIXES;
+const { fetchPrefixes } = require("../sql/queries");
 /**
- * Initiate our prefixes from the database
+ *
+ * @param rows
+ * @returns
  */
-(() => __awaiter(void 0, void 0, void 0, function* () {
-    const p = yield runQuery("select prefix from prefixes", []);
-    PREFIXES = p.map((packet) => packet.prefix);
-    console.log("prefixes established");
-}))();
-// Extracts relevant data from table rows
 const getData = (rows) => {
     const data = [];
     rows.forEach((row, index) => {
         const lowerCasedRow = row.map((entry) => entry.toLowerCase());
         const nextRow = rows[index + 1] || [];
-        lowerCasedRow.forEach((string, stringIndex) => {
-            if (shouldIncludeString(string, lowerCasedRow, stringIndex)) {
+        lowerCasedRow.forEach((string) => {
+            if (shouldIncludeString(string, lowerCasedRow)) {
                 const quantityIndex = row.length - 2;
                 const quantity = Math.floor(+row[quantityIndex]).toString();
                 const nextRowFirstElement = nextRow[0] || "";
@@ -41,8 +36,9 @@ const getData = (rows) => {
     });
     return data;
 };
-const shouldIncludeString = (string, row, index) => {
-    return PREFIXES.some((prefix) => string.includes(prefix) && row[1] !== "stencil" && row.length > 4);
+const shouldIncludeString = (string, row) => {
+    const prefixes = fetchPrefixes();
+    return prefixes.some((prefix) => string.includes(prefix) && row[1] !== "stencil" && row.length > 4);
 };
 // Extracts order reference from table rows
 const getOrderReference = (rows) => {

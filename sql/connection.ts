@@ -1,7 +1,10 @@
+import { MysqlError, Pool } from "mysql";
+import { AsyncMySql } from "../types/sql";
+
 require("dotenv").config();
 const mysql = require("mysql");
 
-const pool = mysql.createPool({
+const pool: Pool = mysql.createPool({
   connectionLimit: 10,
   port: process.env.SQL_PORT,
   database: process.env.SQL_NAME,
@@ -10,7 +13,7 @@ const pool = mysql.createPool({
   host: process.env.SQL_URL,
 });
 
-const createSqlConnection = () => {
+export const createSqlConnection = () => {
   pool.getConnection(function (err: Error, connection: any) {
     if (err) {
       console.error(err);
@@ -21,25 +24,36 @@ const createSqlConnection = () => {
   });
 };
 
-function asyncMySQL(query: string, vars: (string | number)[]) {
+const asyncMySQL: AsyncMySql = (query, vars) => {
   return new Promise((resolve, reject) => {
-    pool.getConnection(function (err: Error, connection: any) {
+    pool.getConnection(function (err, connection) {
       if (err) throw err;
 
-      connection.query(query, vars, (error: Error, results: any) => {
+      connection.query(query, vars, (error, results) => {
         if (error) {
           reject(error);
+          return;
         }
+
+        console.log("results ", results);
         resolve(results);
 
         //REturn the connection to the pool
-        connection.destroy();
+        connection.release();
       });
     });
   });
-}
+};
 
-const runQuery = async (query: string, data: (string | number)[]) => {
+/**
+ *
+ * A wrapper for the asyncMySQl function, will manipulate the varibal param before using in the query
+ *
+ * @param query string - Sql query for manipulating database
+ * @param data string | string[] - variables to be used for manipulating database
+ * @returns will return an error or the relevant data based on what type of request was used
+ */
+export const runQuery: AsyncMySql = async (query, data) => {
   try {
     for (let i = 0; i <= data.length; i++) {
       //Because of the way for loops work, we have to create a new variable to hold the true typeof data[i]
@@ -51,10 +65,12 @@ const runQuery = async (query: string, data: (string | number)[]) => {
     }
 
     return await asyncMySQL(query, data);
-  } catch (err: any) {
-    if (err.code !== "ER_DUP_ENTRY") return new Error(`${err.code}\n${err.sqlMessage}`);
-
-    return err.code;
+  } catch (err) {
+    const mysqlError = err as MysqlError;
+    if (mysqlError.code !== "ER_DUP_ENTRY") {
+      console.error(`${mysqlError.code}\n${mysqlError.sqlMessage}`);
+    }
+    return mysqlError;
   }
 };
 

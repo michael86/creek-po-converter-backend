@@ -8,6 +8,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.runQuery = exports.createSqlConnection = void 0;
 require("dotenv").config();
 const mysql = require("mysql");
 const pool = mysql.createPool({
@@ -28,7 +30,8 @@ const createSqlConnection = () => {
         connection.destroy();
     });
 };
-function asyncMySQL(query, vars) {
+exports.createSqlConnection = createSqlConnection;
+const asyncMySQL = (query, vars) => {
     return new Promise((resolve, reject) => {
         pool.getConnection(function (err, connection) {
             if (err)
@@ -36,14 +39,24 @@ function asyncMySQL(query, vars) {
             connection.query(query, vars, (error, results) => {
                 if (error) {
                     reject(error);
+                    return;
                 }
+                console.log("results ", results);
                 resolve(results);
                 //REturn the connection to the pool
-                connection.destroy();
+                connection.release();
             });
         });
     });
-}
+};
+/**
+ *
+ * A wrapper for the asyncMySQl function, will manipulate the varibal param before using in the query
+ *
+ * @param query string - Sql query for manipulating database
+ * @param data string | string[] - variables to be used for manipulating database
+ * @returns will return an error or the relevant data based on what type of request was used
+ */
 const runQuery = (query, data) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         for (let i = 0; i <= data.length; i++) {
@@ -57,9 +70,12 @@ const runQuery = (query, data) => __awaiter(void 0, void 0, void 0, function* ()
         return yield asyncMySQL(query, data);
     }
     catch (err) {
-        if (err.code !== "ER_DUP_ENTRY")
-            return new Error(`${err.code}\n${err.sqlMessage}`);
-        return err.code;
+        const mysqlError = err;
+        if (mysqlError.code !== "ER_DUP_ENTRY") {
+            console.error(`${mysqlError.code}\n${mysqlError.sqlMessage}`);
+        }
+        return mysqlError;
     }
 });
-module.exports = { createSqlConnection, runQuery };
+exports.runQuery = runQuery;
+module.exports = { createSqlConnection: exports.createSqlConnection, runQuery: exports.runQuery };
