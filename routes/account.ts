@@ -81,8 +81,6 @@ const handleLogin: RequestHandler = async (req, res) => {
 
 const validateToken: RequestHandler = async (req, res) => {
   const { token, email } = req.params;
-  console.log(token);
-  console.log(email);
 
   try {
     if (!token || !email) throw new Error(`validate token failed ${token}`);

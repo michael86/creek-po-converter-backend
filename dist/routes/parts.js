@@ -10,6 +10,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.router = void 0;
+const validate_1 = require("../middleware/validate");
+const express_validator_1 = require("express-validator");
 const { fetchPrefixes } = require("../sql/queries");
 const express = require("express");
 exports.router = express.Router();
@@ -27,5 +29,10 @@ const isPrefixValid = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         .status(200)
         .send({ token: req.headers.newToken, valid: !prefixes.includes(prefix.toLowerCase()) });
 });
+const addPrefix = (req, res) => {
+    console.log(req.body.prefix);
+    res.send({ token: req.headers.newToken });
+};
 exports.router.get("/prefix/is-valid/:prefix?", isPrefixValid);
+exports.router.put("/prefix/add/", (0, validate_1.validate)([(0, express_validator_1.body)("prefix").trim().notEmpty().withMessage("prefix was empty").escape()]), addPrefix);
 module.exports = exports.router;
