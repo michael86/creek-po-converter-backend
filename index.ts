@@ -1,5 +1,5 @@
 import { validateToken } from "./middleware";
-import { validateQuery } from "./middleware/validate";
+
 import { testFiles } from "./utils/extract_pdf";
 const { createSqlConnection } = require("./sql/connection");
 const express = require("express");
