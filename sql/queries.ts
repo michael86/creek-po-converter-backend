@@ -1,6 +1,7 @@
 import { FecthRequest, PutRequest } from "@types_sql/index";
 import { generateToken } from "../utils/tokens";
 import { runQuery } from "./connection";
+import { Queries } from "@types_sql/queries";
 
 type Data = { DATA: []; ORDER_REFERENCE: string; PURCHASE_ORDER: string };
 
@@ -20,10 +21,7 @@ export type PurchaseOrder = {
 };
 //
 
-type sqlReturn = { [key: string]: string | number }[];
-const queries: {
-  // getUserRole: GetUserRole
-} = {
+const queries: Queries = {
   fetchPrefixes: async () => {
     try {
       const prefixes = await runQuery<FecthRequest>(`select prefix from prefixes`, []);
@@ -109,10 +107,10 @@ const queries: {
         (error instanceof Error && error.message.includes("ER_DUP_ENTRY")) ||
         (typeof error === "string" && error.includes("ER_DUP_ENTRY"))
       ) {
-        return "dupe";
+        return "ER_DUP_ENTRY";
       }
       console.error(`failed to insert data to db `, error);
-      return false;
+      return;
     }
   },
   fetchPurchaseOrders: async () => {
@@ -121,7 +119,7 @@ const queries: {
       return [...data];
     } catch (error) {
       console.error(error);
-      return false;
+      return;
     }
   },
   fetchPurchaseOrder: async (id: string): Promise<PurchaseOrder | null> => {
@@ -242,9 +240,12 @@ const queries: {
   },
   validateLogin: async (email: string) => {
     try {
-      const user = await runQuery(`SELECT password, id FROM users WHERE email = ?`, [email]);
+      const user = await runQuery<FecthRequest>(`SELECT password, id FROM users WHERE email = ?`, [
+        email,
+      ]);
+      if ("code" in user) throw new Error(`Error valideLogin \n${user}`);
 
-      return user;
+      return [user[0].password, user[0].id];
     } catch (error) {
       console.error("Validate login ", error);
       return;
@@ -337,7 +338,8 @@ const queries: {
 
       return true;
     } catch (error) {
-      return error;
+      console.error(error);
+      return;
     }
   },
   addParcelsToOrder: async (parcels: number[], purchaseOrder: string, part: string) => {
@@ -374,7 +376,8 @@ const queries: {
 
       return true;
     } catch (error) {
-      return error;
+      console.error(error);
+      return;
     }
   },
 
@@ -383,7 +386,7 @@ const queries: {
       const role = await runQuery<FecthRequest>("select role from users where email =? ", [email]);
       if ("code" in role) throw new Error(`error fetching prefixes \n${role}`);
       if (!role[0].role) return;
-      return role[0].role;
+      return +role[0].role;
     } catch (error) {
       console.error(error);
       return;
