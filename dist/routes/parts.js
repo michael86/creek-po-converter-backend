@@ -12,7 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.router = void 0;
 const validate_1 = require("../middleware/validate");
 const express_validator_1 = require("express-validator");
-const { fetchPrefixes } = require("../sql/queries");
+const { fetchPrefixes, insertPrefix } = require("../sql/queries");
 const express = require("express");
 exports.router = express.Router();
 const isPrefixValid = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -29,10 +29,21 @@ const isPrefixValid = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         .status(200)
         .send({ token: req.headers.newToken, valid: !prefixes.includes(prefix.toLowerCase()) });
 });
-const addPrefix = (req, res) => {
-    console.log(req.body.prefix);
-    res.send({ token: req.headers.newToken });
-};
+const addPrefix = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { prefix } = req.body;
+        const inserted = yield insertPrefix(prefix);
+        if (!inserted) {
+            res.status(400).send();
+            return;
+        }
+        res.send({ token: req.headers.newToken, inserted });
+    }
+    catch (error) {
+        console.error(error);
+        res.status(400).send();
+    }
+});
 exports.router.get("/prefix/is-valid/:prefix?", isPrefixValid);
 exports.router.put("/prefix/add/", (0, validate_1.validate)([(0, express_validator_1.body)("prefix").trim().notEmpty().withMessage("prefix was empty").escape()]), addPrefix);
 module.exports = exports.router;

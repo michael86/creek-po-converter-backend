@@ -32,6 +32,19 @@ const queries: {
     }
   },
 
+  insertPrefix: async (prefix: string) => {
+    try {
+      const res = await rq(`insert into prefixes (prefix) values (?)`, [prefix]);
+      if (!res.affectedRows) {
+        return;
+      }
+      return true;
+    } catch (error) {
+      console.error(`error inserting prefix ${error}`);
+      return;
+    }
+  },
+
   insertDataToDb: async (data: Data) => {
     try {
       const purchase = await rq(`insert into purchase_order (purchase_order) values (?)`, [
