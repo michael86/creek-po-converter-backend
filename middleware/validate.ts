@@ -7,15 +7,14 @@ export const validate = (validations: ContextRunner[]) => {
   return async (req: express.Request, res: express.Response, next: express.NextFunction) => {
     for (let validation of validations) {
       const result = await validation.run(req);
-      if (result.errors.length) break;
+      if (result.array().length) break;
     }
 
     const errors = validationResult(req);
-    console.log("errors");
+
     if (errors.isEmpty()) {
       return next();
     }
-    console.log("after errors");
 
     res.status(400).json({ errors: errors.array() });
   };

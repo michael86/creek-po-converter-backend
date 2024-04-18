@@ -17,15 +17,13 @@ const validate = (validations) => {
     return (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
         for (let validation of validations) {
             const result = yield validation.run(req);
-            if (result.errors.length)
+            if (result.array().length)
                 break;
         }
         const errors = (0, express_validator_1.validationResult)(req);
-        console.log("errors");
         if (errors.isEmpty()) {
             return next();
         }
-        console.log("after errors");
         res.status(400).json({ errors: errors.array() });
     });
 };
