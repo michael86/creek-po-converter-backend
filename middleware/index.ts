@@ -1,5 +1,6 @@
 import { RequestHandler } from "express";
 import { generateToken } from "../utils/tokens";
+import { check, header } from "express-validator";
 const { validateUserToken, updateUserToken } = require("../sql/queries");
 
 export const validateToken: RequestHandler = async (req, res, next) => {
@@ -9,6 +10,8 @@ export const validateToken: RequestHandler = async (req, res, next) => {
 
   try {
     const { email, token } = req.headers;
+    const emailSafe = check(email).isEmail();
+    console.log("emailSafe ", emailSafe);
 
     if (!email || !token) {
       console.error("Email or token missing");

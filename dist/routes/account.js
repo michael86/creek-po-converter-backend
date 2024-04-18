@@ -10,6 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const tokens_1 = require("../utils/tokens");
+const validate_1 = require("../middleware/validate");
 const { selectEmail, createUser, validateLogin, validateUserToken, setTokenToNull, updateUserToken, getUserRole, } = require("../sql/queries");
 const sha256 = require("sha256");
 const express = require("express");
@@ -101,6 +102,6 @@ const handleLogout = (req, res) => __awaiter(void 0, void 0, void 0, function* (
 });
 router.post("/register", handleRegister);
 router.post("/login", handleLogin);
-router.get("/validate-token/:token?/:email?", validateToken);
+router.get("/validate-token/:token?/:email?", validate_1.validateQuery, validateToken);
 router.post("/logout", handleLogout);
 module.exports = router;

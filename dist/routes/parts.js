@@ -10,6 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.router = void 0;
+const { fetchPrefixes } = require("../sql/queries");
 const express = require("express");
 exports.router = express.Router();
 const isPrefixValid = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -17,8 +18,14 @@ const isPrefixValid = (req, res) => __awaiter(void 0, void 0, void 0, function* 
     if (!prefix) {
         res.status(400).send({ token: req.headers.newToken });
     }
-    res.status(200).send({ token: req.headers.newToken });
-    console.log(req.params);
+    const prefixes = yield fetchPrefixes();
+    if (!prefix.length) {
+        res.status(500).send({ token: req.headers.newToken });
+        return;
+    }
+    res
+        .status(200)
+        .send({ token: req.headers.newToken, valid: !prefixes.includes(prefix.toLowerCase()) });
 });
 exports.router.get("/prefix/is-valid/:prefix?", isPrefixValid);
 module.exports = exports.router;
