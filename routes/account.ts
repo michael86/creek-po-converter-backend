@@ -1,6 +1,6 @@
 import { RequestHandler } from "express";
 import { generateToken } from "../utils/tokens";
-import { validate, validateQuery } from "../middleware/validate";
+import { validate } from "../middleware/validate";
 import { Result, check, param } from "express-validator";
 
 const {
