@@ -1,7 +1,7 @@
 import { RequestHandler } from "express";
 import { validate } from "../middleware/validate";
 import { body } from "express-validator";
-const { fetchPrefixes } = require("../sql/queries");
+const { fetchPrefixes, insertPrefix } = require("../sql/queries");
 const express = require("express");
 export const router = express.Router();
 
@@ -22,9 +22,21 @@ const isPrefixValid: RequestHandler = async (req, res) => {
     .send({ token: req.headers.newToken, valid: !prefixes.includes(prefix.toLowerCase()) });
 };
 
-const addPrefix: RequestHandler = (req, res) => {
-  console.log(req.body.prefix);
-  res.send({ token: req.headers.newToken });
+const addPrefix: RequestHandler = async (req, res) => {
+  try {
+    const { prefix } = req.body;
+    const inserted = await insertPrefix(prefix);
+
+    if (!inserted) {
+      res.status(400).send();
+      return;
+    }
+
+    res.send({ token: req.headers.newToken, inserted });
+  } catch (error) {
+    console.error(error);
+    res.status(400).send();
+  }
 };
 
 router.get("/prefix/is-valid/:prefix?", isPrefixValid);

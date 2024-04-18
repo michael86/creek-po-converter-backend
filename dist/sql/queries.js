@@ -23,6 +23,19 @@ const queries = {
             console.error(error);
         }
     }),
+    insertPrefix: (prefix) => __awaiter(void 0, void 0, void 0, function* () {
+        try {
+            const res = yield rq(`insert into prefixes (prefix) values (?)`, [prefix]);
+            if (!res.affectedRows) {
+                return;
+            }
+            return true;
+        }
+        catch (error) {
+            console.error(`error inserting prefix ${error}`);
+            return;
+        }
+    }),
     insertDataToDb: (data) => __awaiter(void 0, void 0, void 0, function* () {
         try {
             const purchase = yield rq(`insert into purchase_order (purchase_order) values (?)`, [
