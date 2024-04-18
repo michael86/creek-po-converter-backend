@@ -10,11 +10,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const tokens_1 = require("../utils/tokens");
-const { runQuery: rq } = require("./connection");
+const connection_1 = require("./connection");
 const queries = {
     fetchPrefixes: () => __awaiter(void 0, void 0, void 0, function* () {
         try {
-            const prefixes = yield rq(`select prefix from prefixes`, []);
+            const prefixes = yield (0, connection_1.runQuery)(`select prefix from prefixes`, []);
+            if ("code" in prefixes)
+                throw new Error(`error fetching prefixes \n${prefixes}`);
             if (!prefixes[0])
                 throw new Error(`Failed to fetch prefixes ${prefixes}`);
             return prefixes.map((entry) => entry.prefix);
@@ -25,7 +27,9 @@ const queries = {
     }),
     insertPrefix: (prefix) => __awaiter(void 0, void 0, void 0, function* () {
         try {
-            const res = yield rq(`insert into prefixes (prefix) values (?)`, [prefix]);
+            const res = yield (0, connection_1.runQuery)(`insert into prefixes (prefix) values (?)`, [prefix]);
+            if ("code" in res)
+                throw new Error(`error fetching prefixes \n${res}`);
             if (!res.affectedRows) {
                 return;
             }
@@ -38,21 +42,21 @@ const queries = {
     }),
     insertDataToDb: (data) => __awaiter(void 0, void 0, void 0, function* () {
         try {
-            const purchase = yield rq(`insert into purchase_order (purchase_order) values (?)`, [
-                data.PURCHASE_ORDER,
-            ]);
+            const purchase = yield (0, connection_1.runQuery)(`insert into purchase_order (purchase_order) values (?)`, [data.PURCHASE_ORDER]);
+            if ("code" in purchase)
+                throw new Error(`error fetching prefixes \n${purchase}`);
             if (!purchase.insertId)
-                throw new Error(purchase);
-            const order = yield rq(`insert into order_reference (order_reference) values (?)`, [
-                data.ORDER_REFERENCE,
-            ]);
+                return;
+            const order = yield (0, connection_1.runQuery)(`insert into order_reference (order_reference) values (?)`, [data.ORDER_REFERENCE]);
+            if ("code" in order)
+                throw new Error(`error fetching prefixes \n${order}`);
             if (!order.insertId)
-                throw new Error(order);
+                return;
             const skuCountIds = [];
             for (const part of data.DATA) {
                 const [sku, quantity] = yield Promise.all([
-                    rq(`insert into part_number (part, description) values (?, ?)`, [part[0], part[2]]),
-                    rq(`INSERT INTO \`total_ordered\` (quantity) VALUES (?);`, [Number(part[1])]),
+                    (0, connection_1.runQuery)(`insert into part_number (part, description) values (?, ?)`, [part[0], part[2]]),
+                    (0, connection_1.runQuery)(`INSERT INTO \`total_ordered\` (quantity) VALUES (?);`, [Number(part[1])]),
                 ]);
                 if (!sku.insertId || !quantity.insertId)
                     throw new Error(`sku: ${sku} \n qty: ${quantity}`);
@@ -60,19 +64,16 @@ const queries = {
             }
             const purchaseOrder = purchase.insertId;
             const orderRef = order.insertId;
-            const poOrRef = yield rq(`INSERT INTO \`po_or\` (purchase_order, order_reference) VALUES (?, ?);`, [purchaseOrder, orderRef]);
+            const poOrRef = yield (0, connection_1.runQuery)(`INSERT INTO \`po_or\` (purchase_order, order_reference) VALUES (?, ?);`, [purchaseOrder, orderRef]);
             if (!poOrRef.insertId)
                 throw new Error(poOrRef);
             for (const part of skuCountIds) {
-                const poPart = yield rq(`INSERT INTO \`po_pn\` (purchase_order, part_number) VALUES (?, ?);`, [purchaseOrder, part[0]]);
+                const poPart = yield (0, connection_1.runQuery)(`INSERT INTO \`po_pn\` (purchase_order, part_number) VALUES (?, ?);`, [purchaseOrder, part[0]]);
                 if (!poPart.insertId)
                     throw new Error(poPart);
             }
             for (const part of skuCountIds) {
-                const pnCount = yield rq(`INSERT INTO \`pn_count\` (part_number, count) VALUES (?, ?);`, [
-                    part[0],
-                    part[1],
-                ]);
+                const pnCount = yield (0, connection_1.runQuery)(`INSERT INTO \`pn_count\` (part_number, count) VALUES (?, ?);`, [part[0], part[1]]);
                 if (!pnCount.insertId)
                     throw new Error(pnCount);
             }
@@ -89,7 +90,7 @@ const queries = {
     }),
     fetchPurchaseOrders: () => __awaiter(void 0, void 0, void 0, function* () {
         try {
-            const data = yield rq(`SELECT purchase_order as purchaseOrder FROM purchase_order`, []);
+            const data = yield (0, connection_1.runQuery)(`SELECT purchase_order as purchaseOrder FROM purchase_order`, []);
             return [...data];
         }
         catch (error) {
@@ -100,19 +101,23 @@ const queries = {
     fetchPurchaseOrder: (id) => __awaiter(void 0, void 0, void 0, function* () {
         var _a;
         try {
-            let poId = yield rq(`SELECT id FROM purchase_order WHERE purchase_order = ?`, [id]);
+            let poId = yield (0, connection_1.runQuery)(`SELECT id FROM purchase_order WHERE purchase_order = ?`, [id]);
             if (!poId[0].id)
                 throw new Error(`purchase_order Failed to find ${id}`);
             poId = poId[0].id;
-            let refId = yield rq(`SELECT order_reference FROM po_or WHERE purchase_order = ?`, [poId]);
+            let refId = yield (0, connection_1.runQuery)(`SELECT order_reference FROM po_or WHERE purchase_order = ?`, [
+                poId,
+            ]);
             if (!refId[0].order_reference)
                 throw new Error(`po_or Failed to find ${id}`);
             refId = refId[0].order_reference;
-            let orderRef = yield rq(`SELECT order_reference FROM order_reference WHERE id = ?`, [refId]);
+            let orderRef = yield (0, connection_1.runQuery)(`SELECT order_reference FROM order_reference WHERE id = ?`, [
+                refId,
+            ]);
             if (!orderRef[0].order_reference)
                 throw new Error(`order_reference Failed to find ${id}`);
             orderRef = orderRef[0].order_reference;
-            const partNumerRelations = yield rq(`SELECT part_number FROM po_pn WHERE purchase_order = ? `, [poId]);
+            const partNumerRelations = yield (0, connection_1.runQuery)(`SELECT part_number FROM po_pn WHERE purchase_order = ? `, [poId]);
             const retval = {
                 purchaseOrder: id,
                 orderRef,
@@ -120,11 +125,11 @@ const queries = {
             };
             for (const relation of partNumerRelations) {
                 const [partNumber, qtyRelation, partsReceived] = yield Promise.all([
-                    rq(`select part, description, partial_delivery from part_number where id = ?`, [
+                    (0, connection_1.runQuery)(`select part, description, partial_delivery from part_number where id = ?`, [
                         relation.part_number,
                     ]),
-                    rq(`select count from pn_count where part_number = ?`, [relation.part_number]),
-                    rq(`select amount_received from pn_received where part_number = ?`, [
+                    (0, connection_1.runQuery)(`select count from pn_count where part_number = ?`, [relation.part_number]),
+                    (0, connection_1.runQuery)(`select amount_received from pn_received where part_number = ?`, [
                         relation.part_number,
                     ]),
                 ]);
@@ -137,7 +142,9 @@ const queries = {
                     partsReceived: undefined,
                 };
                 for (const count of qtyRelation) {
-                    const qty = yield rq(`SELECT quantity FROM total_ordered WHERE id = ?`, [count.count]);
+                    const qty = yield (0, connection_1.runQuery)(`SELECT quantity FROM total_ordered WHERE id = ?`, [
+                        count.count,
+                    ]);
                     retval.partNumbers[partNumber[0].part].totalOrdered = qty[0].quantity;
                     retval.partNumbers[partNumber[0].part].quantityAwaited = qty[0].quantity;
                 }
@@ -145,9 +152,7 @@ const queries = {
                     ? []
                     : undefined;
                 for (const { amount_received } of partsReceived) {
-                    const [total] = yield rq(`select amount_received from amount_received where id = ?`, [
-                        amount_received,
-                    ]);
+                    const [total] = yield (0, connection_1.runQuery)(`select amount_received from amount_received where id = ?`, [amount_received]);
                     (_a = retval.partNumbers[partNumber[0].part].partsReceived) === null || _a === void 0 ? void 0 : _a.push(total.amount_received);
                 }
             }
@@ -164,7 +169,7 @@ const queries = {
     }),
     selectEmail: (email) => __awaiter(void 0, void 0, void 0, function* () {
         try {
-            const inUse = yield rq("select email from users where email = ?", [email]);
+            const inUse = yield (0, connection_1.runQuery)("select email from users where email = ?", [email]);
             return inUse.length;
         }
         catch (error) {
@@ -175,17 +180,17 @@ const queries = {
     createUser: (email, password) => __awaiter(void 0, void 0, void 0, function* () {
         try {
             const [user, token] = yield Promise.all([
-                rq("insert into users (email, password) values (?, ?)", [email, password]),
+                (0, connection_1.runQuery)("insert into users (email, password) values (?, ?)", [email, password]),
                 (0, tokens_1.generateToken)(),
             ]);
             if (!user.insertId)
                 throw new Error(`Failed to create new user ${user}`);
             if (!token)
                 throw new Error(`Failed to create new user (token) ${token}`);
-            const tokenId = yield rq(`INSERT INTO tokens (token) VALUES (?)`, [token]);
+            const tokenId = yield (0, connection_1.runQuery)(`INSERT INTO tokens (token) VALUES (?)`, [token]);
             if (!tokenId.insertId)
                 throw new Error(`Failed to create new user (token insert) ${tokenId}`);
-            const relation = yield rq(`INSERT INTO user_token (user, token) VALUES (?, ? )`, [
+            const relation = yield (0, connection_1.runQuery)(`INSERT INTO user_token (user, token) VALUES (?, ? )`, [
                 user.insertId,
                 tokenId.insertId,
             ]);
@@ -200,7 +205,7 @@ const queries = {
     }),
     validateLogin: (email) => __awaiter(void 0, void 0, void 0, function* () {
         try {
-            const user = yield rq(`SELECT password, id FROM users WHERE email = ?`, [email]);
+            const user = yield (0, connection_1.runQuery)(`SELECT password, id FROM users WHERE email = ?`, [email]);
             return user;
         }
         catch (error) {
@@ -210,15 +215,15 @@ const queries = {
     }),
     validateUserToken: (email, token) => __awaiter(void 0, void 0, void 0, function* () {
         try {
-            let user = yield rq(`Select id from users Where email = ? `, [email]);
+            let user = yield (0, connection_1.runQuery)(`Select id from users Where email = ? `, [email]);
             if (!user.length)
                 return;
             user = user[0].id;
-            let userTokenId = yield rq(`select token from user_token where user = ?`, [user]);
+            let userTokenId = yield (0, connection_1.runQuery)(`select token from user_token where user = ?`, [user]);
             if (!userTokenId[0].token)
                 return;
             userTokenId = userTokenId[0].token;
-            let _token = yield rq(`select token from tokens where id = ?`, [userTokenId]);
+            let _token = yield (0, connection_1.runQuery)(`select token from tokens where id = ?`, [userTokenId]);
             if (!_token[0].token)
                 return;
             _token = _token[0].token;
@@ -231,18 +236,18 @@ const queries = {
     }),
     setTokenToNull: (email, token) => __awaiter(void 0, void 0, void 0, function* () {
         try {
-            const userId = yield rq(`SELECT id from users where email = ?`, [email]);
+            const userId = yield (0, connection_1.runQuery)(`SELECT id from users where email = ?`, [email]);
             if (!userId[0].id)
                 return;
-            const relation = yield rq(`select token from user_token where user = ?`, userId[0].id);
+            const relation = yield (0, connection_1.runQuery)(`select token from user_token where user = ?`, userId[0].id);
             if (!relation[0].token)
                 return;
-            const _token = yield rq(`select token from tokens where id = ?`, [relation[0].token]);
+            const _token = yield (0, connection_1.runQuery)(`select token from tokens where id = ?`, [relation[0].token]);
             if (!_token[0].token)
                 return;
             if (_token[0].token !== token)
                 return;
-            const tokenRemoved = yield rq(`UPDATE tokens SET token = null WHERE id = ?`, relation[0].token);
+            const tokenRemoved = yield (0, connection_1.runQuery)(`UPDATE tokens SET token = null WHERE id = ?`, relation[0].token);
             if (!tokenRemoved.affectedRows)
                 return;
             return true;
@@ -254,13 +259,13 @@ const queries = {
     }),
     updateUserToken: (email, token) => __awaiter(void 0, void 0, void 0, function* () {
         try {
-            const userId = yield rq(`SELECT id from users where email = ?`, [email]);
+            const userId = yield (0, connection_1.runQuery)(`SELECT id from users where email = ?`, [email]);
             if (!userId[0].id)
                 return;
-            const relation = yield rq(`select token from user_token where user = ?`, userId[0].id);
+            const relation = yield (0, connection_1.runQuery)(`select token from user_token where user = ?`, userId[0].id);
             if (!relation[0].token)
                 return;
-            yield rq(`update tokens set token = ? where id = ?`, [token, relation[0].token]);
+            yield (0, connection_1.runQuery)(`update tokens set token = ? where id = ?`, [token, relation[0].token]);
             return true;
         }
         catch (error) {
@@ -270,12 +275,10 @@ const queries = {
     }),
     patchPartialStatus: (order, name) => __awaiter(void 0, void 0, void 0, function* () {
         try {
-            const id = yield rq(`SELECT id from purchase_order WHERE purchase_order = ?`, [order]);
+            const id = yield (0, connection_1.runQuery)(`SELECT id from purchase_order WHERE purchase_order = ?`, [order]);
             if (!id[0])
                 throw new Error(`Failed to select id for purchase order ${order}`);
-            const partIds = yield rq(`SELECT id, part as name from part_number WHERE part = ?`, [
-                name,
-            ]);
+            const partIds = yield (0, connection_1.runQuery)(`SELECT id, part as name from part_number WHERE part = ?`, [name]);
             let target;
             for (const part of partIds) {
                 if (part.name.toLowerCase() === name.toLowerCase()) {
@@ -283,7 +286,9 @@ const queries = {
                     break;
                 }
             }
-            const res = yield rq(`UPDATE part_number SET partial_delivery = 1 Where id = ?`, [target]);
+            const res = yield (0, connection_1.runQuery)(`UPDATE part_number SET partial_delivery = 1 Where id = ?`, [
+                target,
+            ]);
             if (!res.affectedRows)
                 throw new Error(`Failed to set partial_delivery to 1 for id ${target}`);
             return true;
@@ -296,21 +301,23 @@ const queries = {
         try {
             const parcelIds = [];
             for (const parcel of parcels) {
-                const res = yield rq(`insert into amount_received (amount_received) values (?)`, [parcel]);
+                const res = yield (0, connection_1.runQuery)(`insert into amount_received (amount_received) values (?)`, [
+                    parcel,
+                ]);
                 if (!res.insertId)
                     throw new Error(`Failed to insert new parcel ${parcels}`);
                 parcelIds.push(res.insertId);
             }
-            const purchaseId = yield rq("select id from purchase_order where purchase_order = ?", [
+            const purchaseId = yield (0, connection_1.runQuery)("select id from purchase_order where purchase_order = ?", [
                 purchaseOrder,
             ]);
             if (!purchaseId[0].id)
                 throw new Error(`Failed to select id for purchase ${purchaseOrder}`);
-            const partId = yield rq("Select id from part_number where part = ? ", [part]);
+            const partId = yield (0, connection_1.runQuery)("Select id from part_number where part = ? ", [part]);
             if (!partId[0].id)
                 throw new Error(`Failed to select id for part_number ${part}`);
             for (const id of parcelIds) {
-                const result = yield rq("insert into pn_received (part_number, amount_received) values (?,?)", [partId[0].id, id]);
+                const result = yield (0, connection_1.runQuery)("insert into pn_received (part_number, amount_received) values (?,?)", [partId[0].id, id]);
                 if (!result.insertId)
                     throw new Error(`Failed to create relation between parcel and part\nParcel: ${parcels}\nPart: ${part} `);
             }
@@ -321,10 +328,11 @@ const queries = {
         }
     }),
     getUserRole: (email) => __awaiter(void 0, void 0, void 0, function* () {
-        var _b;
         try {
-            const role = yield rq("select role from users where email =? ", [email]);
-            if (!((_b = role[0]) === null || _b === void 0 ? void 0 : _b.role))
+            const role = yield (0, connection_1.runQuery)("select role from users where email =? ", [email]);
+            if ("code" in role)
+                throw new Error(`error fetching prefixes \n${role}`);
+            if (!role[0].role)
                 return;
             return role[0].role;
         }

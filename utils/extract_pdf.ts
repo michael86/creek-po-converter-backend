@@ -1,33 +1,27 @@
+import { GetData, Rows, ShouldIncludeString } from "../types/utils";
+
 const pdf2table = require("pdf2table");
 const fs = require("fs/promises");
 const path = require("path");
 
 const pdfFolder = path.resolve(__dirname, "../public/pdf");
-const { runQuery } = require("../sql/connection");
 
-type Rows = string[][];
-
-let PREFIXES: string[];
+const { fetchPrefixes } = require("../sql/queries");
 
 /**
- * Initiate our prefixes from the database
+ *
+ * @param rows
+ * @returns
  */
-(async () => {
-  const p = await runQuery("select prefix from prefixes", []);
-  PREFIXES = p.map((packet: { prefix: string }) => packet.prefix);
-  console.log("prefixes established");
-})();
-
-// Extracts relevant data from table rows
-const getData = (rows: Rows) => {
-  const data: string[][] = [];
+const getData: GetData = (rows) => {
+  const data: Rows = [];
 
   rows.forEach((row, index) => {
     const lowerCasedRow = row.map((entry) => entry.toLowerCase());
     const nextRow = rows[index + 1] || [];
 
-    lowerCasedRow.forEach((string, stringIndex) => {
-      if (shouldIncludeString(string, lowerCasedRow, stringIndex)) {
+    lowerCasedRow.forEach((string) => {
+      if (shouldIncludeString(string, lowerCasedRow)) {
         const quantityIndex = row.length - 2;
         const quantity = Math.floor(+row[quantityIndex]).toString();
         const nextRowFirstElement = nextRow[0] || "";
@@ -39,8 +33,9 @@ const getData = (rows: Rows) => {
   return data;
 };
 
-const shouldIncludeString = (string: string, row: string[], index: number): boolean => {
-  return PREFIXES.some(
+const shouldIncludeString: ShouldIncludeString = (string, row) => {
+  const prefixes = fetchPrefixes();
+  return prefixes.some(
     (prefix) => string.includes(prefix) && row[1] !== "stencil" && row.length > 4
   );
 };
