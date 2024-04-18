@@ -1,4 +1,4 @@
-import { FecthRequest, PutRequest } from "../types/sql";
+import { FecthRequest, PutRequest } from "@types_sql/index";
 import { generateToken } from "../utils/tokens";
 import { runQuery } from "./connection";
 
