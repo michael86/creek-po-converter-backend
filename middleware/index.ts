@@ -11,7 +11,6 @@ export const validateToken: RequestHandler = async (req, res, next) => {
   try {
     const { email, token } = req.headers;
 
-    if (token === "gFLuvMQFib8A1WMTfEoYVnSRUIXzp7KG1713438827393") return next();
     if (!email || !token) {
       return res.status(400).send({ error: "Email or token missing" });
     }
