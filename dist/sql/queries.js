@@ -11,6 +11,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const tokens_1 = require("../utils/tokens");
 const connection_1 = require("./connection");
+//
 const queries = {
     fetchPrefixes: () => __awaiter(void 0, void 0, void 0, function* () {
         try {
@@ -82,10 +83,10 @@ const queries = {
         catch (error) {
             if ((error instanceof Error && error.message.includes("ER_DUP_ENTRY")) ||
                 (typeof error === "string" && error.includes("ER_DUP_ENTRY"))) {
-                return "dupe";
+                return "ER_DUP_ENTRY";
             }
             console.error(`failed to insert data to db `, error);
-            return false;
+            return;
         }
     }),
     fetchPurchaseOrders: () => __awaiter(void 0, void 0, void 0, function* () {
@@ -95,7 +96,7 @@ const queries = {
         }
         catch (error) {
             console.error(error);
-            return false;
+            return;
         }
     }),
     fetchPurchaseOrder: (id) => __awaiter(void 0, void 0, void 0, function* () {
@@ -205,8 +206,12 @@ const queries = {
     }),
     validateLogin: (email) => __awaiter(void 0, void 0, void 0, function* () {
         try {
-            const user = yield (0, connection_1.runQuery)(`SELECT password, id FROM users WHERE email = ?`, [email]);
-            return user;
+            const user = yield (0, connection_1.runQuery)(`SELECT password, id FROM users WHERE email = ?`, [
+                email,
+            ]);
+            if ("code" in user)
+                throw new Error(`Error valideLogin \n${user}`);
+            return [user[0].password, user[0].id];
         }
         catch (error) {
             console.error("Validate login ", error);
@@ -294,7 +299,8 @@ const queries = {
             return true;
         }
         catch (error) {
-            return error;
+            console.error(error);
+            return;
         }
     }),
     addParcelsToOrder: (parcels, purchaseOrder, part) => __awaiter(void 0, void 0, void 0, function* () {
@@ -324,7 +330,8 @@ const queries = {
             return true;
         }
         catch (error) {
-            return error;
+            console.error(error);
+            return;
         }
     }),
     getUserRole: (email) => __awaiter(void 0, void 0, void 0, function* () {
@@ -334,7 +341,7 @@ const queries = {
                 throw new Error(`error fetching prefixes \n${role}`);
             if (!role[0].role)
                 return;
-            return role[0].role;
+            return +role[0].role;
         }
         catch (error) {
             console.error(error);
