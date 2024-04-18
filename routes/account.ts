@@ -1,6 +1,7 @@
 import { RequestHandler } from "express";
 import { generateToken } from "../utils/tokens";
-import { validateQuery } from "../middleware/validate";
+import { validate, validateQuery } from "../middleware/validate";
+import { Result, check, param } from "express-validator";
 
 const {
   selectEmail,
@@ -80,6 +81,9 @@ const handleLogin: RequestHandler = async (req, res) => {
 
 const validateToken: RequestHandler = async (req, res) => {
   const { token, email } = req.params;
+  console.log(token);
+  console.log(email);
+
   try {
     if (!token || !email) throw new Error(`validate token failed ${token}`);
     const valid = await validateUserToken(email, token);
@@ -115,6 +119,18 @@ const handleLogout: RequestHandler = async (req, res) => {
 
 router.post("/register", handleRegister);
 router.post("/login", handleLogin);
-router.get("/validate-token/:token?/:email?", validateQuery, validateToken);
+router.get(
+  "/validate-token/:token?/:email?",
+  validate([
+    param("email")
+      .trim()
+      .notEmpty()
+      .withMessage("email empty")
+      .isEmail()
+      .withMessage("Not valid email")
+      .normalizeEmail(),
+  ]),
+  validateToken
+);
 router.post("/logout", handleLogout);
 module.exports = router;

@@ -1,12 +1,22 @@
-import { RequestHandler } from "express";
-import { query } from "express-validator";
+import express from "express";
+import { body, validationResult, ContextRunner } from "express-validator";
+// can be reused by many routes
 
-export const validateQuery: RequestHandler = (req, res, next) => {
-  const params = Object.keys(req.params);
+// sequential processing, stops running validations chain if the previous one fails.
+export const validate = (validations: ContextRunner[]) => {
+  return async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    for (let validation of validations) {
+      const result = await validation.run(req);
+      if (result.errors.length) break;
+    }
 
-  for (const param of params) {
-    const valid = query().notEmpty();
-  }
+    const errors = validationResult(req);
+    console.log("errors");
+    if (errors.isEmpty()) {
+      return next();
+    }
+    console.log("after errors");
 
-  next();
+    res.status(400).json({ errors: errors.array() });
+  };
 };
