@@ -36,7 +36,7 @@ const getData: GetData = (rows) => {
 const shouldIncludeString: ShouldIncludeString = (string, row) => {
   const prefixes = fetchPrefixes();
   return prefixes.some(
-    (prefix) => string.includes(prefix) && row[1] !== "stencil" && row.length > 4
+    (prefix: string) => string.includes(prefix) && row[1] !== "stencil" && row.length > 4
   );
 };
 

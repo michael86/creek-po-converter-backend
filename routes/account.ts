@@ -2,8 +2,7 @@ import { RequestHandler } from "express";
 import { generateToken } from "../utils/tokens";
 import { validate } from "../middleware/validate";
 import { Result, check, param } from "express-validator";
-
-const {
+import {
   selectEmail,
   createUser,
   validateLogin,
@@ -11,7 +10,9 @@ const {
   setTokenToNull,
   updateUserToken,
   getUserRole,
-} = require("../sql/queries");
+} from "../db/queries/user";
+import { IncomingHttpHeaders } from "http";
+import { UserHeaders } from "@types_sql/index";
 
 const sha256 = require("sha256");
 const express = require("express");
@@ -53,18 +54,15 @@ const handleLogin: RequestHandler = async (req, res) => {
 
     let user = await validateLogin(email);
 
-    if (!user.length) {
+    if (!user?.length) {
       res.send({ status: 2 });
       return;
     }
 
-    user = user[0];
-
-    if (sha256(password) !== user.password) {
+    if (sha256(password) !== user[0]) {
       res.send({ status: 2 });
       return;
     }
-
     const token = generateToken();
     if (!token) throw new Error(`Failed to generate token ${token}`);
 
@@ -99,7 +97,7 @@ const validateToken: RequestHandler = async (req, res) => {
 };
 
 const handleLogout: RequestHandler = async (req, res) => {
-  const { token, email } = req.headers;
+  const { token, email } = req.headers as UserHeaders;
 
   try {
     if (!token || !email)

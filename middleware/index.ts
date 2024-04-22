@@ -1,7 +1,8 @@
 import { RequestHandler } from "express";
 import { generateToken } from "../utils/tokens";
 import { check, header } from "express-validator";
-const { validateUserToken, updateUserToken } = require("../sql/queries");
+import { validateUserToken, updateUserToken } from "../db/queries/user";
+import { UserHeaders } from "@types_sql/index";
 
 export const validateToken: RequestHandler = async (req, res, next) => {
   if (shouldSkipValidation(req.path) || req.path.includes("validate-token")) {
@@ -9,7 +10,7 @@ export const validateToken: RequestHandler = async (req, res, next) => {
   }
 
   try {
-    const { email, token } = req.headers;
+    const { email, token } = req.headers as UserHeaders;
 
     if (!email || !token) {
       return res.status(400).send({ error: "Email or token missing" });

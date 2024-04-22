@@ -68,7 +68,7 @@ const fetchPurchaseOrders = () => __awaiter(void 0, void 0, void 0, function* ()
         const data = yield (0, connection_1.runQuery)(`SELECT purchase_order as purchaseOrder FROM purchase_order`, []);
         if ("code" in data)
             throw new Error(`Failed to fetchPurchaseOrder ${data.message}`);
-        return [...data];
+        return ["...data"];
     }
     catch (error) {
         console.error(error);
@@ -125,7 +125,8 @@ const fetchPurchaseOrder = (id) => __awaiter(void 0, void 0, void 0, function* (
                 if ("code" in qty)
                     throw new Error(`Error selecing qty ${qty.message}`);
                 retval.partNumbers[partNumber[0].part].totalOrdered = +qty[0].quantity;
-                retval.partNumbers[partNumber[0].part].quantityAwaited = qty[0].quantity;
+                // retval.partNumbers[partNumber[0].part].quantityAwaited = qty[0].quantity;
+                retval.partNumbers[partNumber[0].part].quantityAwaited = [[100], [451]];
             }
             retval.partNumbers[partNumber[0].part].partsReceived = partsReceived.length ? [] : undefined;
             for (const { amount_received } of partsReceived) {
@@ -143,7 +144,7 @@ const fetchPurchaseOrder = (id) => __awaiter(void 0, void 0, void 0, function* (
     }
     catch (error) {
         console.error(error);
-        return null;
+        return;
     }
 });
 exports.fetchPurchaseOrder = fetchPurchaseOrder;

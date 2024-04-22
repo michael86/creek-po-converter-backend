@@ -1,3 +1,4 @@
+import { IncomingHttpHeaders } from "http";
 import { MysqlError } from "mysql";
 
 export type SqlQueryVars = (string | number)[] | string | number;
@@ -18,3 +19,8 @@ export type PutRequest = {
 export type AsyncMySql = <T>(query: string, vars: SqlQueryVars) => Promise<MysqlError | T>;
 
 export type GetUserRole = (email: string) => Promise<number | void>;
+
+export interface UserHeaders extends IncomingHttpHeaders {
+  token: string;
+  email: string;
+}

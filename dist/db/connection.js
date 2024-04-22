@@ -41,7 +41,6 @@ const asyncMySQL = (query, vars) => {
                     reject(error);
                     return;
                 }
-                console.log("results ", results);
                 resolve(results);
                 //REturn the connection to the pool
                 connection.release();
@@ -59,12 +58,14 @@ const asyncMySQL = (query, vars) => {
  */
 const runQuery = (query, data) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        for (let i = 0; i <= data.length; i++) {
-            //Because of the way for loops work, we have to create a new variable to hold the true typeof data[i]
-            //https://stackoverflow.com/questions/75640224/type-narrowing-is-not-working-in-for-loop
-            const d = data[i];
-            if (d === "string") {
-                data[i] = d.toLowerCase();
+        if (Array.isArray(data)) {
+            for (let i = 0; i <= data.length; i++) {
+                //Because of the way for loops work, we have to create a new variable to hold the true typeof data[i]
+                //https://stackoverflow.com/questions/75640224/type-narrowing-is-not-working-in-for-loop
+                const d = data[i];
+                if (d === "string") {
+                    data[i] = d.toLowerCase();
+                }
             }
         }
         return yield asyncMySQL(query, data);
