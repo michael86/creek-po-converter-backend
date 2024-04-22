@@ -12,7 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.router = void 0;
 const validate_1 = require("../middleware/validate");
 const express_validator_1 = require("express-validator");
-const { fetchPrefixes, insertPrefix } = require("../sql/queries");
+const parts_1 = require("../db/queries/parts");
 const express = require("express");
 exports.router = express.Router();
 const isPrefixValid = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -20,19 +20,19 @@ const isPrefixValid = (req, res) => __awaiter(void 0, void 0, void 0, function* 
     if (!prefix) {
         res.status(400).send({ token: req.headers.newToken });
     }
-    const prefixes = yield fetchPrefixes();
+    const prefixes = yield (0, parts_1.fetchPrefixes)();
     if (!prefix.length) {
         res.status(500).send({ token: req.headers.newToken });
         return;
     }
     res
         .status(200)
-        .send({ token: req.headers.newToken, valid: !prefixes.includes(prefix.toLowerCase()) });
+        .send({ token: req.headers.newToken, valid: !(prefixes === null || prefixes === void 0 ? void 0 : prefixes.includes(prefix.toLowerCase())) });
 });
 const addPrefix = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { prefix } = req.body;
-        const inserted = yield insertPrefix(prefix);
+        const inserted = yield (0, parts_1.insertPrefix)(prefix);
         if (!inserted) {
             res.status(400).send();
             return;

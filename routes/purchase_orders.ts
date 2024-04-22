@@ -1,5 +1,5 @@
 import { RequestHandler } from "express";
-const { patchPartialStatus, addParcelsToOrder } = require("../sql/queries");
+import { patchPartialStatus, addParcelsToOrder } from "../db/queries/orders";
 
 const express = require("express");
 const router = express.Router();

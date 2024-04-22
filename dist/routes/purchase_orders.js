@@ -9,13 +9,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const { patchPartialStatus, addParcelsToOrder } = require("../sql/queries");
+const orders_1 = require("../db/queries/orders");
 const express = require("express");
 const router = express.Router();
 const updatePartNumber = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { order, name } = req.params;
-        const result = yield patchPartialStatus(order, name);
+        const result = yield (0, orders_1.patchPartialStatus)(order, name);
         if (!result)
             throw new Error(result);
         res.send({ status: 1, token: req.headers.newToken });
@@ -32,7 +32,7 @@ const addParcel = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             res.status(400).send();
             return;
         }
-        const result = yield addParcelsToOrder(parcels, purchaseOrder, part);
+        const result = yield (0, orders_1.addParcelsToOrder)(parcels, purchaseOrder, part);
     }
     catch (error) {
         console.log(`error trying to add new parcels to order ${error}`);

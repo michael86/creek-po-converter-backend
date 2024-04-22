@@ -1,7 +1,7 @@
 import { RequestHandler } from "express";
 import { validate } from "../middleware/validate";
 import { body } from "express-validator";
-const { fetchPrefixes, insertPrefix } = require("../sql/queries");
+import { fetchPrefixes, insertPrefix } from "../db/queries/parts";
 const express = require("express");
 export const router = express.Router();
 
@@ -19,7 +19,7 @@ const isPrefixValid: RequestHandler = async (req, res) => {
 
   res
     .status(200)
-    .send({ token: req.headers.newToken, valid: !prefixes.includes(prefix.toLowerCase()) });
+    .send({ token: req.headers.newToken, valid: !prefixes?.includes(prefix.toLowerCase()) });
 };
 
 const addPrefix: RequestHandler = async (req, res) => {

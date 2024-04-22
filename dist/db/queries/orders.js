@@ -126,8 +126,7 @@ const fetchPurchaseOrder = (id) => __awaiter(void 0, void 0, void 0, function* (
                 if ("code" in qty)
                     throw new Error(`Error selecing qty ${qty.message}`);
                 retval.partNumbers[partNumber[0].part].totalOrdered = +qty[0].quantity;
-                // retval.partNumbers[partNumber[0].part].quantityAwaited = qty[0].quantity;
-                retval.partNumbers[partNumber[0].part].quantityAwaited = [[100], [451]];
+                retval.partNumbers[partNumber[0].part].quantityAwaited = [[+qty[0].quantity]];
             }
             retval.partNumbers[partNumber[0].part].partsReceived = partsReceived.length ? [] : undefined;
             for (const { amount_received } of partsReceived) {
@@ -150,6 +149,7 @@ const fetchPurchaseOrder = (id) => __awaiter(void 0, void 0, void 0, function* (
 });
 exports.fetchPurchaseOrder = fetchPurchaseOrder;
 const patchPartialStatus = (order, name) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log("in set partial");
     try {
         const id = yield (0, connection_1.runQuery)(`SELECT id from purchase_order WHERE purchase_order = ?`, [order]);
         if ("code" in id)
