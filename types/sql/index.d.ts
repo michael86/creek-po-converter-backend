@@ -1,6 +1,6 @@
 import { MysqlError } from "mysql";
 
-export type SqlQueryVars = (string | number)[];
+export type SqlQueryVars = (string | number)[] | string | number;
 
 export type FecthRequest = { [key: string]: string }[];
 
