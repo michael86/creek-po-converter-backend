@@ -92,7 +92,7 @@ export const fetchPurchaseOrders: FetchPurchaseOrders = async () => {
 
     if ("code" in data) throw new Error(`Failed to fetchPurchaseOrder ${data.message}`);
 
-    return ["...data"];
+    return data.map((p) => p.purchaseOrder);
   } catch (error) {
     console.error(error);
     return;
