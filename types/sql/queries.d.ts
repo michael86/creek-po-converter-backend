@@ -1,5 +1,13 @@
 // import PurchaseOrder
 
+export type SelectEmail = (email: string) => Promise<number | void>;
+export type CreateUser = (email: string, password: string) => Promise<string | void>;
+export type ValidateLogin = (email: string) => Promise<string[] | void>;
+export type ValidateUserToken = (email: string, token: string) => Promise<boolean | void>;
+export type SetTokenToNull = (email: string, token: string) => Promise<true | void>;
+export type UpdateUserToken = (email: string, token: string) => Promise<true | void>;
+export type GetUserRole = (email: string) => Promise<number | void>;
+
 export type Queries = {
   parts: {
     fetchPrefixes: () => Promise<string[] | void>;
@@ -16,14 +24,5 @@ export type Queries = {
       purchaseOrder: string,
       part: string
     ) => Promise<true | void>;
-  };
-  user: {
-    selectEmail: (email: string) => Promise<number | void>;
-    createUser: (email: string, password: string) => Promise<string | void>;
-    validateLogin: (email: string) => Promise<string[] | void>;
-    validateUserToken: (email: string, token: string) => Promise<boolean | void>;
-    setTokenToNull: (email: string, token: string) => Promise<true | void>;
-    updateUserToken: (email: string, token: string) => Promise<true | void>;
-    getUserRole: (email: string) => Promise<number | void>;
   };
 };
