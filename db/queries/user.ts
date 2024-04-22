@@ -1,4 +1,12 @@
-import { FecthRequest, PutRequest } from "@types_sql/index";
+import { FecthRequest, GetUserRole, PutRequest } from "@types_sql/index";
+import {
+  CreateUser,
+  SelectEmail,
+  SetTokenToNull,
+  UpdateUserToken,
+  ValidateLogin,
+  ValidateUserToken,
+} from "@types_sql/queries";
 import { runQuery } from "db/connection";
 import { generateToken } from "utils/tokens";
 
@@ -9,7 +17,7 @@ import { generateToken } from "utils/tokens";
  * @param email string
  * @returns number
  */
-export const selectEmail = async (email: string) => {
+export const selectEmail: SelectEmail = async (email: string) => {
   try {
     const res = await runQuery<FecthRequest>("select email from users where email = ?", [email]);
     if ("code" in res) throw new Error(`Error selecting users email: ${res.message}`);
@@ -28,7 +36,7 @@ export const selectEmail = async (email: string) => {
  * @param password  string
  * @returns void | string - string will be token for new user
  */
-export const createUser = async (email: string, password: string) => {
+export const createUser: CreateUser = async (email: string, password: string) => {
   try {
     const [user, token] = await Promise.all([
       runQuery<PutRequest>("insert into users (email, password) values (?, ?)", [email, password]),
@@ -64,7 +72,7 @@ export const createUser = async (email: string, password: string) => {
  * @param email string
  * @returns [password: string, userId: string] | void
  */
-export const validateLogin = async (email: string) => {
+export const validateLogin: ValidateLogin = async (email: string) => {
   try {
     const res = await runQuery<FecthRequest>(`SELECT password, id FROM users WHERE email = ?`, [
       email,
@@ -84,7 +92,10 @@ export const validateLogin = async (email: string) => {
  * @param tokenReceived string
  * @returns boolean | void
  */
-export const validateUserToken = async (email: string, tokenReceived: string) => {
+export const validateUserToken: ValidateUserToken = async (
+  email: string,
+  tokenReceived: string
+) => {
   try {
     const user = await runQuery<FecthRequest>(`Select id from users Where email = ? `, [email]);
     if ("code" in user)
@@ -118,7 +129,7 @@ export const validateUserToken = async (email: string, tokenReceived: string) =>
  * @param tokenReceived string
  * @returns void | true
  */
-export const setTokenToNull = async (email: string, tokenReceived: string) => {
+export const setTokenToNull: SetTokenToNull = async (email: string, tokenReceived: string) => {
   try {
     const userId = await runQuery<FecthRequest>(`SELECT id from users where email = ?`, [email]);
 
@@ -169,7 +180,7 @@ export const setTokenToNull = async (email: string, tokenReceived: string) => {
  * @param token string
  * @returns true | void
  */
-export const updateUserToken = async (email: string, token: string) => {
+export const updateUserToken: UpdateUserToken = async (email: string, token: string) => {
   try {
     const userId = await runQuery<FecthRequest>(`SELECT id from users where email = ?`, [email]);
     if ("code" in userId)
@@ -206,7 +217,7 @@ export const updateUserToken = async (email: string, token: string) => {
  * @returns number | void
  */
 
-export const getUserRole = async (email: string) => {
+export const getUserRole: GetUserRole = async (email: string) => {
   try {
     const role = await runQuery<FecthRequest>("select role from users where email =? ", [email]);
     if ("code" in role) throw new Error(`error fetching prefixes \n${role}`);
