@@ -213,6 +213,7 @@ export const patchPartialStatus: PatchPartialStatus = async (order: string, name
     );
     if ("code" in partIds) throw new Error(`Failed to fetch partIds ${partIds.message}`);
     let target;
+
     for (const part of partIds) {
       if (part.name.toLowerCase() === name.toLowerCase()) {
         target = part.id;

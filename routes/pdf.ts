@@ -77,6 +77,7 @@ const fetch: RequestHandler = async (req, res) => {
     });
     return;
   }
+
   const purchaseOrder = await fetchPurchaseOrder(req.params.id);
   res.send({ status: 1, data: purchaseOrder, token: req.headers.newToken });
 };

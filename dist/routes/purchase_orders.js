@@ -17,7 +17,7 @@ const updatePartNumber = (req, res) => __awaiter(void 0, void 0, void 0, functio
         const { order, name } = req.params;
         const result = yield (0, orders_1.patchPartialStatus)(order, name);
         if (!result)
-            throw new Error(result);
+            throw new Error(`Failed to patch partial status \nOrder:${order} \nName${name}`);
         res.send({ status: 1, token: req.headers.newToken });
     }
     catch (error) {
