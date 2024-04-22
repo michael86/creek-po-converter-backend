@@ -68,7 +68,7 @@ const fetchPurchaseOrders = () => __awaiter(void 0, void 0, void 0, function* ()
         const data = yield (0, connection_1.runQuery)(`SELECT purchase_order as purchaseOrder FROM purchase_order`, []);
         if ("code" in data)
             throw new Error(`Failed to fetchPurchaseOrder ${data.message}`);
-        return ["...data"];
+        return data.map((p) => p.purchaseOrder);
     }
     catch (error) {
         console.error(error);
