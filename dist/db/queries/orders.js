@@ -78,6 +78,7 @@ const fetchPurchaseOrders = () => __awaiter(void 0, void 0, void 0, function* ()
 exports.fetchPurchaseOrders = fetchPurchaseOrders;
 const fetchPurchaseOrder = (id) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
+    console.log("try fetch data");
     try {
         let poId = yield (0, connection_1.runQuery)(`SELECT id FROM purchase_order WHERE purchase_order = ?`, [id]);
         if ("code" in poId)
@@ -88,15 +89,15 @@ const fetchPurchaseOrder = (id) => __awaiter(void 0, void 0, void 0, function* (
         let orderRef = yield (0, connection_1.runQuery)(`SELECT order_reference FROM order_reference WHERE id = ?`, [refId[0].order_reference]);
         if ("code" in orderRef)
             throw new Error(`order_reference Failed to find ${orderRef.message}`);
-        const partNumerRelations = yield (0, connection_1.runQuery)(`SELECT part_number FROM po_pn WHERE purchase_order = ? `, [orderRef[0].order_reference]);
-        if ("code" in partNumerRelations)
-            throw new Error(`Failed to select partNumberRelations ${partNumerRelations.message}`);
+        const partNumberRelations = yield (0, connection_1.runQuery)(`SELECT part_number FROM po_pn WHERE purchase_order = ? `, [poId[0].id]);
+        if ("code" in partNumberRelations)
+            throw new Error(`Failed to select partNumberRelations ${partNumberRelations.message}`);
         const retval = {
             purchaseOrder: id,
             orderRef: orderRef[0].order_reference,
             partNumbers: {},
         };
-        for (const relation of partNumerRelations) {
+        for (const relation of partNumberRelations) {
             const [partNumber, qtyRelation, partsReceived] = yield Promise.all([
                 (0, connection_1.runQuery)(`select part, description, partial_delivery from part_number where id = ?`, [relation.part_number]),
                 (0, connection_1.runQuery)(`select count from pn_count where part_number = ?`, [

@@ -99,6 +99,7 @@ export const fetchPurchaseOrders: FetchPurchaseOrders = async () => {
   }
 };
 export const fetchPurchaseOrder: FetchPurchaseOrder = async (id) => {
+  console.log("try fetch data");
   try {
     let poId = await runQuery<FecthRequest>(
       `SELECT id FROM purchase_order WHERE purchase_order = ?`,
@@ -118,12 +119,13 @@ export const fetchPurchaseOrder: FetchPurchaseOrder = async (id) => {
     );
     if ("code" in orderRef) throw new Error(`order_reference Failed to find ${orderRef.message}`);
 
-    const partNumerRelations = await runQuery<FecthRequest>(
+    const partNumberRelations = await runQuery<FecthRequest>(
       `SELECT part_number FROM po_pn WHERE purchase_order = ? `,
-      [orderRef[0].order_reference]
+      [poId[0].id]
     );
-    if ("code" in partNumerRelations)
-      throw new Error(`Failed to select partNumberRelations ${partNumerRelations.message}`);
+
+    if ("code" in partNumberRelations)
+      throw new Error(`Failed to select partNumberRelations ${partNumberRelations.message}`);
 
     const retval: PurchaseOrder = {
       purchaseOrder: id,
@@ -131,7 +133,7 @@ export const fetchPurchaseOrder: FetchPurchaseOrder = async (id) => {
       partNumbers: {},
     };
 
-    for (const relation of partNumerRelations) {
+    for (const relation of partNumberRelations) {
       const [partNumber, qtyRelation, partsReceived] = await Promise.all([
         runQuery<FecthRequest>(
           `select part, description, partial_delivery from part_number where id = ?`,
