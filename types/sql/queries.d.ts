@@ -1,5 +1,4 @@
-// import PurchaseOrder
-
+//user
 export type SelectEmail = (email: string) => Promise<number | void>;
 export type CreateUser = (email: string, password: string) => Promise<string | void>;
 export type ValidateLogin = (email: string) => Promise<string[] | void>;
@@ -8,21 +7,32 @@ export type SetTokenToNull = (email: string, token: string) => Promise<true | vo
 export type UpdateUserToken = (email: string, token: string) => Promise<true | void>;
 export type GetUserRole = (email: string) => Promise<number | void>;
 
-export type Queries = {
-  parts: {
-    fetchPrefixes: () => Promise<string[] | void>;
-    insertPrefix: (prefix: string) => Promise<true | void>;
-  };
-  purchaseOrders: {
-    //Rename insert data to db
-    insertDataToDb: (data: Data) => Promise<true | "ER_DUP_ENTRY" | void>;
-    fetchPurchaseOrders: () => Promise<string[] | void>;
-    fetchPurchaseOrder: (id: string) => Promise<PurchaseOrder | void>;
-    patchPartialStatus: (order: string, name: string) => Promise<true | void>;
-    addParcelsToOrder: (
-      parcels: number[],
-      purchaseOrder: string,
-      part: string
-    ) => Promise<true | void>;
+//parts
+export type FetchPrefixes = () => Promise<string[] | void>;
+export type InsertPrefix = (prefix: string) => Promise<true | void>;
+
+//purchase orders
+export type InsertDataToDb = (data: Data) => Promise<true | "ER_DUP_ENTRY" | void>;
+export type FetchPurchaseOrder = (id: string) => Promise<PurchaseOrder | void>;
+export type FetchPurchaseOrders = () => Promise<string[] | void>;
+export type PatchPartialStatus = (order: string, name: string) => Promise<true | void>;
+export type AddParcelsToOrder = (
+  parcels: number[],
+  purchaseOrder: string,
+  part: string
+) => Promise<true | void>;
+export type PurchaseOrder = {
+  purchaseOrder: string;
+  orderRef: string;
+  partNumbers: {
+    [key: string]: {
+      name: string;
+      quantityAwaited: number[][] | undefined;
+      partial: 1 | 0;
+      totalOrdered: number | undefined;
+      description: string;
+      partsReceived: number[] | undefined;
+    };
   };
 };
+export type PDFStructure = { DATA: []; ORDER_REFERENCE: string; PURCHASE_ORDER: string };
