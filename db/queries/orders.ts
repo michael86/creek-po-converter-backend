@@ -170,8 +170,7 @@ export const fetchPurchaseOrder: FetchPurchaseOrder = async (id) => {
         if ("code" in qty) throw new Error(`Error selecing qty ${qty.message}`);
 
         retval.partNumbers[partNumber[0].part].totalOrdered = +qty[0].quantity;
-        // retval.partNumbers[partNumber[0].part].quantityAwaited = qty[0].quantity;
-        retval.partNumbers[partNumber[0].part].quantityAwaited = [[100], [451]];
+        retval.partNumbers[partNumber[0].part].quantityAwaited = [[+qty[0].quantity]];
       }
 
       retval.partNumbers[partNumber[0].part].partsReceived = partsReceived.length ? [] : undefined;
@@ -199,6 +198,7 @@ export const fetchPurchaseOrder: FetchPurchaseOrder = async (id) => {
 };
 export const patchPartialStatus: PatchPartialStatus = async (order: string, name: string) => {
   type PartIds = { id: number; name: string }[];
+  console.log("in set partial");
   try {
     const id = await runQuery<FecthRequest>(
       `SELECT id from purchase_order WHERE purchase_order = ?`,
