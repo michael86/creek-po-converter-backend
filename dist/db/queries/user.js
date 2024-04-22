@@ -10,8 +10,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getUserRole = exports.updateUserToken = exports.setTokenToNull = exports.validateUserToken = exports.validateLogin = exports.createUser = exports.selectEmail = void 0;
-const connection_1 = require("db/connection");
-const tokens_1 = require("utils/tokens");
+const connection_1 = require("../connection");
+const tokens_1 = require("../../utils/tokens");
 /**
  *
  * Will return the total number of emails existing in the database that match a given string
@@ -71,9 +71,8 @@ exports.createUser = createUser;
  */
 const validateLogin = (email) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const res = yield (0, connection_1.runQuery)(`SELECT password, id FROM users WHERE email = ?`, [
-            email,
-        ]);
+        const res = yield (0, connection_1.runQuery)(`SELECT password, id FROM users WHERE email = ?`, email);
+        console.log("res ", res);
         if ("code" in res)
             throw new Error(`Error valideLogin \n${res.message}`);
         return [res[0].password, res[0].id];

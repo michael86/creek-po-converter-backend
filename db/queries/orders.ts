@@ -91,15 +91,14 @@ export const fetchPurchaseOrders: FetchPurchaseOrders = async () => {
     );
 
     if ("code" in data) throw new Error(`Failed to fetchPurchaseOrder ${data.message}`);
-    return [...data];
+
+    return ["...data"];
   } catch (error) {
     console.error(error);
     return;
   }
 };
-export const fetchPurchaseOrder: FetchPurchaseOrder = async (
-  id: string
-): Promise<PurchaseOrder | null> => {
+export const fetchPurchaseOrder: FetchPurchaseOrder = async (id) => {
   try {
     let poId = await runQuery<FecthRequest>(
       `SELECT id FROM purchase_order WHERE purchase_order = ?`,
@@ -169,7 +168,8 @@ export const fetchPurchaseOrder: FetchPurchaseOrder = async (
         if ("code" in qty) throw new Error(`Error selecing qty ${qty.message}`);
 
         retval.partNumbers[partNumber[0].part].totalOrdered = +qty[0].quantity;
-        retval.partNumbers[partNumber[0].part].quantityAwaited = qty[0].quantity;
+        // retval.partNumbers[partNumber[0].part].quantityAwaited = qty[0].quantity;
+        retval.partNumbers[partNumber[0].part].quantityAwaited = [[100], [451]];
       }
 
       retval.partNumbers[partNumber[0].part].partsReceived = partsReceived.length ? [] : undefined;
@@ -192,7 +192,7 @@ export const fetchPurchaseOrder: FetchPurchaseOrder = async (
     };
   } catch (error) {
     console.error(error);
-    return null;
+    return;
   }
 };
 export const patchPartialStatus: PatchPartialStatus = async (order: string, name: string) => {

@@ -7,8 +7,8 @@ import {
   ValidateLogin,
   ValidateUserToken,
 } from "@types_sql/queries";
-import { runQuery } from "db/connection";
-import { generateToken } from "utils/tokens";
+import { runQuery } from "../connection";
+import { generateToken } from "../../utils/tokens";
 
 /**
  *
@@ -74,9 +74,11 @@ export const createUser: CreateUser = async (email: string, password: string) =>
  */
 export const validateLogin: ValidateLogin = async (email: string) => {
   try {
-    const res = await runQuery<FecthRequest>(`SELECT password, id FROM users WHERE email = ?`, [
-      email,
-    ]);
+    const res = await runQuery<FecthRequest>(
+      `SELECT password, id FROM users WHERE email = ?`,
+      email
+    );
+    console.log("res ", res);
     if ("code" in res) throw new Error(`Error valideLogin \n${res.message}`);
 
     return [res[0].password, res[0].id];

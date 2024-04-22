@@ -12,7 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const tokens_1 = require("../utils/tokens");
 const validate_1 = require("../middleware/validate");
 const express_validator_1 = require("express-validator");
-const { selectEmail, createUser, validateLogin, validateUserToken, setTokenToNull, updateUserToken, getUserRole, } = require("../sql/queries");
+const user_1 = require("../db/queries/user");
 const sha256 = require("sha256");
 const express = require("express");
 const router = express.Router();
@@ -23,13 +23,13 @@ const handleRegister = (req, res) => __awaiter(void 0, void 0, void 0, function*
             res.send({ status: 0 });
             return;
         }
-        const emailUsed = yield selectEmail(email);
+        const emailUsed = yield (0, user_1.selectEmail)(email);
         if (emailUsed) {
             res.send({ status: 2 });
             return;
         }
         password = sha256(password);
-        const userCreated = yield createUser(email, password);
+        const userCreated = yield (0, user_1.createUser)(email, password);
         if (!userCreated)
             throw new Error(`createUser: ${userCreated}`);
         res.send({ status: 1, token: userCreated });
@@ -46,23 +46,22 @@ const handleLogin = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
             res.send({ status: 0 });
             return;
         }
-        let user = yield validateLogin(email);
-        if (!user.length) {
+        let user = yield (0, user_1.validateLogin)(email);
+        if (!(user === null || user === void 0 ? void 0 : user.length)) {
             res.send({ status: 2 });
             return;
         }
-        user = user[0];
-        if (sha256(password) !== user.password) {
+        if (sha256(password) !== user[0]) {
             res.send({ status: 2 });
             return;
         }
         const token = (0, tokens_1.generateToken)();
         if (!token)
             throw new Error(`Failed to generate token ${token}`);
-        const tokenStored = yield updateUserToken(email, token);
+        const tokenStored = yield (0, user_1.updateUserToken)(email, token);
         if (!tokenStored)
             throw new Error(`Failed to update user token on logging in %\n ${tokenStored}`);
-        res.send({ status: 1, token, role: yield getUserRole(email) });
+        res.send({ status: 1, token, role: yield (0, user_1.getUserRole)(email) });
     }
     catch (error) {
         console.error(error);
@@ -74,12 +73,12 @@ const validateToken = (req, res) => __awaiter(void 0, void 0, void 0, function* 
     try {
         if (!token || !email)
             throw new Error(`validate token failed ${token}`);
-        const valid = yield validateUserToken(email, token);
+        const valid = yield (0, user_1.validateUserToken)(email, token);
         if (!valid) {
             res.send({ valid });
             return;
         }
-        res.send({ valid, role: yield getUserRole(email) });
+        res.send({ valid, role: yield (0, user_1.getUserRole)(email) });
     }
     catch (error) {
         console.error("Error validating token ", error);
@@ -91,7 +90,7 @@ const handleLogout = (req, res) => __awaiter(void 0, void 0, void 0, function* (
     try {
         if (!token || !email)
             throw new Error(`Failed to log out user \n TOKEN: ${token}\n EMAIL: ${email}`);
-        const loggedout = yield setTokenToNull(email, token);
+        const loggedout = yield (0, user_1.setTokenToNull)(email, token);
         if (!loggedout)
             throw new Error(`Failed to log out user ${loggedout}`);
         res.send({ status: 1 });
