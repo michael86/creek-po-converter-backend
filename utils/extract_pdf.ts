@@ -6,35 +6,38 @@ const path = require("path");
 
 const pdfFolder = path.resolve(__dirname, "../public/pdf");
 
-const { fetchPrefixes } = require("../sql/queries");
+import { fetchPrefixes } from "../db/queries/parts";
 
 /**
  *
  * @param rows
  * @returns
  */
-const getData: GetData = (rows) => {
+const getData: GetData = async (rows) => {
   const data: Rows = [];
 
-  rows.forEach((row, index) => {
+  for (let index = 0; index < rows.length; index++) {
+    const row = rows[index];
     const lowerCasedRow = row.map((entry) => entry.toLowerCase());
     const nextRow = rows[index + 1] || [];
 
-    lowerCasedRow.forEach((string) => {
-      if (shouldIncludeString(string, lowerCasedRow)) {
+    for (const string of lowerCasedRow) {
+      if (await shouldIncludeString(string, lowerCasedRow)) {
         const quantityIndex = row.length - 2;
         const quantity = Math.floor(+row[quantityIndex]).toString();
         const nextRowFirstElement = nextRow[0] || "";
         data.push([row[1], quantity, nextRowFirstElement]);
       }
-    });
-  });
+    }
+  }
 
   return data;
 };
 
-const shouldIncludeString: ShouldIncludeString = (string, row) => {
-  const prefixes = fetchPrefixes();
+const shouldIncludeString: ShouldIncludeString = async (string, row) => {
+  const prefixes = await fetchPrefixes();
+  if (!prefixes) return;
+
   return prefixes.some(
     (prefix: string) => string.includes(prefix) && row[1] !== "stencil" && row.length > 4
   );
@@ -61,10 +64,12 @@ const getPurchaseOrder = (rows: Rows) => {
 export const processFile = async (file: string, cb: CallableFunction) => {
   try {
     const fileData = await fs.readFile(path.resolve(pdfFolder, file));
-    pdf2table.parse(fileData, function (err: string, rows: Rows) {
-      if (err) return console.log(err);
 
-      const DATA = getData(rows);
+    pdf2table.parse(fileData, async function (err: string, rows: Rows) {
+      if (err) throw new Error(`pdf2table ${err}`);
+
+      const DATA = await getData(rows);
+
       const ORDER_REFERENCE: string = getOrderReference(rows);
       const PURCHASE_ORDER: string = getPurchaseOrder(rows);
 

@@ -10,7 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.insertPrefix = exports.fetchPrefixes = void 0;
-const connection_1 = require("db/connection");
+const connection_1 = require("../connection");
 const fetchPrefixes = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const prefixes = yield (0, connection_1.runQuery)(`select prefix from prefixes`, []);
@@ -20,6 +20,7 @@ const fetchPrefixes = () => __awaiter(void 0, void 0, void 0, function* () {
     }
     catch (error) {
         console.error(error);
+        return;
     }
 });
 exports.fetchPrefixes = fetchPrefixes;

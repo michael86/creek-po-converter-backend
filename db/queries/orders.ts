@@ -7,7 +7,7 @@ import {
   PatchPartialStatus,
   AddParcelsToOrder,
 } from "@types_sql/queries";
-import { runQuery } from "db/connection";
+import { runQuery } from "../connection";
 import { FecthRequest, PutRequest } from "@types_sql/index";
 
 export const insertDataToDb: InsertDataToDb = async (data: PDFStructure) => {

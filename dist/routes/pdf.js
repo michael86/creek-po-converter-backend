@@ -10,31 +10,31 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const extract_pdf_1 = require("../utils/extract_pdf");
-const { insertDataToDb, fetchPurchaseOrders, fetchPurchaseOrder } = require("../sql/queries");
+const orders_1 = require("../db/queries/orders");
+require("dotenv").config();
 const express = require("express");
 const multer = require("multer");
 const router = express.Router();
 const storage = multer.diskStorage({
     destination: (_req, _file, cb) => {
-        cb(null, "public/pdf/");
+        cb(null, process.env.SQL_PORT ? "dist/public/pdf/" : "public/pdf/");
     },
     filename: (_req, file, cb) => {
         cb(null, file.originalname);
     },
 });
 const uploadStorage = multer({ storage: storage });
-const process = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const beginProcess = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         if (!req.file)
             throw new Error("no file fount");
         (0, extract_pdf_1.processFile)(req.file.filename, (data) => __awaiter(void 0, void 0, void 0, function* () {
-            console.log("data ", data);
             if (!data) {
                 res.send({ status: 3, token: req.headers.newToken });
                 return;
             }
-            const inserted = yield insertDataToDb(data);
-            if (inserted === "dupe") {
+            const inserted = yield (0, orders_1.insertDataToDb)(data);
+            if (inserted === "ER_DUP_ENTRY") {
                 res.send({ status: 4, token: req.headers.newToken });
                 return;
             }
@@ -53,7 +53,7 @@ const process = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
 });
 const fetch = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     if (!req.params.id) {
-        const purchaseOrders = yield fetchPurchaseOrders();
+        const purchaseOrders = yield (0, orders_1.fetchPurchaseOrders)();
         res.send({
             status: 1,
             data: purchaseOrders.map((po) => po.purchaseOrder),
@@ -61,9 +61,9 @@ const fetch = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         });
         return;
     }
-    const purchaseOrder = yield fetchPurchaseOrder(req.params.id);
+    const purchaseOrder = yield (0, orders_1.fetchPurchaseOrder)(req.params.id);
     res.send({ status: 1, data: purchaseOrder, token: req.headers.newToken });
 });
-router.post("/process", uploadStorage.single("pdf"), process);
+router.post("/process", uploadStorage.single("pdf"), beginProcess);
 router.get("/fetch/:id?", fetch);
 module.exports = router;

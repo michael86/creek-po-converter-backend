@@ -14,32 +14,35 @@ const pdf2table = require("pdf2table");
 const fs = require("fs/promises");
 const path = require("path");
 const pdfFolder = path.resolve(__dirname, "../public/pdf");
-const { fetchPrefixes } = require("../sql/queries");
+const parts_1 = require("../db/queries/parts");
 /**
  *
  * @param rows
  * @returns
  */
-const getData = (rows) => {
+const getData = (rows) => __awaiter(void 0, void 0, void 0, function* () {
     const data = [];
-    rows.forEach((row, index) => {
+    for (let index = 0; index < rows.length; index++) {
+        const row = rows[index];
         const lowerCasedRow = row.map((entry) => entry.toLowerCase());
         const nextRow = rows[index + 1] || [];
-        lowerCasedRow.forEach((string) => {
-            if (shouldIncludeString(string, lowerCasedRow)) {
+        for (const string of lowerCasedRow) {
+            if (yield shouldIncludeString(string, lowerCasedRow)) {
                 const quantityIndex = row.length - 2;
                 const quantity = Math.floor(+row[quantityIndex]).toString();
                 const nextRowFirstElement = nextRow[0] || "";
                 data.push([row[1], quantity, nextRowFirstElement]);
             }
-        });
-    });
+        }
+    }
     return data;
-};
-const shouldIncludeString = (string, row) => {
-    const prefixes = fetchPrefixes();
+});
+const shouldIncludeString = (string, row) => __awaiter(void 0, void 0, void 0, function* () {
+    const prefixes = yield (0, parts_1.fetchPrefixes)();
+    if (!prefixes)
+        return;
     return prefixes.some((prefix) => string.includes(prefix) && row[1] !== "stencil" && row.length > 4);
-};
+});
 // Extracts order reference from table rows
 const getOrderReference = (rows) => {
     var _a;
@@ -61,20 +64,22 @@ const processFile = (file, cb) => __awaiter(void 0, void 0, void 0, function* ()
     try {
         const fileData = yield fs.readFile(path.resolve(pdfFolder, file));
         pdf2table.parse(fileData, function (err, rows) {
-            if (err)
-                return console.log(err);
-            const DATA = getData(rows);
-            const ORDER_REFERENCE = getOrderReference(rows);
-            const PURCHASE_ORDER = getPurchaseOrder(rows);
-            if (DATA.length) {
-                cb({
-                    DATA,
-                    ORDER_REFERENCE,
-                    PURCHASE_ORDER,
-                });
-                return;
-            }
-            cb(null);
+            return __awaiter(this, void 0, void 0, function* () {
+                if (err)
+                    throw new Error(`pdf2table ${err}`);
+                const DATA = yield getData(rows);
+                const ORDER_REFERENCE = getOrderReference(rows);
+                const PURCHASE_ORDER = getPurchaseOrder(rows);
+                if (DATA.length) {
+                    cb({
+                        DATA,
+                        ORDER_REFERENCE,
+                        PURCHASE_ORDER,
+                    });
+                    return;
+                }
+                cb(null);
+            });
         });
     }
     catch (error) {

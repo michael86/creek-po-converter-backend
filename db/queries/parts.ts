@@ -1,14 +1,16 @@
 import { FetchPrefixes, InsertPrefix } from "@types_sql/queries";
-import { runQuery } from "db/connection";
+import { runQuery } from "../connection";
 import { FecthRequest, PutRequest } from "@types_sql/index";
 
 export const fetchPrefixes: FetchPrefixes = async () => {
   try {
     const prefixes = await runQuery<FecthRequest>(`select prefix from prefixes`, []);
     if ("code" in prefixes) throw new Error(`error fetching prefixes \n${prefixes}`);
+
     return prefixes.map((entry) => entry.prefix);
   } catch (error) {
     console.error(error);
+    return;
   }
 };
 
