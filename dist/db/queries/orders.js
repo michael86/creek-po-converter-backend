@@ -11,6 +11,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.addParcelsToOrder = exports.patchPartialStatus = exports.fetchPurchaseOrder = exports.fetchPurchaseOrders = exports.insertDataToDb = void 0;
 const connection_1 = require("../connection");
+const utils_1 = require("./utils");
 const insertDataToDb = (data) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const purchase = yield (0, connection_1.runQuery)(`insert into purchase_order (purchase_order) values (?)`, [data.PURCHASE_ORDER]);
@@ -77,68 +78,43 @@ const fetchPurchaseOrders = () => __awaiter(void 0, void 0, void 0, function* ()
 });
 exports.fetchPurchaseOrders = fetchPurchaseOrders;
 const fetchPurchaseOrder = (id) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
-    console.log("try fetch data");
     try {
-        let poId = yield (0, connection_1.runQuery)(`SELECT id FROM purchase_order WHERE purchase_order = ?`, [id]);
-        if ("code" in poId)
-            throw new Error(`purchase_order Failed to find ${id}\n${poId.message}`);
-        let refId = yield (0, connection_1.runQuery)(`SELECT order_reference FROM po_or WHERE purchase_order = ?`, [poId[0].id]);
-        if ("code" in refId)
-            throw new Error(`po_or Failed to find ${refId.message}`);
-        let orderRef = yield (0, connection_1.runQuery)(`SELECT order_reference FROM order_reference WHERE id = ?`, [refId[0].order_reference]);
-        if ("code" in orderRef)
-            throw new Error(`order_reference Failed to find ${orderRef.message}`);
-        const partNumberRelations = yield (0, connection_1.runQuery)(`SELECT part_number FROM po_pn WHERE purchase_order = ? `, [poId[0].id]);
-        if ("code" in partNumberRelations)
-            throw new Error(`Failed to select partNumberRelations ${partNumberRelations.message}`);
+        const poId = yield (0, utils_1.selectPurchaseOrderId)(id);
+        if (!poId)
+            throw new Error(`Failed to select purchase order id for ${id} \n${poId}`);
+        const orderRef = yield (0, utils_1.selectOrderReference)(poId);
+        if (!orderRef)
+            throw new Error(`Failed to select order ref for id ${id} \n${orderRef}`);
+        const partRelations = yield (0, utils_1.selectPartRelations)(poId);
+        if (!partRelations)
+            throw new Error(`Failed to select part relations for id ${id} \n${partRelations}`);
         const retval = {
             purchaseOrder: id,
-            orderRef: orderRef[0].order_reference,
+            orderRef: orderRef,
             partNumbers: {},
         };
-        for (const relation of partNumberRelations) {
-            const [partNumber, qtyRelation, partsReceived] = yield Promise.all([
-                (0, connection_1.runQuery)(`select part, description, partial_delivery from part_number where id = ?`, [relation.part_number]),
-                (0, connection_1.runQuery)(`select count from pn_count where part_number = ?`, [
-                    relation.part_number,
-                ]),
-                (0, connection_1.runQuery)(`select amount_received from pn_received where part_number = ?`, [
-                    relation.part_number,
-                ]),
-            ]);
-            if ("code" in partNumber)
-                throw new Error(`Failed to select partNumber ${partNumber.message}`);
-            if ("code" in qtyRelation)
-                throw new Error(`Failed to select qtyRelation ${qtyRelation.message}`);
-            if ("code" in partsReceived)
-                throw new Error(`Failed to select partsReceived ${partsReceived.message}`);
-            retval.partNumbers[partNumber[0].part] = {
-                name: partNumber[0].part,
-                totalOrdered: undefined,
-                quantityAwaited: undefined,
-                partial: +partNumber[0].partial_delivery,
-                description: partNumber[0].description,
-                partsReceived: undefined,
+        //Begin filling out the order part status
+        for (const relation of partRelations) {
+            //Select details such as description, partial order and so on
+            const part = yield (0, utils_1.selectPartDetails)(relation.part_number);
+            if (!part)
+                throw new Error(`Failed to select part details for ${id} \n${part}`);
+            //Select the total amount ordered
+            const totalOrdered = yield (0, utils_1.selectPartTotalOrdered)(relation.part_number);
+            if (!totalOrdered)
+                throw new Error(`Failed to select total ordered for ${id} \n${totalOrdered}`);
+            const partsReceived = yield (0, utils_1.selectPartsReceived)(relation.part_number);
+            retval.partNumbers[part.name] = {
+                name: part.name,
+                totalOrdered: +totalOrdered,
+                partial: +part.partial_delivery,
+                description: part.description,
+                partsReceived,
             };
-            for (const count of qtyRelation) {
-                const qty = yield (0, connection_1.runQuery)(`SELECT quantity FROM total_ordered WHERE id = ?`, [count.count]);
-                if ("code" in qty)
-                    throw new Error(`Error selecing qty ${qty.message}`);
-                retval.partNumbers[partNumber[0].part].totalOrdered = +qty[0].quantity;
-                retval.partNumbers[partNumber[0].part].quantityAwaited = [[+qty[0].quantity]];
-            }
-            retval.partNumbers[partNumber[0].part].partsReceived = partsReceived.length ? [] : undefined;
-            for (const { amount_received } of partsReceived) {
-                const total = yield (0, connection_1.runQuery)(`select amount_received from amount_received where id = ?`, [amount_received]);
-                if ("code" in total)
-                    throw new Error(`failed to select amount received ${total.message}`);
-                (_a = retval.partNumbers[partNumber[0].part].partsReceived) === null || _a === void 0 ? void 0 : _a.push(+total[0].amount_received);
-            }
         }
         return {
             purchaseOrder: id,
-            orderRef: orderRef[0].order_reference,
+            orderRef: orderRef,
             partNumbers: retval.partNumbers,
         };
     }
