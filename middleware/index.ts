@@ -1,6 +1,5 @@
 import { RequestHandler } from "express";
 import { generateToken } from "../utils/tokens";
-import { check, header } from "express-validator";
 import { validateUserToken, updateUserToken } from "../db/queries/user";
 import { UserHeaders } from "@types_sql/index";
 

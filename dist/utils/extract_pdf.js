@@ -41,7 +41,7 @@ const shouldIncludeString = (string, row) => __awaiter(void 0, void 0, void 0, f
     const prefixes = yield (0, parts_1.fetchPrefixes)();
     if (!prefixes)
         return;
-    return prefixes.some((prefix) => string.includes(prefix) && row[1] !== "stencil" && row.length > 4);
+    return prefixes.some((prefix) => string.toLowerCase().includes(prefix.toLowerCase()) && row[1] !== "stencil" && row.length > 4);
 });
 // Extracts order reference from table rows
 const getOrderReference = (rows) => {

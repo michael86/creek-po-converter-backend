@@ -27,11 +27,12 @@ const addParcel: RequestHandler = async (req, res) => {
     }
 
     const result = await addParcelsToOrder(parcels, purchaseOrder, part);
-  } catch (error) {
-    console.log(`error trying to add new parcels to order ${error}`);
-  }
 
-  res.send({ token: req.headers.newToken });
+    res.send({ status: result ? 1 : 0, token: req.headers.newToken });
+  } catch (error) {
+    console.error(`error trying to add new parcels to order ${error}`);
+    res.send({ status: 0 });
+  }
 };
 
 router.patch("/set-partial/:order?/:name?", updatePartNumber);

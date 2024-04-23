@@ -78,7 +78,7 @@ export const validateLogin: ValidateLogin = async (email: string) => {
       `SELECT password, id FROM users WHERE email = ?`,
       email
     );
-    console.log("res ", res);
+
     if ("code" in res) throw new Error(`Error valideLogin \n${res.message}`);
 
     return [res[0].password, res[0].id];

@@ -68,12 +68,12 @@ const selectPartDetails = (partNumber) => __awaiter(void 0, void 0, void 0, func
 exports.selectPartDetails = selectPartDetails;
 const selectPartTotalOrdered = (id) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const countRelation = yield (0, connection_1.runQuery)(`select count from pn_count where part_number = ?`, id);
+        const countRelation = yield (0, connection_1.runQuery)(`select ordered from pn_ordered where part_number = ?`, id);
         if ("code" in countRelation)
             throw new Error(`Failed to select part total ordered for ${id} \n${countRelation.message}`);
-        const qty = yield (0, connection_1.runQuery)(`SELECT quantity FROM total_ordered WHERE id = ?`, [countRelation[0].count]);
+        const qty = yield (0, connection_1.runQuery)(`SELECT quantity FROM total_ordered WHERE id = ?`, [countRelation[0].ordered]);
         if ("code" in qty)
-            throw new Error(`Error selecing total ordered for ${countRelation[0].count} \n${qty.message}`);
+            throw new Error(`Error selecing total ordered for ${countRelation[0].ordered} \n${qty.message}`);
         return qty[0].quantity;
     }
     catch (error) {
@@ -82,9 +82,9 @@ const selectPartTotalOrdered = (id) => __awaiter(void 0, void 0, void 0, functio
     }
 });
 exports.selectPartTotalOrdered = selectPartTotalOrdered;
-const selectPartsReceived = (partNumber) => __awaiter(void 0, void 0, void 0, function* () {
+const selectPartsReceived = (partNumber, purchaseOrder) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const receviedRelations = yield (0, connection_1.runQuery)(`select amount_received as amountReceived from pn_received where part_number = ?`, partNumber);
+        const receviedRelations = yield (0, connection_1.runQuery)(`select parcel from po_pn_parcel where part_number = ? AND purchase_order = ?`, [partNumber, purchaseOrder]);
         if ("code" in receviedRelations)
             throw new Error(`Failed to select partsReceived ${receviedRelations.message}`);
         if (!receviedRelations.length)

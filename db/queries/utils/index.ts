@@ -33,6 +33,7 @@ export const selectOrderReference = async (id: string) => {
       `SELECT order_reference FROM po_or WHERE purchase_order = ?`,
       [id]
     );
+
     if ("code" in refId)
       throw new Error(`Failed to select order reference for ${id} \n${refId.message}`);
 
@@ -44,6 +45,7 @@ export const selectOrderReference = async (id: string) => {
       throw new Error(
         `Failed to select order refence from order refence, id was ${id} \n${orderRef.message}`
       );
+
     return orderRef[0].order_reference;
   } catch (error) {
     console.error(error);
@@ -85,7 +87,7 @@ export const selectPartDetails = async (partNumber: string) => {
 export const selectPartTotalOrdered = async (id: string) => {
   try {
     const countRelation = await runQuery<SelectCountRelation>(
-      `select count from pn_count where part_number = ?`,
+      `select ordered from pn_ordered where part_number = ?`,
       id
     );
     if ("code" in countRelation)
@@ -93,11 +95,11 @@ export const selectPartTotalOrdered = async (id: string) => {
 
     const qty = await runQuery<SelectTotalOrdered>(
       `SELECT quantity FROM total_ordered WHERE id = ?`,
-      [countRelation[0].count]
+      [countRelation[0].ordered]
     );
     if ("code" in qty)
       throw new Error(
-        `Error selecing total ordered for ${countRelation[0].count} \n${qty.message}`
+        `Error selecing total ordered for ${countRelation[0].ordered} \n${qty.message}`
       );
 
     return qty[0].quantity;
@@ -107,11 +109,11 @@ export const selectPartTotalOrdered = async (id: string) => {
   }
 };
 
-export const selectPartsReceived = async (partNumber: string) => {
+export const selectPartsReceived = async (partNumber: string, purchaseOrder: string) => {
   try {
     const receviedRelations = await runQuery<SelectCount>(
-      `select amount_received as amountReceived from pn_received where part_number = ?`,
-      partNumber
+      `select parcel from po_pn_parcel where part_number = ? AND purchase_order = ?`,
+      [partNumber, purchaseOrder]
     );
 
     if ("code" in receviedRelations)

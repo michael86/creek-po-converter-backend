@@ -33,11 +33,12 @@ const addParcel = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             return;
         }
         const result = yield (0, orders_1.addParcelsToOrder)(parcels, purchaseOrder, part);
+        res.send({ status: result ? 1 : 0, token: req.headers.newToken });
     }
     catch (error) {
-        console.log(`error trying to add new parcels to order ${error}`);
+        console.error(`error trying to add new parcels to order ${error}`);
+        res.send({ status: 0 });
     }
-    res.send({ token: req.headers.newToken });
 });
 router.patch("/set-partial/:order?/:name?", updatePartNumber);
 router.put("/add-parcel/", addParcel);

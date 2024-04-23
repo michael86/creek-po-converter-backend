@@ -39,7 +39,8 @@ const shouldIncludeString: ShouldIncludeString = async (string, row) => {
   if (!prefixes) return;
 
   return prefixes.some(
-    (prefix: string) => string.includes(prefix) && row[1] !== "stencil" && row.length > 4
+    (prefix: string) =>
+      string.toLowerCase().includes(prefix.toLowerCase()) && row[1] !== "stencil" && row.length > 4
   );
 };
 
