@@ -1,20 +1,17 @@
 import {
   FetchPurchaseOrders,
   FetchPurchaseOrder,
-  InsertDataToDb,
+  InsertOrderToDb,
   PatchPartialStatus,
   AddParcelsToOrder,
-  SelectPartRelation,
-  SelectPart,
-  SelectCountRelation,
-  SelectCount,
-  SelectTotalOrdered,
-  SelectAmountReceived,
 } from "@types_sql/queries";
 import { PDFStructure, PurchaseOrder } from "types/generic";
 import { runQuery } from "../connection";
 import { FecthRequest, PutRequest } from "@types_sql/index";
 import {
+  insertOrderRef,
+  insertPartNumber,
+  insertPurchaseOrder,
   selectOrderReference,
   selectPartDetails,
   selectPartRelations,
@@ -23,51 +20,35 @@ import {
   selectPurchaseOrderId,
 } from "./utils";
 
-export const insertDataToDb: InsertDataToDb = async (data: PDFStructure) => {
+export const insertOrderToDb: InsertOrderToDb = async (data: PDFStructure) => {
   try {
-    const purchase = await runQuery<PutRequest>(
-      `insert into purchase_order (purchase_order) values (?)`,
-      [data.PURCHASE_ORDER]
-    );
-    if ("code" in purchase) throw new Error(`error inserting purchase_order \n${purchase}`);
+    const poId = await insertPurchaseOrder(data.PURCHASE_ORDER);
+    if (!poId) throw new Error(`Failed to insert purchase order ${data} \n${poId}`);
 
-    const order = await runQuery<PutRequest>(
-      `insert into order_reference (order_reference) values (?)`,
-      [data.ORDER_REFERENCE]
-    );
-    if ("code" in order) throw new Error(`error inserting purchase_order \n${order}`);
+    const orId = await insertOrderRef(data.ORDER_REFERENCE, poId);
+    if (!orId) throw new Error(`Failed to insert purchase order ${data} \n${orId}`);
 
     const skuCountIds: number[][] = [];
 
     for (const part of data.DATA) {
-      const [sku, quantity] = await Promise.all([
-        runQuery<PutRequest>(`insert into part_number (part, description) values (?, ?)`, [
-          part[0],
-          part[2],
-        ]),
+      const partId = await insertPartNumber(part);
+      if (!partId) throw new Error(`Failed to insert part ${part[0]} \n${partId}`);
+
+      //Upto refactoring here
+
+      const [quantity] = await Promise.all([
         runQuery<PutRequest>(`INSERT INTO total_ordered (quantity) VALUES (?);`, [Number(part[1])]),
       ]);
 
-      if ("code" in sku)
-        throw new Error(`Error adding purchase order, failed to insert sku ${sku}`);
       if ("code" in quantity)
         throw new Error(`Error adding purchase order, failed to insert quantity ${quantity}`);
-      skuCountIds.push([+sku.insertId, +quantity.insertId]);
+      skuCountIds.push([partId, +quantity.insertId]);
     }
-
-    const purchaseOrder = purchase.insertId;
-    const orderRef = order.insertId;
-    const poOrRef = await runQuery<PutRequest>(
-      `INSERT INTO po_or (purchase_order, order_reference) VALUES (?, ?);`,
-      [purchaseOrder, orderRef]
-    );
-    if ("code" in poOrRef)
-      throw new Error(`Failed to insert new PO. Relation failed ${poOrRef.message}`);
 
     for (const part of skuCountIds) {
       const poPart = await runQuery<PutRequest>(
         `INSERT INTO po_pn (purchase_order, part_number) VALUES (?, ?);`,
-        [purchaseOrder, part[0]]
+        [poId, part[0]]
       );
       if ("code" in poPart)
         throw new Error(`Error adding purchase order, failed to insert po_or ${poPart.message}`);
@@ -94,6 +75,7 @@ export const insertDataToDb: InsertDataToDb = async (data: PDFStructure) => {
     return;
   }
 };
+
 export const fetchPurchaseOrders: FetchPurchaseOrders = async () => {
   try {
     const data = await runQuery<FecthRequest>(

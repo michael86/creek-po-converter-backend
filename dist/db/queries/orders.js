@@ -9,39 +9,32 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.addParcelsToOrder = exports.patchPartialStatus = exports.fetchPurchaseOrder = exports.fetchPurchaseOrders = exports.insertDataToDb = void 0;
+exports.addParcelsToOrder = exports.patchPartialStatus = exports.fetchPurchaseOrder = exports.fetchPurchaseOrders = exports.insertOrderToDb = void 0;
 const connection_1 = require("../connection");
 const utils_1 = require("./utils");
-const insertDataToDb = (data) => __awaiter(void 0, void 0, void 0, function* () {
+const insertOrderToDb = (data) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const purchase = yield (0, connection_1.runQuery)(`insert into purchase_order (purchase_order) values (?)`, [data.PURCHASE_ORDER]);
-        if ("code" in purchase)
-            throw new Error(`error inserting purchase_order \n${purchase}`);
-        const order = yield (0, connection_1.runQuery)(`insert into order_reference (order_reference) values (?)`, [data.ORDER_REFERENCE]);
-        if ("code" in order)
-            throw new Error(`error inserting purchase_order \n${order}`);
+        const poId = yield (0, utils_1.insertPurchaseOrder)(data.PURCHASE_ORDER);
+        if (!poId)
+            throw new Error(`Failed to insert purchase order ${data} \n${poId}`);
+        const orId = yield (0, utils_1.insertOrderRef)(data.ORDER_REFERENCE, poId);
+        if (!orId)
+            throw new Error(`Failed to insert purchase order ${data} \n${orId}`);
         const skuCountIds = [];
         for (const part of data.DATA) {
-            const [sku, quantity] = yield Promise.all([
-                (0, connection_1.runQuery)(`insert into part_number (part, description) values (?, ?)`, [
-                    part[0],
-                    part[2],
-                ]),
+            const partId = yield (0, utils_1.insertPartNumber)(part);
+            if (!partId)
+                throw new Error(`Failed to insert part ${part[0]} \n${partId}`);
+            //Upto refactoring here
+            const [quantity] = yield Promise.all([
                 (0, connection_1.runQuery)(`INSERT INTO total_ordered (quantity) VALUES (?);`, [Number(part[1])]),
             ]);
-            if ("code" in sku)
-                throw new Error(`Error adding purchase order, failed to insert sku ${sku}`);
             if ("code" in quantity)
                 throw new Error(`Error adding purchase order, failed to insert quantity ${quantity}`);
-            skuCountIds.push([+sku.insertId, +quantity.insertId]);
+            skuCountIds.push([partId, +quantity.insertId]);
         }
-        const purchaseOrder = purchase.insertId;
-        const orderRef = order.insertId;
-        const poOrRef = yield (0, connection_1.runQuery)(`INSERT INTO po_or (purchase_order, order_reference) VALUES (?, ?);`, [purchaseOrder, orderRef]);
-        if ("code" in poOrRef)
-            throw new Error(`Failed to insert new PO. Relation failed ${poOrRef.message}`);
         for (const part of skuCountIds) {
-            const poPart = yield (0, connection_1.runQuery)(`INSERT INTO po_pn (purchase_order, part_number) VALUES (?, ?);`, [purchaseOrder, part[0]]);
+            const poPart = yield (0, connection_1.runQuery)(`INSERT INTO po_pn (purchase_order, part_number) VALUES (?, ?);`, [poId, part[0]]);
             if ("code" in poPart)
                 throw new Error(`Error adding purchase order, failed to insert po_or ${poPart.message}`);
         }
@@ -61,7 +54,7 @@ const insertDataToDb = (data) => __awaiter(void 0, void 0, void 0, function* () 
         return;
     }
 });
-exports.insertDataToDb = insertDataToDb;
+exports.insertOrderToDb = insertOrderToDb;
 const fetchPurchaseOrders = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const data = yield (0, connection_1.runQuery)(`SELECT purchase_order as purchaseOrder FROM purchase_order`, []);

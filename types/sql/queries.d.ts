@@ -12,7 +12,7 @@ export type FetchPrefixes = () => Promise<string[] | void>;
 export type InsertPrefix = (prefix: string) => Promise<true | void>;
 
 //purchase orders
-export type InsertDataToDb = (data: Data) => Promise<true | "ER_DUP_ENTRY" | void>;
+export type InsertOrderToDb = (data: Data) => Promise<true | "ER_DUP_ENTRY" | void>;
 export type FetchPurchaseOrder = (id: string) => Promise<PurchaseOrder | void>;
 export type FetchPurchaseOrders = () => Promise<string[] | void>;
 export type PatchPartialStatus = (order: string, name: string) => Promise<true | void>;
@@ -32,3 +32,4 @@ export type SelectCountRelation = { ordered: string }[];
 export type SelectCount = { amountReceived: string }[];
 export type SelectTotalOrdered = { quantity: string }[];
 export type SelectAmountReceived = { amountReceived: string }[];
+export type SelectPartId = { id: string }[];

@@ -1,3 +1,4 @@
+import { PutRequest } from "@types_sql/index";
 import { runQuery } from "../../connection";
 import {
   SelectPoId,
@@ -8,6 +9,7 @@ import {
   SelectTotalOrdered,
   SelectCount,
   SelectAmountReceived,
+  SelectPartId,
 } from "@types_sql/queries";
 
 export const selectPurchaseOrderId = async (purchaseOrder: string) => {
@@ -132,6 +134,87 @@ export const selectPartsReceived = async (partNumber: string, purchaseOrder: str
     }
 
     return retval;
+  } catch (error) {
+    console.error(error);
+    return;
+  }
+};
+
+export const insertPurchaseOrder = async (po: string) => {
+  try {
+    const purchase = await runQuery<PutRequest>(
+      `insert into purchase_order (purchase_order) values (?)`,
+      po
+    );
+    if ("code" in purchase) throw new Error(`error inserting purchase_order \n${purchase}`);
+    return purchase.insertId;
+  } catch (error) {
+    console.error(error);
+    return;
+  }
+};
+
+export const insertOrderRef = async (or: string, po: number) => {
+  try {
+    const order = await runQuery<PutRequest>(
+      `insert into order_reference (order_reference) values (?)`,
+      or
+    );
+
+    if ("code" in order) throw new Error(`error inserting purchase_order \n${order}`);
+
+    const poOrRef = await runQuery<PutRequest>(
+      `INSERT INTO po_or (purchase_order, order_reference) VALUES (?, ?);`,
+      [po, order.insertId]
+    );
+    if ("code" in poOrRef)
+      throw new Error(`Failed to insert new PO. Relation failed ${poOrRef.message}`);
+
+    return order.insertId;
+  } catch (error) {
+    console.error(error);
+    return;
+  }
+};
+
+export const selectPartId = async (part: string) => {
+  try {
+    const id = await runQuery<SelectPartId>(`SELECT id from part_number where part = ?`, part);
+    if ("code" in id) throw new Error(`Failed to select id for part ${part}`);
+    return id[0].id;
+  } catch (error) {
+    console.error(error);
+    return;
+  }
+};
+
+/**
+ *
+ * Will insert the part and return the insertId, if dupe entry, will return the id of that dupe entry
+ *
+ * @param part [name, qty, description]
+ * @returns
+ */
+export const insertPartNumber = async (part: [string, string, string]) => {
+  try {
+    const partNumber = await runQuery<PutRequest>(
+      `insert into part_number (part, description) values (?, ?)`,
+      [part[0], part[2]]
+    );
+
+    if ("code" in partNumber) {
+      if (partNumber.code === "ER_DUP_ENTRY") {
+        const id = await selectPartId(part[0]);
+        if (!id) throw new Error(`Failed to find id for ${part[0]}`);
+        return +id;
+      }
+
+      throw new Error(
+        `Error inserting part, failed to insert part ${part[0]} \n${partNumber.message}`
+      );
+    }
+
+    return partNumber.insertId;
   } catch (error) {
     console.error(error);
     return;

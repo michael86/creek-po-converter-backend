@@ -33,7 +33,7 @@ const beginProcess = (req, res) => __awaiter(void 0, void 0, void 0, function* (
                 res.send({ status: 3, token: req.headers.newToken });
                 return;
             }
-            const inserted = yield (0, orders_1.insertDataToDb)(data);
+            const inserted = yield (0, orders_1.insertOrderToDb)(data);
             if (inserted === "ER_DUP_ENTRY") {
                 res.send({ status: 4, token: req.headers.newToken });
                 return;

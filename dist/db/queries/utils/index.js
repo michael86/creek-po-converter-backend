@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.selectPartsReceived = exports.selectPartTotalOrdered = exports.selectPartDetails = exports.selectPartRelations = exports.selectOrderReference = exports.selectPurchaseOrderId = void 0;
+exports.insertPartNumber = exports.selectPartId = exports.insertOrderRef = exports.insertPurchaseOrder = exports.selectPartsReceived = exports.selectPartTotalOrdered = exports.selectPartDetails = exports.selectPartRelations = exports.selectOrderReference = exports.selectPurchaseOrderId = void 0;
 const connection_1 = require("../../connection");
 const selectPurchaseOrderId = (purchaseOrder) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -104,3 +104,72 @@ const selectPartsReceived = (partNumber, purchaseOrder) => __awaiter(void 0, voi
     }
 });
 exports.selectPartsReceived = selectPartsReceived;
+const insertPurchaseOrder = (po) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const purchase = yield (0, connection_1.runQuery)(`insert into purchase_order (purchase_order) values (?)`, po);
+        if ("code" in purchase)
+            throw new Error(`error inserting purchase_order \n${purchase}`);
+        return purchase.insertId;
+    }
+    catch (error) {
+        console.error(error);
+        return;
+    }
+});
+exports.insertPurchaseOrder = insertPurchaseOrder;
+const insertOrderRef = (or, po) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const order = yield (0, connection_1.runQuery)(`insert into order_reference (order_reference) values (?)`, or);
+        if ("code" in order)
+            throw new Error(`error inserting purchase_order \n${order}`);
+        const poOrRef = yield (0, connection_1.runQuery)(`INSERT INTO po_or (purchase_order, order_reference) VALUES (?, ?);`, [po, order.insertId]);
+        if ("code" in poOrRef)
+            throw new Error(`Failed to insert new PO. Relation failed ${poOrRef.message}`);
+        return order.insertId;
+    }
+    catch (error) {
+        console.error(error);
+        return;
+    }
+});
+exports.insertOrderRef = insertOrderRef;
+const selectPartId = (part) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const id = yield (0, connection_1.runQuery)(`SELECT id from part_number where part = ?`, part);
+        if ("code" in id)
+            throw new Error(`Failed to select id for part ${part}`);
+        return id[0].id;
+    }
+    catch (error) {
+        console.error(error);
+        return;
+    }
+});
+exports.selectPartId = selectPartId;
+/**
+ *
+ * Will insert the part and return the insertId, if dupe entry, will return the id of that dupe entry
+ *
+ * @param part [name, qty, description]
+ * @returns
+ */
+const insertPartNumber = (part) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const partNumber = yield (0, connection_1.runQuery)(`insert into part_number (part, description) values (?, ?)`, [part[0], part[2]]);
+        if ("code" in partNumber) {
+            if (partNumber.code === "ER_DUP_ENTRY") {
+                const id = yield (0, exports.selectPartId)(part[0]);
+                if (!id)
+                    throw new Error(`Failed to find id for ${part[0]}`);
+                return +id;
+            }
+            throw new Error(`Error inserting part, failed to insert part ${part[0]} \n${partNumber.message}`);
+        }
+        return partNumber.insertId;
+    }
+    catch (error) {
+        console.error(error);
+        return;
+    }
+});
+exports.insertPartNumber = insertPartNumber;
