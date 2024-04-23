@@ -104,6 +104,7 @@ const fetchPurchaseOrder = (id) => __awaiter(void 0, void 0, void 0, function* (
             if (!totalOrdered)
                 throw new Error(`Failed to select total ordered for ${id} \n${totalOrdered}`);
             const partsReceived = yield (0, utils_1.selectPartsReceived)(relation.part_number);
+            console.log("partsReceived ", partsReceived);
             retval.partNumbers[part.name] = {
                 name: part.name,
                 totalOrdered: +totalOrdered,
