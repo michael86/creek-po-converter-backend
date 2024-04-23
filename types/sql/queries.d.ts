@@ -21,18 +21,14 @@ export type AddParcelsToOrder = (
   purchaseOrder: string,
   part: string
 ) => Promise<true | void>;
-export type PurchaseOrder = {
-  purchaseOrder: string;
-  orderRef: string;
-  partNumbers: {
-    [key: string]: {
-      name: string;
-      quantityAwaited: number[][] | undefined;
-      partial: 1 | 0;
-      totalOrdered: number | undefined;
-      description: string;
-      partsReceived: number[] | undefined;
-    };
-  };
-};
-export type PDFStructure = { DATA: []; ORDER_REFERENCE: string; PURCHASE_ORDER: string };
+
+//SQL Select
+export type SelectPoId = { id: string }[];
+export type SelectOrderReferenceRelation = { order_reference: string }[];
+export type SelectOrderReference = { order_reference: string }[];
+export type SelectPartRelation = { part_number: string }[];
+export type SelectPart = { name: string; description: string; partial_delivery: "1" | "0" }[];
+export type SelectCountRelation = { count: string }[];
+export type SelectCount = { amountReceived: string }[];
+export type SelectTotalOrdered = { quantity: string }[];
+export type SelectAmountReceived = { amountReceived: string }[];

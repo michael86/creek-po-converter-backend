@@ -1,14 +1,27 @@
 import {
   FetchPurchaseOrders,
   FetchPurchaseOrder,
-  PurchaseOrder,
-  PDFStructure,
   InsertDataToDb,
   PatchPartialStatus,
   AddParcelsToOrder,
+  SelectPartRelation,
+  SelectPart,
+  SelectCountRelation,
+  SelectCount,
+  SelectTotalOrdered,
+  SelectAmountReceived,
 } from "@types_sql/queries";
+import { PDFStructure, PurchaseOrder } from "types/generic";
 import { runQuery } from "../connection";
 import { FecthRequest, PutRequest } from "@types_sql/index";
+import {
+  selectOrderReference,
+  selectPartDetails,
+  selectPartRelations,
+  selectPartTotalOrdered,
+  selectPartsReceived,
+  selectPurchaseOrderId,
+} from "./utils";
 
 export const insertDataToDb: InsertDataToDb = async (data: PDFStructure) => {
   try {
@@ -98,97 +111,50 @@ export const fetchPurchaseOrders: FetchPurchaseOrders = async () => {
     return;
   }
 };
+
 export const fetchPurchaseOrder: FetchPurchaseOrder = async (id) => {
-  console.log("try fetch data");
   try {
-    let poId = await runQuery<FecthRequest>(
-      `SELECT id FROM purchase_order WHERE purchase_order = ?`,
-      [id]
-    );
-    if ("code" in poId) throw new Error(`purchase_order Failed to find ${id}\n${poId.message}`);
+    const poId = await selectPurchaseOrderId(id);
+    if (!poId) throw new Error(`Failed to select purchase order id for ${id} \n${poId}`);
 
-    let refId = await runQuery<FecthRequest>(
-      `SELECT order_reference FROM po_or WHERE purchase_order = ?`,
-      [poId[0].id]
-    );
-    if ("code" in refId) throw new Error(`po_or Failed to find ${refId.message}`);
+    const orderRef = await selectOrderReference(poId);
+    if (!orderRef) throw new Error(`Failed to select order ref for id ${id} \n${orderRef}`);
 
-    let orderRef = await runQuery<FecthRequest>(
-      `SELECT order_reference FROM order_reference WHERE id = ?`,
-      [refId[0].order_reference]
-    );
-    if ("code" in orderRef) throw new Error(`order_reference Failed to find ${orderRef.message}`);
-
-    const partNumberRelations = await runQuery<FecthRequest>(
-      `SELECT part_number FROM po_pn WHERE purchase_order = ? `,
-      [poId[0].id]
-    );
-
-    if ("code" in partNumberRelations)
-      throw new Error(`Failed to select partNumberRelations ${partNumberRelations.message}`);
+    const partRelations = await selectPartRelations(poId);
+    if (!partRelations)
+      throw new Error(`Failed to select part relations for id ${id} \n${partRelations}`);
 
     const retval: PurchaseOrder = {
       purchaseOrder: id,
-      orderRef: orderRef[0].order_reference,
+      orderRef: orderRef,
       partNumbers: {},
     };
 
-    for (const relation of partNumberRelations) {
-      const [partNumber, qtyRelation, partsReceived] = await Promise.all([
-        runQuery<FecthRequest>(
-          `select part, description, partial_delivery from part_number where id = ?`,
-          [relation.part_number]
-        ),
-        runQuery<FecthRequest>(`select count from pn_count where part_number = ?`, [
-          relation.part_number,
-        ]),
-        runQuery<FecthRequest>(`select amount_received from pn_received where part_number = ?`, [
-          relation.part_number,
-        ]),
-      ]);
-      if ("code" in partNumber)
-        throw new Error(`Failed to select partNumber ${partNumber.message}`);
-      if ("code" in qtyRelation)
-        throw new Error(`Failed to select qtyRelation ${qtyRelation.message}`);
-      if ("code" in partsReceived)
-        throw new Error(`Failed to select partsReceived ${partsReceived.message}`);
+    //Begin filling out the order part status
+    for (const relation of partRelations) {
+      //Select details such as description, partial order and so on
+      const part = await selectPartDetails(relation.part_number);
+      if (!part) throw new Error(`Failed to select part details for ${id} \n${part}`);
 
-      retval.partNumbers[partNumber[0].part] = {
-        name: partNumber[0].part,
-        totalOrdered: undefined,
-        quantityAwaited: undefined,
-        partial: +partNumber[0].partial_delivery as 1 | 0,
-        description: partNumber[0].description,
-        partsReceived: undefined,
+      //Select the total amount ordered
+      const totalOrdered = await selectPartTotalOrdered(relation.part_number);
+      if (!totalOrdered)
+        throw new Error(`Failed to select total ordered for ${id} \n${totalOrdered}`);
+
+      const partsReceived = await selectPartsReceived(relation.part_number);
+
+      retval.partNumbers[part.name] = {
+        name: part.name,
+        totalOrdered: +totalOrdered,
+        partial: +part.partial_delivery as 0 | 1,
+        description: part.description,
+        partsReceived,
       };
-
-      for (const count of qtyRelation) {
-        const qty = await runQuery<FecthRequest>(
-          `SELECT quantity FROM total_ordered WHERE id = ?`,
-          [count.count]
-        );
-        if ("code" in qty) throw new Error(`Error selecing qty ${qty.message}`);
-
-        retval.partNumbers[partNumber[0].part].totalOrdered = +qty[0].quantity;
-        retval.partNumbers[partNumber[0].part].quantityAwaited = [[+qty[0].quantity]];
-      }
-
-      retval.partNumbers[partNumber[0].part].partsReceived = partsReceived.length ? [] : undefined;
-
-      for (const { amount_received } of partsReceived) {
-        const total = await runQuery<FecthRequest>(
-          `select amount_received from amount_received where id = ?`,
-          [amount_received]
-        );
-        if ("code" in total) throw new Error(`failed to select amount received ${total.message}`);
-
-        retval.partNumbers[partNumber[0].part].partsReceived?.push(+total[0].amount_received);
-      }
     }
 
     return {
       purchaseOrder: id,
-      orderRef: orderRef[0].order_reference,
+      orderRef: orderRef,
       partNumbers: retval.partNumbers,
     };
   } catch (error) {
