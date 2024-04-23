@@ -72,7 +72,6 @@ exports.createUser = createUser;
 const validateLogin = (email) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const res = yield (0, connection_1.runQuery)(`SELECT password, id FROM users WHERE email = ?`, email);
-        console.log("res ", res);
         if ("code" in res)
             throw new Error(`Error valideLogin \n${res.message}`);
         return [res[0].password, res[0].id];

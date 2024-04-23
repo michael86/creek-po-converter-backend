@@ -29,13 +29,13 @@ export const insertDataToDb: InsertDataToDb = async (data: PDFStructure) => {
       `insert into purchase_order (purchase_order) values (?)`,
       [data.PURCHASE_ORDER]
     );
-    if ("code" in purchase) throw new Error(`error fetching prefixes \n${purchase}`);
+    if ("code" in purchase) throw new Error(`error inserting purchase_order \n${purchase}`);
 
     const order = await runQuery<PutRequest>(
       `insert into order_reference (order_reference) values (?)`,
       [data.ORDER_REFERENCE]
     );
-    if ("code" in order) throw new Error(`error fetching prefixes \n${order}`);
+    if ("code" in order) throw new Error(`error inserting purchase_order \n${order}`);
 
     const skuCountIds: number[][] = [];
 
@@ -45,9 +45,7 @@ export const insertDataToDb: InsertDataToDb = async (data: PDFStructure) => {
           part[0],
           part[2],
         ]),
-        runQuery<PutRequest>(`INSERT INTO \`total_ordered\` (quantity) VALUES (?);`, [
-          Number(part[1]),
-        ]),
+        runQuery<PutRequest>(`INSERT INTO total_ordered (quantity) VALUES (?);`, [Number(part[1])]),
       ]);
 
       if ("code" in sku)
@@ -60,7 +58,7 @@ export const insertDataToDb: InsertDataToDb = async (data: PDFStructure) => {
     const purchaseOrder = purchase.insertId;
     const orderRef = order.insertId;
     const poOrRef = await runQuery<PutRequest>(
-      `INSERT INTO \`po_or\` (purchase_order, order_reference) VALUES (?, ?);`,
+      `INSERT INTO po_or (purchase_order, order_reference) VALUES (?, ?);`,
       [purchaseOrder, orderRef]
     );
     if ("code" in poOrRef)
@@ -68,7 +66,7 @@ export const insertDataToDb: InsertDataToDb = async (data: PDFStructure) => {
 
     for (const part of skuCountIds) {
       const poPart = await runQuery<PutRequest>(
-        `INSERT INTO \`po_pn\` (purchase_order, part_number) VALUES (?, ?);`,
+        `INSERT INTO po_pn (purchase_order, part_number) VALUES (?, ?);`,
         [purchaseOrder, part[0]]
       );
       if ("code" in poPart)
@@ -77,7 +75,7 @@ export const insertDataToDb: InsertDataToDb = async (data: PDFStructure) => {
 
     for (const part of skuCountIds) {
       const pnCount = await runQuery<PutRequest>(
-        `INSERT INTO \`pn_count\` (part_number, count) VALUES (?, ?);`,
+        `INSERT INTO \`pn_ordered\` (part_number, ordered) VALUES (?, ?);`,
         [part[0], part[1]]
       );
       if ("code" in pnCount)
@@ -138,11 +136,12 @@ export const fetchPurchaseOrder: FetchPurchaseOrder = async (id) => {
 
       //Select the total amount ordered
       const totalOrdered = await selectPartTotalOrdered(relation.part_number);
+
       if (!totalOrdered)
         throw new Error(`Failed to select total ordered for ${id} \n${totalOrdered}`);
 
-      const partsReceived = await selectPartsReceived(relation.part_number);
-      console.log("partsReceived ", partsReceived);
+      const partsReceived = await selectPartsReceived(relation.part_number, poId);
+
       retval.partNumbers[part.name] = {
         name: part.name,
         totalOrdered: +totalOrdered,
@@ -163,14 +162,11 @@ export const fetchPurchaseOrder: FetchPurchaseOrder = async (id) => {
   }
 };
 export const patchPartialStatus: PatchPartialStatus = async (order: string, name: string) => {
-  type PartIds = { id: number; name: string }[];
-  console.log("in set partial");
   try {
     const id = await runQuery<FecthRequest>(
       `SELECT id from purchase_order WHERE purchase_order = ?`,
       [order]
     );
-
     if ("code" in id) throw new Error(`Failed to select id for purchase order ${id.message}`);
 
     const partIds = await runQuery<FecthRequest>(
@@ -178,15 +174,14 @@ export const patchPartialStatus: PatchPartialStatus = async (order: string, name
       [name]
     );
     if ("code" in partIds) throw new Error(`Failed to fetch partIds ${partIds.message}`);
-    let target;
 
+    let target;
     for (const part of partIds) {
       if (part.name.toLowerCase() === name.toLowerCase()) {
         target = part.id;
         break;
       }
     }
-
     if (!target) throw new Error(`Failed to assign target to part`);
 
     const res = await runQuery<PutRequest>(

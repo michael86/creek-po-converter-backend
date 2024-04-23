@@ -16,10 +16,10 @@ const insertDataToDb = (data) => __awaiter(void 0, void 0, void 0, function* () 
     try {
         const purchase = yield (0, connection_1.runQuery)(`insert into purchase_order (purchase_order) values (?)`, [data.PURCHASE_ORDER]);
         if ("code" in purchase)
-            throw new Error(`error fetching prefixes \n${purchase}`);
+            throw new Error(`error inserting purchase_order \n${purchase}`);
         const order = yield (0, connection_1.runQuery)(`insert into order_reference (order_reference) values (?)`, [data.ORDER_REFERENCE]);
         if ("code" in order)
-            throw new Error(`error fetching prefixes \n${order}`);
+            throw new Error(`error inserting purchase_order \n${order}`);
         const skuCountIds = [];
         for (const part of data.DATA) {
             const [sku, quantity] = yield Promise.all([
@@ -27,9 +27,7 @@ const insertDataToDb = (data) => __awaiter(void 0, void 0, void 0, function* () 
                     part[0],
                     part[2],
                 ]),
-                (0, connection_1.runQuery)(`INSERT INTO \`total_ordered\` (quantity) VALUES (?);`, [
-                    Number(part[1]),
-                ]),
+                (0, connection_1.runQuery)(`INSERT INTO total_ordered (quantity) VALUES (?);`, [Number(part[1])]),
             ]);
             if ("code" in sku)
                 throw new Error(`Error adding purchase order, failed to insert sku ${sku}`);
@@ -39,16 +37,16 @@ const insertDataToDb = (data) => __awaiter(void 0, void 0, void 0, function* () 
         }
         const purchaseOrder = purchase.insertId;
         const orderRef = order.insertId;
-        const poOrRef = yield (0, connection_1.runQuery)(`INSERT INTO \`po_or\` (purchase_order, order_reference) VALUES (?, ?);`, [purchaseOrder, orderRef]);
+        const poOrRef = yield (0, connection_1.runQuery)(`INSERT INTO po_or (purchase_order, order_reference) VALUES (?, ?);`, [purchaseOrder, orderRef]);
         if ("code" in poOrRef)
             throw new Error(`Failed to insert new PO. Relation failed ${poOrRef.message}`);
         for (const part of skuCountIds) {
-            const poPart = yield (0, connection_1.runQuery)(`INSERT INTO \`po_pn\` (purchase_order, part_number) VALUES (?, ?);`, [purchaseOrder, part[0]]);
+            const poPart = yield (0, connection_1.runQuery)(`INSERT INTO po_pn (purchase_order, part_number) VALUES (?, ?);`, [purchaseOrder, part[0]]);
             if ("code" in poPart)
                 throw new Error(`Error adding purchase order, failed to insert po_or ${poPart.message}`);
         }
         for (const part of skuCountIds) {
-            const pnCount = yield (0, connection_1.runQuery)(`INSERT INTO \`pn_count\` (part_number, count) VALUES (?, ?);`, [part[0], part[1]]);
+            const pnCount = yield (0, connection_1.runQuery)(`INSERT INTO \`pn_ordered\` (part_number, ordered) VALUES (?, ?);`, [part[0], part[1]]);
             if ("code" in pnCount)
                 throw new Error(`Error adding purchase order, failed to insert sku ${pnCount.message}`);
         }
@@ -103,8 +101,7 @@ const fetchPurchaseOrder = (id) => __awaiter(void 0, void 0, void 0, function* (
             const totalOrdered = yield (0, utils_1.selectPartTotalOrdered)(relation.part_number);
             if (!totalOrdered)
                 throw new Error(`Failed to select total ordered for ${id} \n${totalOrdered}`);
-            const partsReceived = yield (0, utils_1.selectPartsReceived)(relation.part_number);
-            console.log("partsReceived ", partsReceived);
+            const partsReceived = yield (0, utils_1.selectPartsReceived)(relation.part_number, poId);
             retval.partNumbers[part.name] = {
                 name: part.name,
                 totalOrdered: +totalOrdered,
@@ -126,7 +123,6 @@ const fetchPurchaseOrder = (id) => __awaiter(void 0, void 0, void 0, function* (
 });
 exports.fetchPurchaseOrder = fetchPurchaseOrder;
 const patchPartialStatus = (order, name) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log("in set partial");
     try {
         const id = yield (0, connection_1.runQuery)(`SELECT id from purchase_order WHERE purchase_order = ?`, [order]);
         if ("code" in id)
