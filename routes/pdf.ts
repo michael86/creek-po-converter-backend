@@ -1,6 +1,6 @@
 import { Request, RequestHandler } from "express";
 import { processFile } from "../utils/extract_pdf";
-import { insertDataToDb, fetchPurchaseOrders, fetchPurchaseOrder } from "../db/queries/orders";
+import { insertOrderToDb, fetchPurchaseOrders, fetchPurchaseOrder } from "../db/queries/orders";
 require("dotenv").config();
 
 const express = require("express");
@@ -40,7 +40,7 @@ const beginProcess: RequestHandler = async (req, res) => {
         return;
       }
 
-      const inserted = await insertDataToDb(data);
+      const inserted = await insertOrderToDb(data);
 
       if (inserted === "ER_DUP_ENTRY") {
         res.send({ status: 4, token: req.headers.newToken });
