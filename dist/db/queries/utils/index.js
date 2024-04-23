@@ -91,7 +91,7 @@ const selectPartsReceived = (partNumber) => __awaiter(void 0, void 0, void 0, fu
             return [];
         const retval = [];
         for (const { amountReceived } of receviedRelations) {
-            const total = yield (0, connection_1.runQuery)(`select amount_received as amountRecieved from amount_received where id = ?`, amountReceived);
+            const total = yield (0, connection_1.runQuery)(`select amount_received as amountReceived from amount_received where id = ?`, amountReceived);
             if ("code" in total)
                 throw new Error(`failed to select amount received ${total.message}`);
             retval.push(+total[0].amountReceived);

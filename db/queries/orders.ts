@@ -142,7 +142,7 @@ export const fetchPurchaseOrder: FetchPurchaseOrder = async (id) => {
         throw new Error(`Failed to select total ordered for ${id} \n${totalOrdered}`);
 
       const partsReceived = await selectPartsReceived(relation.part_number);
-
+      console.log("partsReceived ", partsReceived);
       retval.partNumbers[part.name] = {
         name: part.name,
         totalOrdered: +totalOrdered,
