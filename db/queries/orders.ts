@@ -2,25 +2,29 @@ import {
   FetchPurchaseOrders,
   FetchPurchaseOrder,
   InsertOrderToDb,
-  PatchPartialStatus,
+  SetPartialStatus,
   AddParcelsToOrder,
 } from "@types_sql/queries";
 import { PDFStructure, PurchaseOrder } from "types/generic";
 import { runQuery } from "../connection";
 import { FecthRequest, PutRequest } from "@types_sql/index";
 import {
+  addParcel,
   insertOrderRef,
+  insertParcelRelation,
   insertPartNumber,
   insertPartToPartial,
   insertPurchaseOrder,
   insertTotalOrdered,
   selectOrderReference,
   selectPartDetails,
+  selectPartId,
   selectPartPartialStatus,
   selectPartRelations,
   selectPartTotalOrdered,
   selectPartsReceived,
   selectPurchaseOrderId,
+  setPartialStatus,
 } from "./utils";
 
 /**
@@ -146,34 +150,16 @@ export const fetchPurchaseOrder: FetchPurchaseOrder = async (id) => {
  * @param name stirng - partnumber
  * @returns
  */
-export const patchPartialStatus: PatchPartialStatus = async (order: string, name: string) => {
+export const patchPartialStatus: SetPartialStatus = async (order: string, name: string) => {
   try {
-    const id = await runQuery<FecthRequest>(
-      `SELECT id from purchase_order WHERE purchase_order = ?`,
-      [order]
-    );
-    if ("code" in id) throw new Error(`Failed to select id for purchase order ${id.message}`);
+    const id = await selectPurchaseOrderId(order);
+    if (!id) throw new Error(`Failed to select id for purchase order ${order}`);
 
-    const partIds = await runQuery<FecthRequest>(
-      `SELECT id, part as name from part_number WHERE part = ?`,
-      [name]
-    );
-    if ("code" in partIds) throw new Error(`Failed to fetch partIds ${partIds.message}`);
+    const partId = await selectPartId(name);
+    if (!partId) throw new Error(`Failed to fetch part id ${name}`);
 
-    let target;
-    for (const part of partIds) {
-      if (part.name.toLowerCase() === name.toLowerCase()) {
-        target = part.id;
-        break;
-      }
-    }
-    if (!target) throw new Error(`Failed to assign target to part`);
-
-    const res = await runQuery<PutRequest>(
-      `UPDATE part_number SET partial_delivery = 1 Where id = ?`,
-      [target]
-    );
-    if ("code" in res) throw new Error(`Failed to set partial_delivery to 1 for id ${res.message}`);
+    const res = await setPartialStatus(id, partId);
+    if (!res) throw new Error(`Failed to set partial_delivery to 1 for id ${res}`);
 
     return true;
   } catch (error) {
@@ -198,41 +184,17 @@ export const addParcelsToOrder: AddParcelsToOrder = async (
   part: string
 ) => {
   try {
-    const parcelIds: number[] = [];
+    const poId = await selectPurchaseOrderId(purchaseOrder);
+    if (!poId) throw new Error(`Failed to select if for purchase order: ${purchaseOrder}`);
+
+    const partId = await selectPartId(part);
+    if (!partId) throw new Error(`Failed to select partId for order: ${part}`);
+
     for (const parcel of parcels) {
-      const res = await runQuery<PutRequest>(
-        `insert into amount_received (amount_received) values (?)`,
-        [parcel]
-      );
-
-      if ("code" in res) throw new Error(`Failed to insert new parcel ${res.message}`);
-      parcelIds.push(res.insertId);
-    }
-
-    const purchaseId = await runQuery<FecthRequest>(
-      "select id from purchase_order where purchase_order = ?",
-      [purchaseOrder]
-    );
-
-    if ("code" in purchaseId)
-      throw new Error(`Failed to select id from purchase order ${purchaseId.message}`);
-
-    const partId = await runQuery<FecthRequest>("Select id from part_number where part = ? ", [
-      part,
-    ]);
-
-    if ("code" in partId) throw new Error(`Failed to select id for part_number ${partId.message}`);
-
-    for (const id of parcelIds) {
-      const result = await runQuery<PutRequest>(
-        "insert into pn_received (part_number, amount_received) values (?,?)",
-        [partId[0].id, id]
-      );
-
-      if ("code" in result)
-        throw new Error(
-          `Failed to create relation between parcel and part\nParcel: ${parcels}\nPart: ${part} `
-        );
+      const parcelId = await addParcel(parcel);
+      if (!parcelId) throw new Error(`Failed to insert parcel ${parcelId}`);
+      const relation = await insertParcelRelation(poId, partId, parcelId);
+      if (!relation) throw new Error(`Failed to insert parcel relation ${relation}`);
     }
 
     return true;

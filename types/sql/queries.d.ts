@@ -15,7 +15,8 @@ export type InsertPrefix = (prefix: string) => Promise<true | void>;
 export type InsertOrderToDb = (data: Data) => Promise<true | "ER_DUP_ENTRY" | void>;
 export type FetchPurchaseOrder = (id: string) => Promise<PurchaseOrder | void>;
 export type FetchPurchaseOrders = () => Promise<string[] | void>;
-export type PatchPartialStatus = (order: string, name: string) => Promise<true | void>;
+
+export type SetPartialStatus = (order: string, name: string) => Promise<true | void>;
 export type AddParcelsToOrder = (
   parcels: number[],
   purchaseOrder: string,

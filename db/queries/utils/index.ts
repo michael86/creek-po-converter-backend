@@ -1,4 +1,4 @@
-import { FecthRequest, PutRequest } from "@types_sql/index";
+import { PutRequest } from "@types_sql/index";
 import { runQuery } from "../../connection";
 import {
   SelectPoId,
@@ -193,7 +193,7 @@ export const selectPartId = async (part: string) => {
   try {
     const id = await runQuery<SelectPartId>(`SELECT id from part_number where part = ?`, part);
     if ("code" in id) throw new Error(`Failed to select id for part ${part}`);
-    return id[0].id;
+    return +id[0].id;
   } catch (error) {
     console.error(error);
     return;
@@ -288,6 +288,55 @@ export const selectPartPartialStatus = async (poId: number, pnId: number) => {
       );
 
     return partial[0].partial;
+  } catch (error) {
+    console.error(error);
+    return;
+  }
+};
+
+export const setPartialStatus = async (purchaseId: number, partId: number) => {
+  try {
+    const patched = await runQuery<PutRequest>(
+      `UPDATE po_pn_partial SET partial = 1 WHERE purchase_order = ? AND part_number =? `,
+      [purchaseId, partId]
+    );
+
+    if ("code" in patched || !patched.affectedRows)
+      throw new Error(
+        `Failed to update partial status for order ${purchaseId} \nPart: ${partId} \n${patched}`
+      );
+
+    return true;
+  } catch (error) {
+    console.error(error);
+    return;
+  }
+};
+
+export const addParcel = async (amount: number) => {
+  try {
+    const res = await runQuery<PutRequest>(
+      `insert into amount_received (amount_received) values (?)`,
+      [amount]
+    );
+
+    if ("code" in res) throw new Error(`Failed to insert new parcel ${res.message}`);
+
+    return res.insertId;
+  } catch (error) {
+    console.error(error);
+    return;
+  }
+};
+
+export const insertParcelRelation = async (poId: number, pnId: number, parcelId: number) => {
+  try {
+    const res = await runQuery<PutRequest>(
+      `INSERT INTO po_pn_parcel (purchase_order, part_number, parcel) VALUES (?,?,?)`,
+      [poId, pnId, parcelId]
+    );
+    if ("code" in res) throw new Error(`Failed to create new relation for parcel ${res.message}`);
+    return res.insertId;
   } catch (error) {
     console.error(error);
     return;
