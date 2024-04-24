@@ -84,14 +84,14 @@ const selectPartTotalOrdered = (poId, pnId) => __awaiter(void 0, void 0, void 0,
 exports.selectPartTotalOrdered = selectPartTotalOrdered;
 const selectPartsReceived = (partNumber, purchaseOrder) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const receviedRelations = yield (0, connection_1.runQuery)(`select parcel from po_pn_parcel where part_number = ? AND purchase_order = ?`, [partNumber, purchaseOrder]);
-        if ("code" in receviedRelations)
-            throw new Error(`Failed to select partsReceived ${receviedRelations.message}`);
-        if (!receviedRelations.length)
+        const receivedRelations = yield (0, connection_1.runQuery)(`select parcel from po_pn_parcel where part_number = ? AND purchase_order = ?`, [partNumber, purchaseOrder]);
+        if ("code" in receivedRelations)
+            throw new Error(`Failed to select partsReceived ${receivedRelations.message}`);
+        if (!receivedRelations.length)
             return [];
         const retval = [];
-        for (const { amountReceived } of receviedRelations) {
-            const total = yield (0, connection_1.runQuery)(`select amount_received as amountReceived from amount_received where id = ?`, amountReceived);
+        for (const { parcel } of receivedRelations) {
+            const total = yield (0, connection_1.runQuery)(`SELECT amount_received as amountReceived FROM amount_received WHERE id = ?`, parcel);
             if ("code" in total)
                 throw new Error(`failed to select amount received ${total.message}`);
             retval.push(+total[0].amountReceived);

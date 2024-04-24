@@ -117,21 +117,22 @@ export const selectPartTotalOrdered = async (poId: number, pnId: number) => {
 
 export const selectPartsReceived = async (partNumber: number, purchaseOrder: number) => {
   try {
-    const receviedRelations = await runQuery<SelectCount>(
+    const receivedRelations = await runQuery<SelectCount>(
       `select parcel from po_pn_parcel where part_number = ? AND purchase_order = ?`,
       [partNumber, purchaseOrder]
     );
 
-    if ("code" in receviedRelations)
-      throw new Error(`Failed to select partsReceived ${receviedRelations.message}`);
+    if ("code" in receivedRelations)
+      throw new Error(`Failed to select partsReceived ${receivedRelations.message}`);
 
-    if (!receviedRelations.length) return [];
+    if (!receivedRelations.length) return [];
 
     const retval: number[] = [];
-    for (const { amountReceived } of receviedRelations) {
+
+    for (const { parcel } of receivedRelations) {
       const total = await runQuery<SelectAmountReceived>(
-        `select amount_received as amountReceived from amount_received where id = ?`,
-        amountReceived
+        `SELECT amount_received as amountReceived FROM amount_received WHERE id = ?`,
+        parcel
       );
       if ("code" in total) throw new Error(`failed to select amount received ${total.message}`);
       retval.push(+total[0].amountReceived);
