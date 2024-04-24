@@ -16,6 +16,7 @@ app.use("/pdf", validateToken, require("./routes/pdf"));
 app.use("/account", require("./routes/account"));
 app.use("/purchase/", validateToken, require("./routes/purchase_orders"));
 app.use("/parts/", validateToken, require("./routes/parts"));
+app.use("/locations/", validateToken, require("./routes/locations"));
 
 app.listen(6005, async () => {
   console.log(`listening port ${port}\nServer started`);
