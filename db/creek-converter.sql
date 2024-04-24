@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 23, 2024 at 04:48 PM
+-- Generation Time: Apr 24, 2024 at 04:15 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -36,6 +36,17 @@ CREATE TABLE `amount_received` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `locations`
+--
+
+CREATE TABLE `locations` (
+  `id` int(11) NOT NULL,
+  `location` varchar(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `order_reference`
 --
 
@@ -55,20 +66,7 @@ CREATE TABLE `part_number` (
   `id` int(11) NOT NULL,
   `part` varchar(32) NOT NULL,
   `description` varchar(255) NOT NULL,
-  `partial_delivery` tinyint(1) NOT NULL DEFAULT 0,
   `date_created` datetime NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `pn_ordered`
---
-
-CREATE TABLE `pn_ordered` (
-  `id` int(11) NOT NULL,
-  `part_number` int(32) NOT NULL,
-  `ordered` int(32) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -86,13 +84,29 @@ CREATE TABLE `po_or` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `po_pn`
+-- Table structure for table `po_pn_location`
 --
 
-CREATE TABLE `po_pn` (
+CREATE TABLE `po_pn_location` (
   `id` int(11) NOT NULL,
-  `purchase_order` int(32) NOT NULL,
-  `part_number` int(32) NOT NULL
+  `purchase_order` int(11) NOT NULL,
+  `part_number` int(11) NOT NULL,
+  `location` int(11) NOT NULL,
+  `date_created` datetime NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `po_pn_ordered`
+--
+
+CREATE TABLE `po_pn_ordered` (
+  `id` int(11) NOT NULL,
+  `purchase_order` int(11) NOT NULL,
+  `part_number` int(11) NOT NULL,
+  `total_ordered` int(11) NOT NULL,
+  `date_created` datetime NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -106,6 +120,20 @@ CREATE TABLE `po_pn_parcel` (
   `purchase_order` int(11) NOT NULL,
   `part_number` int(11) NOT NULL,
   `parcel` int(11) NOT NULL,
+  `date_created` datetime NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `po_pn_partial`
+--
+
+CREATE TABLE `po_pn_partial` (
+  `id` int(11) NOT NULL,
+  `purchase_order` int(11) NOT NULL,
+  `part_number` int(11) NOT NULL,
+  `partial` tinyint(1) NOT NULL DEFAULT 0,
   `date_created` datetime NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -162,8 +190,7 @@ INSERT INTO `prefixes` (`id`, `prefix`, `date_created`) VALUES
 (34, 'sstatt', '2024-04-17 13:58:24'),
 (35, 'emark', '2024-04-17 13:58:24'),
 (36, 'carriage', '2024-04-17 13:58:24'),
-(37, 'econs', '2024-04-18 10:03:19'),
-(38, 'elabl', '2024-04-23 15:24:42');
+(37, 'econs', '2024-04-18 10:03:19');
 
 -- --------------------------------------------------------
 
@@ -188,6 +215,13 @@ CREATE TABLE `tokens` (
   `token` varchar(255) NOT NULL,
   `date_created` datetime NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `tokens`
+--
+
+INSERT INTO `tokens` (`id`, `token`, `date_created`) VALUES
+(1, 'bXls4IB4n7EKtR9C83gIsPswI9DGswzI1713967818646', '2024-04-23 15:50:58');
 
 -- --------------------------------------------------------
 
@@ -265,6 +299,12 @@ ALTER TABLE `amount_received`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `locations`
+--
+ALTER TABLE `locations`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `order_reference`
 --
 ALTER TABLE `order_reference`
@@ -278,27 +318,33 @@ ALTER TABLE `part_number`
   ADD UNIQUE KEY `part` (`part`);
 
 --
--- Indexes for table `pn_ordered`
---
-ALTER TABLE `pn_ordered`
-  ADD PRIMARY KEY (`id`);
-
---
 -- Indexes for table `po_or`
 --
 ALTER TABLE `po_or`
   ADD PRIMARY KEY (`id`);
 
 --
--- Indexes for table `po_pn`
+-- Indexes for table `po_pn_location`
 --
-ALTER TABLE `po_pn`
+ALTER TABLE `po_pn_location`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `po_pn_ordered`
+--
+ALTER TABLE `po_pn_ordered`
   ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `po_pn_parcel`
 --
 ALTER TABLE `po_pn_parcel`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `po_pn_partial`
+--
+ALTER TABLE `po_pn_partial`
   ADD PRIMARY KEY (`id`);
 
 --
@@ -358,6 +404,12 @@ ALTER TABLE `amount_received`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT for table `locations`
+--
+ALTER TABLE `locations`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `order_reference`
 --
 ALTER TABLE `order_reference`
@@ -370,21 +422,21 @@ ALTER TABLE `part_number`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `pn_ordered`
---
-ALTER TABLE `pn_ordered`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
---
 -- AUTO_INCREMENT for table `po_or`
 --
 ALTER TABLE `po_or`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `po_pn`
+-- AUTO_INCREMENT for table `po_pn_location`
 --
-ALTER TABLE `po_pn`
+ALTER TABLE `po_pn_location`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `po_pn_ordered`
+--
+ALTER TABLE `po_pn_ordered`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
@@ -394,10 +446,16 @@ ALTER TABLE `po_pn_parcel`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT for table `po_pn_partial`
+--
+ALTER TABLE `po_pn_partial`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `prefixes`
 --
 ALTER TABLE `prefixes`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=39;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=38;
 
 --
 -- AUTO_INCREMENT for table `purchase_order`
@@ -409,7 +467,7 @@ ALTER TABLE `purchase_order`
 -- AUTO_INCREMENT for table `tokens`
 --
 ALTER TABLE `tokens`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `total_ordered`

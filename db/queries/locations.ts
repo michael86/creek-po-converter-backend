@@ -1,7 +1,6 @@
 import { PutRequest } from "@types_sql/index";
 import { runQuery } from "../connection";
-import { selectPartId, selectPurchaseOrderId } from "./utils";
-import { SelectLocationId, SelectPartLocationId } from "@types_sql/queries";
+import { SelectLocation, SelectLocationId, SelectPartLocationId } from "@types_sql/queries";
 
 export const selectLocationIdForPart = async (order: number, part: number) => {
   try {
@@ -50,6 +49,27 @@ export const insertLocation = async (
       );
 
     return inserted.affectedRows;
+  } catch (error) {
+    console.error(error);
+    return;
+  }
+};
+
+export const selectLocationForPart = async (poId: number, pnId: number) => {
+  try {
+    const locationId = await selectLocationIdForPart(poId, pnId);
+
+    if (!locationId) return;
+
+    const location = await runQuery<SelectLocation>(
+      `SELECT location FROM locations WHERE id = ?`,
+      locationId
+    );
+
+    if ("code" in location)
+      throw new Error(`Couldn't find location for location id ${locationId} \n${location.message}`);
+
+    return location[0].location;
   } catch (error) {
     console.error(error);
     return;

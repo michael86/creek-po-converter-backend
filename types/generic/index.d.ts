@@ -8,6 +8,7 @@ export type PurchaseOrder = {
       totalOrdered: number | undefined;
       description: string;
       partsReceived: number[] | undefined;
+      location?: string;
     };
   };
 };

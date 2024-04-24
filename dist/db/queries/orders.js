@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.addParcelsToOrder = exports.patchPartialStatus = exports.fetchPurchaseOrder = exports.fetchPurchaseOrders = exports.insertOrderToDb = void 0;
 const connection_1 = require("../connection");
 const utils_1 = require("./utils");
+const locations_1 = require("./locations");
 /**
  *
  * Will insert the data extracted from a purchase order into the database
@@ -100,6 +101,8 @@ const fetchPurchaseOrder = (id) => __awaiter(void 0, void 0, void 0, function* (
             const partial = yield (0, utils_1.selectPartPartialStatus)(poId, +part_number);
             if (typeof partial !== "number")
                 throw new Error(`Failed to select part partial status for ${id} \n${partial}`);
+            //Select Location
+            const location = yield (0, locations_1.selectLocationForPart)(poId, +part_number);
             //Select any orders for this part
             const partsReceived = yield (0, utils_1.selectPartsReceived)(+part_number, poId);
             retval.partNumbers[part.name] = {
@@ -108,6 +111,7 @@ const fetchPurchaseOrder = (id) => __awaiter(void 0, void 0, void 0, function* (
                 partial: partial,
                 description: part.description,
                 partsReceived,
+                location,
             };
         }
         return {
