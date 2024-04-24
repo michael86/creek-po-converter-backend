@@ -17,7 +17,7 @@ const multer = require("multer");
 const router = express.Router();
 const storage = multer.diskStorage({
     destination: (_req, _file, cb) => {
-        cb(null, process.env.SQL_PORT ? "dist/public/pdf/" : "public/pdf/");
+        cb(null, process.env.DEVELOPMENT_MODE ? "dist/public/pdf/" : "public/pdf/");
     },
     filename: (_req, file, cb) => {
         cb(null, file.originalname);

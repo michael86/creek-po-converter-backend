@@ -14,7 +14,7 @@ const storage = multer.diskStorage({
     _file: Express.Multer.File,
     cb: (error: Error | null, destination: string) => void
   ) => {
-    cb(null, process.env.SQL_PORT ? "dist/public/pdf/" : "public/pdf/");
+    cb(null, process.env.DEVELOPMENT_MODE ? "dist/public/pdf/" : "public/pdf/");
   },
   filename: (
     _req: Request,
