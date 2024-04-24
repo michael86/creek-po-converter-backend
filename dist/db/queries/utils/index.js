@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.selectPartPartialStatus = exports.insertPartToPartial = exports.insertTotalOrdered = exports.insertPartNumber = exports.selectPartId = exports.insertOrderRef = exports.insertPurchaseOrder = exports.selectPartsReceived = exports.selectPartTotalOrdered = exports.selectPartDetails = exports.selectPartRelations = exports.selectOrderReference = exports.selectPurchaseOrderId = void 0;
+exports.insertParcelRelation = exports.addParcel = exports.setPartialStatus = exports.selectPartPartialStatus = exports.insertPartToPartial = exports.insertTotalOrdered = exports.insertPartNumber = exports.selectPartId = exports.insertOrderRef = exports.insertPurchaseOrder = exports.selectPartsReceived = exports.selectPartTotalOrdered = exports.selectPartDetails = exports.selectPartRelations = exports.selectOrderReference = exports.selectPurchaseOrderId = void 0;
 const connection_1 = require("../../connection");
 const selectPurchaseOrderId = (purchaseOrder) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -142,7 +142,7 @@ const selectPartId = (part) => __awaiter(void 0, void 0, void 0, function* () {
         const id = yield (0, connection_1.runQuery)(`SELECT id from part_number where part = ?`, part);
         if ("code" in id)
             throw new Error(`Failed to select id for part ${part}`);
-        return id[0].id;
+        return +id[0].id;
     }
     catch (error) {
         console.error(error);
@@ -219,3 +219,42 @@ const selectPartPartialStatus = (poId, pnId) => __awaiter(void 0, void 0, void 0
     }
 });
 exports.selectPartPartialStatus = selectPartPartialStatus;
+const setPartialStatus = (purchaseId, partId) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const patched = yield (0, connection_1.runQuery)(`UPDATE po_pn_partial SET partial = 1 WHERE purchase_order = ? AND part_number =? `, [purchaseId, partId]);
+        if ("code" in patched || !patched.affectedRows)
+            throw new Error(`Failed to update partial status for order ${purchaseId} \nPart: ${partId} \n${patched}`);
+        return true;
+    }
+    catch (error) {
+        console.error(error);
+        return;
+    }
+});
+exports.setPartialStatus = setPartialStatus;
+const addParcel = (amount) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const res = yield (0, connection_1.runQuery)(`insert into amount_received (amount_received) values (?)`, [amount]);
+        if ("code" in res)
+            throw new Error(`Failed to insert new parcel ${res.message}`);
+        return res.insertId;
+    }
+    catch (error) {
+        console.error(error);
+        return;
+    }
+});
+exports.addParcel = addParcel;
+const insertParcelRelation = (poId, pnId, parcelId) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const res = yield (0, connection_1.runQuery)(`INSERT INTO po_pn_parcel (purchase_order, part_number, parcel) VALUES (?,?,?)`, [poId, pnId, parcelId]);
+        if ("code" in res)
+            throw new Error(`Failed to create new relation for parcel ${res.message}`);
+        return res.insertId;
+    }
+    catch (error) {
+        console.error(error);
+        return;
+    }
+});
+exports.insertParcelRelation = insertParcelRelation;

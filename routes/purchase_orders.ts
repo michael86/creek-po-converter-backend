@@ -4,7 +4,7 @@ import { patchPartialStatus, addParcelsToOrder } from "../db/queries/orders";
 const express = require("express");
 const router = express.Router();
 
-const updatePartNumber: RequestHandler = async (req, res) => {
+const updatePartialStatus: RequestHandler = async (req, res) => {
   try {
     const { order, name } = req.params;
     const result = await patchPartialStatus(order, name);
@@ -35,6 +35,6 @@ const addParcel: RequestHandler = async (req, res) => {
   }
 };
 
-router.patch("/set-partial/:order?/:name?", updatePartNumber);
+router.patch("/set-partial/:order?/:name?", updatePartialStatus);
 router.put("/add-parcel/", addParcel);
 module.exports = router;

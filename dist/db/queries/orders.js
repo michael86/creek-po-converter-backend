@@ -132,24 +132,15 @@ exports.fetchPurchaseOrder = fetchPurchaseOrder;
  */
 const patchPartialStatus = (order, name) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const id = yield (0, connection_1.runQuery)(`SELECT id from purchase_order WHERE purchase_order = ?`, [order]);
-        if ("code" in id)
-            throw new Error(`Failed to select id for purchase order ${id.message}`);
-        const partIds = yield (0, connection_1.runQuery)(`SELECT id, part as name from part_number WHERE part = ?`, [name]);
-        if ("code" in partIds)
-            throw new Error(`Failed to fetch partIds ${partIds.message}`);
-        let target;
-        for (const part of partIds) {
-            if (part.name.toLowerCase() === name.toLowerCase()) {
-                target = part.id;
-                break;
-            }
-        }
-        if (!target)
-            throw new Error(`Failed to assign target to part`);
-        const res = yield (0, connection_1.runQuery)(`UPDATE part_number SET partial_delivery = 1 Where id = ?`, [target]);
-        if ("code" in res)
-            throw new Error(`Failed to set partial_delivery to 1 for id ${res.message}`);
+        const id = yield (0, utils_1.selectPurchaseOrderId)(order);
+        if (!id)
+            throw new Error(`Failed to select id for purchase order ${order}`);
+        const partId = yield (0, utils_1.selectPartId)(name);
+        if (!partId)
+            throw new Error(`Failed to fetch part id ${name}`);
+        const res = yield (0, utils_1.setPartialStatus)(id, partId);
+        if (!res)
+            throw new Error(`Failed to set partial_delivery to 1 for id ${res}`);
         return true;
     }
     catch (error) {
@@ -169,25 +160,19 @@ exports.patchPartialStatus = patchPartialStatus;
  */
 const addParcelsToOrder = (parcels, purchaseOrder, part) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const parcelIds = [];
+        const poId = yield (0, utils_1.selectPurchaseOrderId)(purchaseOrder);
+        if (!poId)
+            throw new Error(`Failed to select if for purchase order: ${purchaseOrder}`);
+        const partId = yield (0, utils_1.selectPartId)(part);
+        if (!partId)
+            throw new Error(`Failed to select partId for order: ${part}`);
         for (const parcel of parcels) {
-            const res = yield (0, connection_1.runQuery)(`insert into amount_received (amount_received) values (?)`, [parcel]);
-            if ("code" in res)
-                throw new Error(`Failed to insert new parcel ${res.message}`);
-            parcelIds.push(res.insertId);
-        }
-        const purchaseId = yield (0, connection_1.runQuery)("select id from purchase_order where purchase_order = ?", [purchaseOrder]);
-        if ("code" in purchaseId)
-            throw new Error(`Failed to select id from purchase order ${purchaseId.message}`);
-        const partId = yield (0, connection_1.runQuery)("Select id from part_number where part = ? ", [
-            part,
-        ]);
-        if ("code" in partId)
-            throw new Error(`Failed to select id for part_number ${partId.message}`);
-        for (const id of parcelIds) {
-            const result = yield (0, connection_1.runQuery)("insert into pn_received (part_number, amount_received) values (?,?)", [partId[0].id, id]);
-            if ("code" in result)
-                throw new Error(`Failed to create relation between parcel and part\nParcel: ${parcels}\nPart: ${part} `);
+            const parcelId = yield (0, utils_1.addParcel)(parcel);
+            if (!parcelId)
+                throw new Error(`Failed to insert parcel ${parcelId}`);
+            const relation = yield (0, utils_1.insertParcelRelation)(poId, partId, parcelId);
+            if (!relation)
+                throw new Error(`Failed to insert parcel relation ${relation}`);
         }
         return true;
     }

@@ -12,7 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const orders_1 = require("../db/queries/orders");
 const express = require("express");
 const router = express.Router();
-const updatePartNumber = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const updatePartialStatus = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { order, name } = req.params;
         const result = yield (0, orders_1.patchPartialStatus)(order, name);
@@ -40,6 +40,6 @@ const addParcel = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         res.send({ status: 0 });
     }
 });
-router.patch("/set-partial/:order?/:name?", updatePartNumber);
+router.patch("/set-partial/:order?/:name?", updatePartialStatus);
 router.put("/add-parcel/", addParcel);
 module.exports = router;
