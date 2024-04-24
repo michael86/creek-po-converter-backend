@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.insertLocation = exports.selectLocationId = exports.selectLocationIdForPart = void 0;
+exports.selectLocationForPart = exports.insertLocation = exports.selectLocationId = exports.selectLocationIdForPart = void 0;
 const connection_1 = require("../connection");
 const selectLocationIdForPart = (order, part) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
@@ -52,3 +52,19 @@ const insertLocation = (purchaseId, partId, location, query) => __awaiter(void 0
     }
 });
 exports.insertLocation = insertLocation;
+const selectLocationForPart = (poId, pnId) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const locationId = yield (0, exports.selectLocationIdForPart)(poId, pnId);
+        if (!locationId)
+            return;
+        const location = yield (0, connection_1.runQuery)(`SELECT location FROM locations WHERE id = ?`, locationId);
+        if ("code" in location)
+            throw new Error(`Couldn't find location for location id ${locationId} \n${location.message}`);
+        return location[0].location;
+    }
+    catch (error) {
+        console.error(error);
+        return;
+    }
+});
+exports.selectLocationForPart = selectLocationForPart;

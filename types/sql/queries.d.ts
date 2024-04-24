@@ -37,3 +37,4 @@ export type SelectPartId = { id: string }[];
 export type SelectPartial = { partial: number }[];
 export type SelectPartLocationId = { location: string }[] | [];
 export type SelectLocationId = { id: string }[];
+export type SelectLocation = { location: string }[];

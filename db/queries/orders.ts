@@ -26,6 +26,7 @@ import {
   selectPurchaseOrderId,
   setPartialStatus,
 } from "./utils";
+import { selectLocationForPart } from "./locations";
 
 /**
  *
@@ -119,6 +120,9 @@ export const fetchPurchaseOrder: FetchPurchaseOrder = async (id) => {
       if (typeof partial !== "number")
         throw new Error(`Failed to select part partial status for ${id} \n${partial}`);
 
+      //Select Location
+      const location = await selectLocationForPart(poId, +part_number);
+
       //Select any orders for this part
       const partsReceived = await selectPartsReceived(+part_number, poId);
 
@@ -128,6 +132,7 @@ export const fetchPurchaseOrder: FetchPurchaseOrder = async (id) => {
         partial: partial as 0 | 1,
         description: part.description,
         partsReceived,
+        location,
       };
     }
 
