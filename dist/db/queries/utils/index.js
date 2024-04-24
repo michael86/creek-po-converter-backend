@@ -9,14 +9,14 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.insertTotalOrdered = exports.insertPartNumber = exports.selectPartId = exports.insertOrderRef = exports.insertPurchaseOrder = exports.selectPartsReceived = exports.selectPartTotalOrdered = exports.selectPartDetails = exports.selectPartRelations = exports.selectOrderReference = exports.selectPurchaseOrderId = void 0;
+exports.selectPartPartialStatus = exports.insertPartToPartial = exports.insertTotalOrdered = exports.insertPartNumber = exports.selectPartId = exports.insertOrderRef = exports.insertPurchaseOrder = exports.selectPartsReceived = exports.selectPartTotalOrdered = exports.selectPartDetails = exports.selectPartRelations = exports.selectOrderReference = exports.selectPurchaseOrderId = void 0;
 const connection_1 = require("../../connection");
 const selectPurchaseOrderId = (purchaseOrder) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         let poId = yield (0, connection_1.runQuery)(`SELECT id FROM purchase_order WHERE purchase_order = ?`, [purchaseOrder]);
         if ("code" in poId)
             throw new Error(`Failed to select purchase order id for ${purchaseOrder} \n${poId.message} `);
-        return poId[0].id;
+        return +poId[0].id;
     }
     catch (error) {
         console.error(error);
@@ -42,7 +42,7 @@ const selectOrderReference = (id) => __awaiter(void 0, void 0, void 0, function*
 exports.selectOrderReference = selectOrderReference;
 const selectPartRelations = (id) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const partNumberRelations = yield (0, connection_1.runQuery)(`SELECT part_number FROM po_pn WHERE purchase_order = ? `, [id]);
+        const partNumberRelations = yield (0, connection_1.runQuery)(`SELECT part_number FROM po_pn_ordered WHERE purchase_order = ? `, [id]);
         if ("code" in partNumberRelations)
             throw new Error(`Failed to select partNumberRelations ${partNumberRelations.message}`);
         return partNumberRelations;
@@ -55,7 +55,7 @@ const selectPartRelations = (id) => __awaiter(void 0, void 0, void 0, function* 
 exports.selectPartRelations = selectPartRelations;
 const selectPartDetails = (partNumber) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const details = yield (0, connection_1.runQuery)(`select part as name, description, partial_delivery from part_number where id = ?`, partNumber);
+        const details = yield (0, connection_1.runQuery)(`select part as name, description from part_number where id = ?`, partNumber);
         if ("code" in details)
             throw new Error(`Failed to select part details ${details.message}`);
         return Object.assign({}, details[0]);
@@ -66,14 +66,14 @@ const selectPartDetails = (partNumber) => __awaiter(void 0, void 0, void 0, func
     }
 });
 exports.selectPartDetails = selectPartDetails;
-const selectPartTotalOrdered = (id) => __awaiter(void 0, void 0, void 0, function* () {
+const selectPartTotalOrdered = (poId, pnId) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const countRelation = yield (0, connection_1.runQuery)(`select ordered from pn_ordered where part_number = ?`, id);
+        const countRelation = yield (0, connection_1.runQuery)(`select total_ordered from po_pn_ordered where part_number = ? AND purchase_order = ?`, [pnId, poId]);
         if ("code" in countRelation)
-            throw new Error(`Failed to select part total ordered for ${id} \n${countRelation.message}`);
-        const qty = yield (0, connection_1.runQuery)(`SELECT quantity FROM total_ordered WHERE id = ?`, [countRelation[0].ordered]);
+            throw new Error(`Failed to select part total ordered for purchase order: ${poId}  \npart number: ${pnId} \n${countRelation.message}`);
+        const qty = yield (0, connection_1.runQuery)(`SELECT quantity FROM total_ordered WHERE id = ?`, [countRelation[0].total_ordered]);
         if ("code" in qty)
-            throw new Error(`Error selecing total ordered for ${countRelation[0].ordered} \n${qty.message}`);
+            throw new Error(`Error selecing total ordered for purchase order: ${poId}  \npart number: ${pnId} \n${qty.message}`);
         return qty[0].quantity;
     }
     catch (error) {
@@ -107,8 +107,12 @@ exports.selectPartsReceived = selectPartsReceived;
 const insertPurchaseOrder = (po) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const purchase = yield (0, connection_1.runQuery)(`insert into purchase_order (purchase_order) values (?)`, po);
-        if ("code" in purchase)
+        if ("code" in purchase) {
+            if (purchase.code === "ER_DUP_ENTRY") {
+                return purchase.code;
+            }
             throw new Error(`error inserting purchase_order \n${purchase}`);
+        }
         return purchase.insertId;
     }
     catch (error) {
@@ -189,3 +193,29 @@ const insertTotalOrdered = (totalOrdered, purchaseOrder, partId) => __awaiter(vo
     }
 });
 exports.insertTotalOrdered = insertTotalOrdered;
+const insertPartToPartial = (purchase, part) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const partial = yield (0, connection_1.runQuery)(`INSERT INTO po_pn_partial (purchase_order, part_number) VALUES (?, ?);`, [purchase, part]);
+        if ("code" in partial)
+            throw new Error(`Failed to insert part ${part} into partial for order ${purchase}`);
+        return partial.insertId;
+    }
+    catch (error) {
+        console.error(error);
+        return;
+    }
+});
+exports.insertPartToPartial = insertPartToPartial;
+const selectPartPartialStatus = (poId, pnId) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const partial = yield (0, connection_1.runQuery)(`SELECT partial FROM po_pn_partial WHERE purchase_order = ? AND part_number = ?`, [poId, pnId]);
+        if ("code" in partial)
+            throw new Error(`Failed to select partial status for purchase order: ${poId} \nPart Number: ${pnId}`);
+        return partial[0].partial;
+    }
+    catch (error) {
+        console.error(error);
+        return;
+    }
+});
+exports.selectPartPartialStatus = selectPartPartialStatus;

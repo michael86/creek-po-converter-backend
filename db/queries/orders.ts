@@ -11,20 +11,30 @@ import { FecthRequest, PutRequest } from "@types_sql/index";
 import {
   insertOrderRef,
   insertPartNumber,
+  insertPartToPartial,
   insertPurchaseOrder,
   insertTotalOrdered,
   selectOrderReference,
   selectPartDetails,
+  selectPartPartialStatus,
   selectPartRelations,
   selectPartTotalOrdered,
   selectPartsReceived,
   selectPurchaseOrderId,
 } from "./utils";
 
+/**
+ *
+ * Will insert the data extracted from a purchase order into the database
+ *
+ * @param data PDFstructure
+ * @returns
+ */
 export const insertOrderToDb: InsertOrderToDb = async (data: PDFStructure) => {
   try {
     const poId = await insertPurchaseOrder(data.PURCHASE_ORDER);
     if (!poId) throw new Error(`Failed to insert purchase order ${data} \n${poId}`);
+    if (poId === "ER_DUP_ENTRY") return poId;
 
     const orId = await insertOrderRef(data.ORDER_REFERENCE, poId);
     if (!orId) throw new Error(`Failed to insert purchase order ${data} \n${orId}`);
@@ -35,6 +45,9 @@ export const insertOrderToDb: InsertOrderToDb = async (data: PDFStructure) => {
 
       const quantity = await insertTotalOrdered(part[1], poId, partId);
       if (!quantity) throw new Error(`Failed to insert part quantity ${part}`);
+
+      const partial = await insertPartToPartial(poId, partId);
+      if (!partial) throw new Error(`Failed to insert partial ${partial}`);
     }
     return true;
   } catch (error) {
@@ -43,6 +56,10 @@ export const insertOrderToDb: InsertOrderToDb = async (data: PDFStructure) => {
   }
 };
 
+/**
+ * Will return an array of all the purchase orders
+ * @returns string[]
+ */
 export const fetchPurchaseOrders: FetchPurchaseOrders = async () => {
   try {
     const data = await runQuery<FecthRequest>(
@@ -59,6 +76,11 @@ export const fetchPurchaseOrders: FetchPurchaseOrders = async () => {
   }
 };
 
+/**
+ * Will return a specific purchase order based on the purchase order name
+ * @param id - typically the purchase order name
+ * @returns PurchaseOrder | void
+ */
 export const fetchPurchaseOrder: FetchPurchaseOrder = async (id) => {
   try {
     const poId = await selectPurchaseOrderId(id);
@@ -78,23 +100,28 @@ export const fetchPurchaseOrder: FetchPurchaseOrder = async (id) => {
     };
 
     //Begin filling out the order part status
-    for (const relation of partRelations) {
+    for (const { part_number } of partRelations) {
       //Select details such as description, partial order and so on
-      const part = await selectPartDetails(relation.part_number);
+      const part = await selectPartDetails(+part_number);
       if (!part) throw new Error(`Failed to select part details for ${id} \n${part}`);
 
       //Select the total amount ordered
-      const totalOrdered = await selectPartTotalOrdered(relation.part_number);
-
+      const totalOrdered = await selectPartTotalOrdered(poId, +part_number);
       if (!totalOrdered)
         throw new Error(`Failed to select total ordered for ${id} \n${totalOrdered}`);
 
-      const partsReceived = await selectPartsReceived(relation.part_number, poId);
+      //Select if partial
+      const partial = await selectPartPartialStatus(poId, +part_number);
+      if (typeof partial !== "number")
+        throw new Error(`Failed to select part partial status for ${id} \n${partial}`);
+
+      //Select any orders for this part
+      const partsReceived = await selectPartsReceived(+part_number, poId);
 
       retval.partNumbers[part.name] = {
         name: part.name,
         totalOrdered: +totalOrdered,
-        partial: +part.partial_delivery as 0 | 1,
+        partial: partial as 0 | 1,
         description: part.description,
         partsReceived,
       };
@@ -110,6 +137,15 @@ export const fetchPurchaseOrder: FetchPurchaseOrder = async (id) => {
     return;
   }
 };
+
+/**
+ *
+ * Will udpate a parts status surrounding partial status
+ *
+ * @param order string - purchase order name
+ * @param name stirng - partnumber
+ * @returns
+ */
 export const patchPartialStatus: PatchPartialStatus = async (order: string, name: string) => {
   try {
     const id = await runQuery<FecthRequest>(
@@ -145,6 +181,17 @@ export const patchPartialStatus: PatchPartialStatus = async (order: string, name
     return;
   }
 };
+
+/**
+ *
+ * Will add new parcels to a selected purchase orders part number
+ *
+ * @param parcels number[]
+ * @param purchaseOrder string
+ * @param part string
+ * @returns true | void
+ */
+
 export const addParcelsToOrder: AddParcelsToOrder = async (
   parcels: number[],
   purchaseOrder: string,
