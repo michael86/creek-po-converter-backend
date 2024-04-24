@@ -80,7 +80,7 @@ export const validateLogin: ValidateLogin = async (email: string) => {
     );
 
     if ("code" in res) throw new Error(`Error valideLogin \n${res.message}`);
-
+    if(!res[0]) return
     return [res[0].password, res[0].id];
   } catch (error) {
     console.error("Validate login ", error);
