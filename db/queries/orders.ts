@@ -12,6 +12,7 @@ import {
   insertOrderRef,
   insertPartNumber,
   insertPurchaseOrder,
+  insertTotalOrdered,
   selectOrderReference,
   selectPartDetails,
   selectPartRelations,
@@ -28,50 +29,16 @@ export const insertOrderToDb: InsertOrderToDb = async (data: PDFStructure) => {
     const orId = await insertOrderRef(data.ORDER_REFERENCE, poId);
     if (!orId) throw new Error(`Failed to insert purchase order ${data} \n${orId}`);
 
-    const skuCountIds: number[][] = [];
-
     for (const part of data.DATA) {
       const partId = await insertPartNumber(part);
       if (!partId) throw new Error(`Failed to insert part ${part[0]} \n${partId}`);
 
-      //Upto refactoring here
-
-      const [quantity] = await Promise.all([
-        runQuery<PutRequest>(`INSERT INTO total_ordered (quantity) VALUES (?);`, [Number(part[1])]),
-      ]);
-
-      if ("code" in quantity)
-        throw new Error(`Error adding purchase order, failed to insert quantity ${quantity}`);
-      skuCountIds.push([partId, +quantity.insertId]);
+      const quantity = await insertTotalOrdered(part[1], poId, partId);
+      if (!quantity) throw new Error(`Failed to insert part quantity ${part}`);
     }
-
-    for (const part of skuCountIds) {
-      const poPart = await runQuery<PutRequest>(
-        `INSERT INTO po_pn (purchase_order, part_number) VALUES (?, ?);`,
-        [poId, part[0]]
-      );
-      if ("code" in poPart)
-        throw new Error(`Error adding purchase order, failed to insert po_or ${poPart.message}`);
-    }
-
-    for (const part of skuCountIds) {
-      const pnCount = await runQuery<PutRequest>(
-        `INSERT INTO \`pn_ordered\` (part_number, ordered) VALUES (?, ?);`,
-        [part[0], part[1]]
-      );
-      if ("code" in pnCount)
-        throw new Error(`Error adding purchase order, failed to insert sku ${pnCount.message}`);
-    }
-
     return true;
   } catch (error) {
-    if (
-      (error instanceof Error && error.message.includes("ER_DUP_ENTRY")) ||
-      (typeof error === "string" && error.includes("ER_DUP_ENTRY"))
-    ) {
-      return "ER_DUP_ENTRY";
-    }
-    console.error(`failed to insert data to db `, error);
+    console.error(error);
     return;
   }
 };

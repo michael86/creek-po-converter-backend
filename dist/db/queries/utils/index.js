@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.insertPartNumber = exports.selectPartId = exports.insertOrderRef = exports.insertPurchaseOrder = exports.selectPartsReceived = exports.selectPartTotalOrdered = exports.selectPartDetails = exports.selectPartRelations = exports.selectOrderReference = exports.selectPurchaseOrderId = void 0;
+exports.insertTotalOrdered = exports.insertPartNumber = exports.selectPartId = exports.insertOrderRef = exports.insertPurchaseOrder = exports.selectPartsReceived = exports.selectPartTotalOrdered = exports.selectPartDetails = exports.selectPartRelations = exports.selectOrderReference = exports.selectPurchaseOrderId = void 0;
 const connection_1 = require("../../connection");
 const selectPurchaseOrderId = (purchaseOrder) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -173,3 +173,19 @@ const insertPartNumber = (part) => __awaiter(void 0, void 0, void 0, function* (
     }
 });
 exports.insertPartNumber = insertPartNumber;
+const insertTotalOrdered = (totalOrdered, purchaseOrder, partId) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const quantity = yield (0, connection_1.runQuery)(`INSERT INTO total_ordered (quantity) VALUES (?);`, totalOrdered);
+        if ("code" in quantity)
+            throw new Error(`Error adding purchase order, failed to insert quantity ${quantity.message}`);
+        const pnCount = yield (0, connection_1.runQuery)(`INSERT INTO \`po_pn_ordered\` (purchase_order, part_number, total_ordered) VALUES (?, ?,? );`, [purchaseOrder, partId, quantity.insertId]);
+        if ("code" in pnCount)
+            throw new Error(`Error adding purchase order, failed to insert sku ${pnCount.message}`);
+        return quantity.insertId;
+    }
+    catch (error) {
+        console.error(error);
+        return;
+    }
+});
+exports.insertTotalOrdered = insertTotalOrdered;

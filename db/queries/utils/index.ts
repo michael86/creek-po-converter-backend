@@ -220,3 +220,30 @@ export const insertPartNumber = async (part: [string, string, string]) => {
     return;
   }
 };
+
+export const insertTotalOrdered = async (
+  totalOrdered: string,
+  purchaseOrder: number,
+  partId: number
+) => {
+  try {
+    const quantity = await runQuery<PutRequest>(
+      `INSERT INTO total_ordered (quantity) VALUES (?);`,
+      totalOrdered
+    );
+
+    if ("code" in quantity)
+      throw new Error(`Error adding purchase order, failed to insert quantity ${quantity.message}`);
+
+    const pnCount = await runQuery<PutRequest>(
+      `INSERT INTO \`po_pn_ordered\` (purchase_order, part_number, total_ordered) VALUES (?, ?,? );`,
+      [purchaseOrder, partId, quantity.insertId]
+    );
+    if ("code" in pnCount)
+      throw new Error(`Error adding purchase order, failed to insert sku ${pnCount.message}`);
+    return quantity.insertId;
+  } catch (error) {
+    console.error(error);
+    return;
+  }
+};
