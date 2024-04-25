@@ -12,6 +12,7 @@ import {
   SelectPartId,
   SelectPartial,
 } from "@types_sql/queries";
+import { Parcel } from "types/generic";
 
 export const selectPurchaseOrderId = async (purchaseOrder: string) => {
   try {
@@ -127,7 +128,7 @@ export const selectPartsReceived = async (partNumber: number, purchaseOrder: num
 
     if (!receivedRelations.length) return [];
 
-    const retval: { amountReceived: number; dateReceived: string }[] = [];
+    const retval: Parcel[] = [];
 
     for (const { parcel } of receivedRelations) {
       const total = await runQuery<SelectAmountReceived>(
