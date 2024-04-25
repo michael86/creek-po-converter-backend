@@ -11,6 +11,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const utils_1 = require("../db/queries/utils");
 const locations_1 = require("../db/queries/locations");
+const validate_1 = require("../middleware/validate");
+const express_validator_1 = require("express-validator");
 const express = require("express");
 const router = express.Router();
 const updateLocation = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -43,5 +45,9 @@ const updateLocation = (req, res) => __awaiter(void 0, void 0, void 0, function*
         res.status(500).send({ token: req.headers.newToken });
     }
 });
-router.post("/update", updateLocation);
+router.post("/update", (0, validate_1.validate)([
+    (0, express_validator_1.body)("order").trim().notEmpty(),
+    (0, express_validator_1.body)("part").trim().notEmpty(),
+    (0, express_validator_1.body)("location").trim().notEmpty(),
+]), updateLocation);
 module.exports = router;

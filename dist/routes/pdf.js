@@ -11,6 +11,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const extract_pdf_1 = require("../utils/extract_pdf");
 const orders_1 = require("../db/queries/orders");
+const validate_1 = require("../middleware/validate");
+const express_validator_1 = require("express-validator");
 require("dotenv").config();
 const express = require("express");
 const multer = require("multer");
@@ -69,5 +71,5 @@ const fetch = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     res.send({ status: 1, data: purchaseOrder, token: req.headers.newToken });
 });
 router.post("/process", uploadStorage.single("pdf"), beginProcess);
-router.get("/fetch/:id?", fetch);
+router.get("/fetch/:id?", (0, validate_1.validate)([(0, express_validator_1.param)("id").trim()]), fetch);
 module.exports = router;

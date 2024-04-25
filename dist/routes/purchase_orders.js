@@ -10,6 +10,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const orders_1 = require("../db/queries/orders");
+const validate_1 = require("../middleware/validate");
+const express_validator_1 = require("express-validator");
 const express = require("express");
 const router = express.Router();
 const updatePartialStatus = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -40,6 +42,10 @@ const addParcel = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         res.send({ status: 0 });
     }
 });
-router.patch("/set-partial/:order?/:name?", updatePartialStatus);
-router.put("/add-parcel/", addParcel);
+router.patch("/set-partial/:order?/:name?", (0, validate_1.validate)([(0, express_validator_1.param)("order").exists().trim(), (0, express_validator_1.param)("name").exists().trim()]), updatePartialStatus);
+router.put("/add-parcel/", (0, validate_1.validate)([
+    (0, express_validator_1.body)("parcels.*").exists().trim().isNumeric(),
+    (0, express_validator_1.body)("purchaseOrder").trim().exists(),
+    (0, express_validator_1.body)("part").exists().trim(),
+]), addParcel);
 module.exports = router;
