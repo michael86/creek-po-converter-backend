@@ -1,6 +1,8 @@
 import { selectPartId, selectPurchaseOrderId } from "../db/queries/utils";
 import { insertLocation, selectLocationId, selectLocationIdForPart } from "../db/queries/locations";
 import { RequestHandler } from "express";
+import { validate } from "../middleware/validate";
+import { body } from "express-validator";
 
 const express = require("express");
 const router = express.Router();
@@ -36,6 +38,14 @@ const updateLocation: RequestHandler = async (req, res) => {
   }
 };
 
-router.post("/update", updateLocation);
+router.post(
+  "/update",
+  validate([
+    body("order").trim().notEmpty(),
+    body("part").trim().notEmpty(),
+    body("location").trim().notEmpty(),
+  ]),
+  updateLocation
+);
 
 module.exports = router;

@@ -100,8 +100,14 @@ const handleLogout = (req, res) => __awaiter(void 0, void 0, void 0, function* (
         res.send({ status: 0 });
     }
 });
-router.post("/register", handleRegister);
-router.post("/login", handleLogin);
+router.post("/register", (0, validate_1.validate)([
+    (0, express_validator_1.body)("data.email").trim().notEmpty().isEmail().normalizeEmail(),
+    (0, express_validator_1.body)("data.password").trim().notEmpty(),
+]), handleRegister);
+router.post("/login", (0, validate_1.validate)([
+    (0, express_validator_1.body)("data.email").trim().notEmpty().isEmail().normalizeEmail(),
+    (0, express_validator_1.body)("data.password").trim().notEmpty(),
+]), handleLogin);
 router.get("/validate-token/:token?/:email?", (0, validate_1.validate)([
     (0, express_validator_1.param)("email")
         .trim()

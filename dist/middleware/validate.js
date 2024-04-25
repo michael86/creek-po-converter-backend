@@ -21,6 +21,7 @@ const validate = (validations) => {
                 break;
         }
         const errors = (0, express_validator_1.validationResult)(req);
+        console.log("errors ", errors);
         if (errors.isEmpty()) {
             return next();
         }

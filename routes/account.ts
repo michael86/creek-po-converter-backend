@@ -1,7 +1,7 @@
 import { RequestHandler } from "express";
 import { generateToken } from "../utils/tokens";
 import { validate } from "../middleware/validate";
-import { Result, check, param } from "express-validator";
+import { body, check, param } from "express-validator";
 import {
   selectEmail,
   createUser,
@@ -113,8 +113,24 @@ const handleLogout: RequestHandler = async (req, res) => {
   }
 };
 
-router.post("/register", handleRegister);
-router.post("/login", handleLogin);
+router.post(
+  "/register",
+  validate([
+    body("data.email").trim().notEmpty().isEmail().normalizeEmail(),
+    body("data.password").trim().notEmpty(),
+  ]),
+  handleRegister
+);
+
+router.post(
+  "/login",
+  validate([
+    body("data.email").trim().notEmpty().isEmail().normalizeEmail(),
+    body("data.password").trim().notEmpty(),
+  ]),
+  handleLogin
+);
+
 router.get(
   "/validate-token/:token?/:email?",
   validate([

@@ -1,5 +1,7 @@
 import { RequestHandler } from "express";
 import { patchPartialStatus, addParcelsToOrder } from "../db/queries/orders";
+import { validate } from "../middleware/validate";
+import { body, param } from "express-validator";
 
 const express = require("express");
 const router = express.Router();
@@ -21,6 +23,7 @@ type AddParcelBody = { parcels: number[]; purchaseOrder: string; part: string };
 const addParcel: RequestHandler = async (req, res) => {
   try {
     const { parcels, purchaseOrder, part }: AddParcelBody = req.body;
+
     if (!parcels || !purchaseOrder || !part) {
       res.status(400).send();
       return;
@@ -35,6 +38,18 @@ const addParcel: RequestHandler = async (req, res) => {
   }
 };
 
-router.patch("/set-partial/:order?/:name?", updatePartialStatus);
-router.put("/add-parcel/", addParcel);
+router.patch(
+  "/set-partial/:order?/:name?",
+  validate([param("order").exists().trim(), param("name").exists().trim()]),
+  updatePartialStatus
+);
+router.put(
+  "/add-parcel/",
+  validate([
+    body("parcels.*").exists().trim().isNumeric(),
+    body("purchaseOrder").trim().exists(),
+    body("part").exists().trim(),
+  ]),
+  addParcel
+);
 module.exports = router;
