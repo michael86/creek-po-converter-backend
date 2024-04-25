@@ -13,6 +13,7 @@ const utils_1 = require("../db/queries/utils");
 const locations_1 = require("../db/queries/locations");
 const validate_1 = require("../middleware/validate");
 const express_validator_1 = require("express-validator");
+const logs_1 = require("../middleware/logs");
 const express = require("express");
 const router = express.Router();
 const updateLocation = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -49,5 +50,5 @@ router.post("/update", (0, validate_1.validate)([
     (0, express_validator_1.body)("order").trim().notEmpty(),
     (0, express_validator_1.body)("part").trim().notEmpty(),
     (0, express_validator_1.body)("location").trim().notEmpty(),
-]), updateLocation);
+]), (0, logs_1.addLog)("updateLocation"), updateLocation);
 module.exports = router;

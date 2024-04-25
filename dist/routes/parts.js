@@ -14,6 +14,7 @@ const validate_1 = require("../middleware/validate");
 const express_validator_1 = require("express-validator");
 const parts_1 = require("../db/queries/parts");
 const checkUserRole_1 = require("../middleware/checkUserRole");
+const logs_1 = require("../middleware/logs");
 const express = require("express");
 exports.router = express.Router();
 const isPrefixValid = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -45,6 +46,6 @@ const addPrefix = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         res.status(400).send();
     }
 });
-exports.router.get("/prefix/is-valid/:prefix?", (0, validate_1.validate)([(0, express_validator_1.param)("prefix").trim().notEmpty().withMessage("prefix was empty").escape()]), (0, checkUserRole_1.checkUserRoleForAction)(2), isPrefixValid);
-exports.router.put("/prefix/add/", (0, validate_1.validate)([(0, express_validator_1.body)("prefix").trim().notEmpty().withMessage("prefix was empty").escape()]), (0, checkUserRole_1.checkUserRoleForAction)(2), addPrefix);
+exports.router.get("/prefix/is-valid/:prefix?", (0, validate_1.validate)([(0, express_validator_1.param)("prefix").trim().notEmpty().withMessage("prefix was empty").escape()]), (0, checkUserRole_1.checkUserRoleForAction)(2), (0, logs_1.addLog)("isPrefixValid"), isPrefixValid);
+exports.router.put("/prefix/add/", (0, validate_1.validate)([(0, express_validator_1.body)("prefix").trim().notEmpty().withMessage("prefix was empty").escape()]), (0, checkUserRole_1.checkUserRoleForAction)(2), (0, logs_1.addLog)("addPrefix"), addPrefix);
 module.exports = exports.router;

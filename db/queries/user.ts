@@ -6,6 +6,7 @@ import {
   UpdateUserToken,
   ValidateLogin,
   ValidateUserToken,
+  SelectUserId,
 } from "@types_sql/queries";
 import { runQuery } from "../connection";
 import { generateToken } from "../../utils/tokens";
@@ -22,6 +23,23 @@ export const selectEmail: SelectEmail = async (email: string) => {
     const res = await runQuery<FecthRequest>("select email from users where email = ?", [email]);
     if ("code" in res) throw new Error(`Error selecting users email: ${res.message}`);
     return res.length;
+  } catch (error) {
+    console.error(error);
+    return;
+  }
+};
+
+/**
+ * Will return the users id for a given email
+ * @param email {string} users email
+ * @returns void | number
+ */
+export const getUserId = async (email: string) => {
+  try {
+    const res = await runQuery<SelectUserId>(`SELECT id from users WHERE email = ?`, email);
+    if ("code" in res) throw new Error(`Failed to select user id for ${email} \n${res.message}`);
+    if (!res.length) return;
+    return +res[0].id;
   } catch (error) {
     console.error(error);
     return;
@@ -80,7 +98,7 @@ export const validateLogin: ValidateLogin = async (email: string) => {
     );
 
     if ("code" in res) throw new Error(`Error valideLogin \n${res.message}`);
-    if(!res[0]) return
+    if (!res[0]) return;
     return [res[0].password, res[0].id];
   } catch (error) {
     console.error("Validate login ", error);

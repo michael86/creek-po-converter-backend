@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getUserRole = exports.updateUserToken = exports.setTokenToNull = exports.validateUserToken = exports.validateLogin = exports.createUser = exports.selectEmail = void 0;
+exports.getUserRole = exports.updateUserToken = exports.setTokenToNull = exports.validateUserToken = exports.validateLogin = exports.createUser = exports.getUserId = exports.selectEmail = void 0;
 const connection_1 = require("../connection");
 const tokens_1 = require("../../utils/tokens");
 /**
@@ -32,6 +32,26 @@ const selectEmail = (email) => __awaiter(void 0, void 0, void 0, function* () {
     }
 });
 exports.selectEmail = selectEmail;
+/**
+ * Will return the users id for a given email
+ * @param email {string} users email
+ * @returns void | number
+ */
+const getUserId = (email) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const res = yield (0, connection_1.runQuery)(`SELECT id from users WHERE email = ?`, email);
+        if ("code" in res)
+            throw new Error(`Failed to select user id for ${email} \n${res.message}`);
+        if (!res.length)
+            return;
+        return +res[0].id;
+    }
+    catch (error) {
+        console.error(error);
+        return;
+    }
+});
+exports.getUserId = getUserId;
 /**
  *
  * Will attempt to create a new user, as well as a token and the relevant relation

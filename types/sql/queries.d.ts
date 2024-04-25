@@ -38,3 +38,4 @@ export type SelectPartial = { partial: number }[];
 export type SelectPartLocationId = { location: string }[] | [];
 export type SelectLocationId = { id: string }[];
 export type SelectLocation = { location: string }[];
+export type SelectUserId = { id: string }[];

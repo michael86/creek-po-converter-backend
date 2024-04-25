@@ -15,3 +15,10 @@ export type PurchaseOrder = {
   };
 };
 export type PDFStructure = { DATA: []; ORDER_REFERENCE: string; PURCHASE_ORDER: string };
+export type Log =
+  | "login"
+  | "logout"
+  | "validateToken"
+  | "updateLocation"
+  | "isPrefixValid"
+  | "addPrefix";
