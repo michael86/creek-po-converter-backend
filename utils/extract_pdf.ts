@@ -74,7 +74,10 @@ export const processFile = async (file: string, cb: CallableFunction) => {
       const ORDER_REFERENCE = getOrderReference(rows);
       const PURCHASE_ORDER = getPurchaseOrder(rows);
 
-      if (!ORDER_REFERENCE || !PURCHASE_ORDER) cb(null);
+      if (!ORDER_REFERENCE || !PURCHASE_ORDER) {
+        cb(null);
+        return
+      };
 
       if (DATA.length) {
         cb({

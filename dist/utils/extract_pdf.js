@@ -70,8 +70,11 @@ const processFile = (file, cb) => __awaiter(void 0, void 0, void 0, function* ()
                 const DATA = yield getData(rows);
                 const ORDER_REFERENCE = getOrderReference(rows);
                 const PURCHASE_ORDER = getPurchaseOrder(rows);
-                if (!ORDER_REFERENCE || !PURCHASE_ORDER)
+                if (!ORDER_REFERENCE || !PURCHASE_ORDER) {
                     cb(null);
+                    return;
+                }
+                ;
                 if (DATA.length) {
                     cb({
                         DATA,
