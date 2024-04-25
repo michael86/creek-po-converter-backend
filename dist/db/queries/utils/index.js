@@ -91,10 +91,15 @@ const selectPartsReceived = (partNumber, purchaseOrder) => __awaiter(void 0, voi
             return [];
         const retval = [];
         for (const { parcel } of receivedRelations) {
-            const total = yield (0, connection_1.runQuery)(`SELECT amount_received as amountReceived FROM amount_received WHERE id = ?`, parcel);
+            const total = yield (0, connection_1.runQuery)(`SELECT amount_received as amountReceived, UNIX_TIMESTAMP(date_created) as dateReceived FROM amount_received WHERE id = ?`, parcel);
             if ("code" in total)
                 throw new Error(`failed to select amount received ${total.message}`);
-            retval.push(+total[0].amountReceived);
+            if (!total[0])
+                return;
+            retval.push({
+                amountReceived: +total[0].amountReceived,
+                dateReceived: +total[0].dateReceived,
+            });
         }
         return retval;
     }

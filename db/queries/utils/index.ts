@@ -127,15 +127,19 @@ export const selectPartsReceived = async (partNumber: number, purchaseOrder: num
 
     if (!receivedRelations.length) return [];
 
-    const retval: number[] = [];
+    const retval: { amountReceived: number; dateReceived: string }[] = [];
 
     for (const { parcel } of receivedRelations) {
       const total = await runQuery<SelectAmountReceived>(
-        `SELECT amount_received as amountReceived FROM amount_received WHERE id = ?`,
+        `SELECT amount_received as amountReceived, UNIX_TIMESTAMP(date_created) as dateReceived FROM amount_received WHERE id = ?`,
         parcel
       );
       if ("code" in total) throw new Error(`failed to select amount received ${total.message}`);
-      retval.push(+total[0].amountReceived);
+      if (!total[0]) return;
+      retval.push({
+        amountReceived: +total[0].amountReceived,
+        dateReceived: +total[0].dateReceived,
+      });
     }
 
     return retval;
