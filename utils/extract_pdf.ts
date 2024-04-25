@@ -50,14 +50,14 @@ const getOrderReference = (rows: Rows) => {
     (row) => row.length === 3 && row[0].toLowerCase().includes("order refer")
   );
 
-  if (!filtered[0]?.[1]) throw new Error("Failed to get order reference");
+  if (!filtered[0]?.[1]) return;
   return filtered[0][1];
 };
 
 // Extracts purchase order from table rows
 const getPurchaseOrder = (rows: Rows) => {
   let filtered = rows.filter((row) => row.length === 3 && row[0].toLowerCase().includes("our p.o"));
-  if (!filtered[0]?.[1]) throw new Error("Failed to get P.O");
+  if (!filtered[0]?.[1]) return;
   return filtered[0][1];
 };
 
@@ -71,8 +71,10 @@ export const processFile = async (file: string, cb: CallableFunction) => {
 
       const DATA = await getData(rows);
 
-      const ORDER_REFERENCE: string = getOrderReference(rows);
-      const PURCHASE_ORDER: string = getPurchaseOrder(rows);
+      const ORDER_REFERENCE = getOrderReference(rows);
+      const PURCHASE_ORDER = getPurchaseOrder(rows);
+
+      if (!ORDER_REFERENCE || !PURCHASE_ORDER) cb(null);
 
       if (DATA.length) {
         cb({

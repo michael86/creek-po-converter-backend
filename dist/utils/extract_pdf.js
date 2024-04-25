@@ -48,7 +48,7 @@ const getOrderReference = (rows) => {
     var _a;
     let filtered = rows.filter((row) => row.length === 3 && row[0].toLowerCase().includes("order refer"));
     if (!((_a = filtered[0]) === null || _a === void 0 ? void 0 : _a[1]))
-        throw new Error("Failed to get order reference");
+        return;
     return filtered[0][1];
 };
 // Extracts purchase order from table rows
@@ -56,7 +56,7 @@ const getPurchaseOrder = (rows) => {
     var _a;
     let filtered = rows.filter((row) => row.length === 3 && row[0].toLowerCase().includes("our p.o"));
     if (!((_a = filtered[0]) === null || _a === void 0 ? void 0 : _a[1]))
-        throw new Error("Failed to get P.O");
+        return;
     return filtered[0][1];
 };
 // Processes a single PDF file
@@ -70,6 +70,8 @@ const processFile = (file, cb) => __awaiter(void 0, void 0, void 0, function* ()
                 const DATA = yield getData(rows);
                 const ORDER_REFERENCE = getOrderReference(rows);
                 const PURCHASE_ORDER = getPurchaseOrder(rows);
+                if (!ORDER_REFERENCE || !PURCHASE_ORDER)
+                    cb(null);
                 if (DATA.length) {
                     cb({
                         DATA,
