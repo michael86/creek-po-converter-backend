@@ -45,6 +45,6 @@ const addPrefix = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         res.status(400).send();
     }
 });
-exports.router.get("/prefix/is-valid/:prefix?", (0, validate_1.validate)([(0, express_validator_1.param)("prefix").trim().notEmpty().withMessage("prefix was empty").escape()]), (0, checkUserRole_1.checkUserRoleForAction)(4), isPrefixValid);
-exports.router.put("/prefix/add/", (0, validate_1.validate)([(0, express_validator_1.body)("prefix").trim().notEmpty().withMessage("prefix was empty").escape()]), (0, checkUserRole_1.checkUserRoleForAction)(4), addPrefix);
+exports.router.get("/prefix/is-valid/:prefix?", (0, validate_1.validate)([(0, express_validator_1.param)("prefix").trim().notEmpty().withMessage("prefix was empty").escape()]), (0, checkUserRole_1.checkUserRoleForAction)(2), isPrefixValid);
+exports.router.put("/prefix/add/", (0, validate_1.validate)([(0, express_validator_1.body)("prefix").trim().notEmpty().withMessage("prefix was empty").escape()]), (0, checkUserRole_1.checkUserRoleForAction)(2), addPrefix);
 module.exports = exports.router;

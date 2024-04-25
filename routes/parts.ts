@@ -43,13 +43,13 @@ const addPrefix: RequestHandler = async (req, res) => {
 router.get(
   "/prefix/is-valid/:prefix?",
   validate([param("prefix").trim().notEmpty().withMessage("prefix was empty").escape()]),
-  checkUserRoleForAction(4),
+  checkUserRoleForAction(2),
   isPrefixValid
 );
 router.put(
   "/prefix/add/",
   validate([body("prefix").trim().notEmpty().withMessage("prefix was empty").escape()]),
-  checkUserRoleForAction(4),
+  checkUserRoleForAction(2),
   addPrefix
 );
 
