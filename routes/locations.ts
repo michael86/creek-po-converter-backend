@@ -3,6 +3,7 @@ import { insertLocation, selectLocationId, selectLocationIdForPart } from "../db
 import { RequestHandler } from "express";
 import { validate } from "../middleware/validate";
 import { body } from "express-validator";
+import { addLog } from "../middleware/logs";
 
 const express = require("express");
 const router = express.Router();
@@ -45,6 +46,7 @@ router.post(
     body("part").trim().notEmpty(),
     body("location").trim().notEmpty(),
   ]),
+  addLog("updateLocation"),
   updateLocation
 );
 

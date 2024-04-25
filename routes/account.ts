@@ -1,7 +1,8 @@
 import { RequestHandler } from "express";
 import { generateToken } from "../utils/tokens";
 import { validate } from "../middleware/validate";
-import { body, check, param } from "express-validator";
+import { addLog } from "../middleware/logs";
+import { body, param } from "express-validator";
 import {
   selectEmail,
   createUser,
@@ -11,7 +12,7 @@ import {
   updateUserToken,
   getUserRole,
 } from "../db/queries/user";
-import { IncomingHttpHeaders } from "http";
+
 import { UserHeaders } from "@types_sql/index";
 
 const sha256 = require("sha256");
@@ -119,6 +120,7 @@ router.post(
     body("data.email").trim().notEmpty().isEmail().normalizeEmail(),
     body("data.password").trim().notEmpty(),
   ]),
+  // addLog(""),
   handleRegister
 );
 
@@ -128,6 +130,7 @@ router.post(
     body("data.email").trim().notEmpty().isEmail().normalizeEmail(),
     body("data.password").trim().notEmpty(),
   ]),
+  addLog("login"),
   handleLogin
 );
 
@@ -142,7 +145,8 @@ router.get(
       .withMessage("Not valid email")
       .normalizeEmail(),
   ]),
+  addLog("validateToken"),
   validateToken
 );
-router.post("/logout", handleLogout);
+router.post("/logout", addLog("logout"), handleLogout);
 module.exports = router;

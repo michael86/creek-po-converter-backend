@@ -11,6 +11,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const tokens_1 = require("../utils/tokens");
 const validate_1 = require("../middleware/validate");
+const logs_1 = require("../middleware/logs");
 const express_validator_1 = require("express-validator");
 const user_1 = require("../db/queries/user");
 const sha256 = require("sha256");
@@ -103,11 +104,13 @@ const handleLogout = (req, res) => __awaiter(void 0, void 0, void 0, function* (
 router.post("/register", (0, validate_1.validate)([
     (0, express_validator_1.body)("data.email").trim().notEmpty().isEmail().normalizeEmail(),
     (0, express_validator_1.body)("data.password").trim().notEmpty(),
-]), handleRegister);
+]), 
+// addLog(""),
+handleRegister);
 router.post("/login", (0, validate_1.validate)([
     (0, express_validator_1.body)("data.email").trim().notEmpty().isEmail().normalizeEmail(),
     (0, express_validator_1.body)("data.password").trim().notEmpty(),
-]), handleLogin);
+]), (0, logs_1.addLog)("login"), handleLogin);
 router.get("/validate-token/:token?/:email?", (0, validate_1.validate)([
     (0, express_validator_1.param)("email")
         .trim()
@@ -116,6 +119,6 @@ router.get("/validate-token/:token?/:email?", (0, validate_1.validate)([
         .isEmail()
         .withMessage("Not valid email")
         .normalizeEmail(),
-]), validateToken);
-router.post("/logout", handleLogout);
+]), (0, logs_1.addLog)("validateToken"), validateToken);
+router.post("/logout", (0, logs_1.addLog)("logout"), handleLogout);
 module.exports = router;

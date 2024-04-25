@@ -3,6 +3,7 @@ import { validate } from "../middleware/validate";
 import { body, param } from "express-validator";
 import { fetchPrefixes, insertPrefix } from "../db/queries/parts";
 import { checkUserRoleForAction } from "../middleware/checkUserRole";
+import { addLog } from "../middleware/logs";
 const express = require("express");
 export const router = express.Router();
 
@@ -44,12 +45,14 @@ router.get(
   "/prefix/is-valid/:prefix?",
   validate([param("prefix").trim().notEmpty().withMessage("prefix was empty").escape()]),
   checkUserRoleForAction(2),
+  addLog("isPrefixValid"),
   isPrefixValid
 );
 router.put(
   "/prefix/add/",
   validate([body("prefix").trim().notEmpty().withMessage("prefix was empty").escape()]),
   checkUserRoleForAction(2),
+  addLog("addPrefix"),
   addPrefix
 );
 
