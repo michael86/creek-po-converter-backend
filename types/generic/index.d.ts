@@ -1,3 +1,5 @@
+export type Parcel = { dateReceived: number; amountReceived: number };
+
 export type PurchaseOrder = {
   purchaseOrder: string;
   orderRef: string;
@@ -7,7 +9,7 @@ export type PurchaseOrder = {
       partial: 1 | 0;
       totalOrdered: number | undefined;
       description: string;
-      partsReceived: number[] | undefined;
+      partsReceived: Parcel[] | undefined;
       location?: string;
     };
   };
