@@ -1,7 +1,8 @@
 import { RequestHandler } from "express";
 import { validate } from "../middleware/validate";
-import { body } from "express-validator";
+import { body, param } from "express-validator";
 import { fetchPrefixes, insertPrefix } from "../db/queries/parts";
+import { checkUserRoleForAction } from "../middleware/checkUserRole";
 const express = require("express");
 export const router = express.Router();
 
@@ -39,10 +40,16 @@ const addPrefix: RequestHandler = async (req, res) => {
   }
 };
 
-router.get("/prefix/is-valid/:prefix?", isPrefixValid);
+router.get(
+  "/prefix/is-valid/:prefix?",
+  validate([param("prefix").trim().notEmpty().withMessage("prefix was empty").escape()]),
+  checkUserRoleForAction(4),
+  isPrefixValid
+);
 router.put(
   "/prefix/add/",
   validate([body("prefix").trim().notEmpty().withMessage("prefix was empty").escape()]),
+  checkUserRoleForAction(4),
   addPrefix
 );
 
