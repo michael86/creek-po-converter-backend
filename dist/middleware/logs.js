@@ -16,6 +16,7 @@ const utils_1 = require("../utils");
 function addLog(log) {
     return function (req, res, next) {
         return __awaiter(this, void 0, void 0, function* () {
+            var _a;
             let { email } = req.headers;
             if (!email || !email.length) {
                 email = req.body.email || req.body.data.email;
@@ -48,6 +49,27 @@ function addLog(log) {
                 case "addPrefix":
                     const p = req.body.prefix;
                     message = `User added prefix ${(0, utils_1.sanitizeToHtmlEntities)(p)}`;
+                    break;
+                case "fileUpload":
+                    const filename = (_a = req.file) === null || _a === void 0 ? void 0 : _a.filename;
+                    if (!filename)
+                        return res.status(400).send();
+                    message = `user uploaded file ${(0, utils_1.sanitizeToHtmlEntities)(filename)}`;
+                    break;
+                case "fetchPo":
+                    const { id } = req.params;
+                    message = id
+                        ? `user viewed purchase order ${(0, utils_1.sanitizeToHtmlEntities)(id)}`
+                        : "User viewed all purchase order names ";
+                    break;
+                case "setPartial":
+                    const { order: o, name } = req.params;
+                    message = `user set ${(0, utils_1.sanitizeToHtmlEntities)(name)} to partial delivery for order ${(0, utils_1.sanitizeToHtmlEntities)(o)}`;
+                    break;
+                case "addParcel":
+                    const { parcels, purchaseOrder, part: pa } = req.body;
+                    const total = parcels.reduce((a, b) => +a + +b, 0);
+                    message = `User booked in ${total} units for ${(0, utils_1.sanitizeToHtmlEntities)(pa)} in purchase or ${(0, utils_1.sanitizeToHtmlEntities)(purchaseOrder)}`;
                     break;
                 default:
                     break;

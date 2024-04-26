@@ -3,6 +3,7 @@ import { processFile } from "../utils/extract_pdf";
 import { insertOrderToDb, fetchPurchaseOrders, fetchPurchaseOrder } from "../db/queries/orders";
 import { validate } from "../middleware/validate";
 import { param } from "express-validator";
+import { addLog } from "../middleware/logs";
 require("dotenv").config();
 
 const express = require("express");
@@ -84,7 +85,7 @@ const fetch: RequestHandler = async (req, res) => {
   res.send({ status: 1, data: purchaseOrder, token: req.headers.newToken });
 };
 
-router.post("/process", uploadStorage.single("pdf"), beginProcess);
-router.get("/fetch/:id?", validate([param("id").trim()]), fetch);
+router.post("/process", uploadStorage.single("pdf"), addLog("fileUpload"), beginProcess);
+router.get("/fetch/:id?", validate([param("id").trim()]), addLog("fetchPo"), fetch);
 
 module.exports = router;
