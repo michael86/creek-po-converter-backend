@@ -13,6 +13,7 @@ const extract_pdf_1 = require("../utils/extract_pdf");
 const orders_1 = require("../db/queries/orders");
 const validate_1 = require("../middleware/validate");
 const express_validator_1 = require("express-validator");
+const logs_1 = require("../middleware/logs");
 require("dotenv").config();
 const express = require("express");
 const multer = require("multer");
@@ -70,6 +71,6 @@ const fetch = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const purchaseOrder = yield (0, orders_1.fetchPurchaseOrder)(req.params.id);
     res.send({ status: 1, data: purchaseOrder, token: req.headers.newToken });
 });
-router.post("/process", uploadStorage.single("pdf"), beginProcess);
-router.get("/fetch/:id?", (0, validate_1.validate)([(0, express_validator_1.param)("id").trim()]), fetch);
+router.post("/process", uploadStorage.single("pdf"), (0, logs_1.addLog)("fileUpload"), beginProcess);
+router.get("/fetch/:id?", (0, validate_1.validate)([(0, express_validator_1.param)("id").trim()]), (0, logs_1.addLog)("fetchPo"), fetch);
 module.exports = router;

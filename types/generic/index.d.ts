@@ -14,6 +14,7 @@ export type PurchaseOrder = {
     };
   };
 };
+export type AddParcelBody = { parcels: number[]; purchaseOrder: string; part: string };
 export type PDFStructure = { DATA: []; ORDER_REFERENCE: string; PURCHASE_ORDER: string };
 export type Log =
   | "login"
@@ -21,4 +22,8 @@ export type Log =
   | "validateToken"
   | "updateLocation"
   | "isPrefixValid"
-  | "addPrefix";
+  | "addPrefix"
+  | "fileUpload"
+  | "fetchPo"
+  | "setPartial"
+  | "addParcel";

@@ -1,8 +1,9 @@
 import { getUserId } from "../db/queries/user";
 import { insertNewLog } from "../db/queries/logs";
 import { Request, Response, NextFunction } from "express";
-import { Log } from "types/generic";
+import { Log } from "../types/generic";
 import { sanitizeToHtmlEntities } from "../utils";
+import { AddParcelBody } from "../types/generic";
 
 export function addLog(log: Log) {
   return async function (req: Request, res: Response, next: NextFunction) {
@@ -42,6 +43,34 @@ export function addLog(log: Log) {
         message = `User added prefix ${sanitizeToHtmlEntities(p)}`;
 
         break;
+
+      case "fileUpload":
+        const filename = req.file?.filename;
+        if (!filename) return res.status(400).send();
+        message = `user uploaded file ${sanitizeToHtmlEntities(filename)}`;
+
+        break;
+      case "fetchPo":
+        const { id } = req.params;
+        message = id
+          ? `user viewed purchase order ${sanitizeToHtmlEntities(id)}`
+          : "User viewed all purchase order names ";
+        break;
+
+      case "setPartial":
+        const { order: o, name } = req.params;
+        message = `user set ${sanitizeToHtmlEntities(
+          name
+        )} to partial delivery for order ${sanitizeToHtmlEntities(o)}`;
+        break;
+      case "addParcel":
+        const { parcels, purchaseOrder, part: pa }: AddParcelBody = req.body;
+        const total = parcels.reduce((a, b) => +a + +b, 0);
+        message = `User booked in ${total} units for ${sanitizeToHtmlEntities(
+          pa
+        )} in purchase or ${sanitizeToHtmlEntities(purchaseOrder)}`;
+        break;
+
       default:
         break;
     }

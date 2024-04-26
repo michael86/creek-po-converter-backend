@@ -2,6 +2,8 @@ import { RequestHandler } from "express";
 import { patchPartialStatus, addParcelsToOrder } from "../db/queries/orders";
 import { validate } from "../middleware/validate";
 import { body, param } from "express-validator";
+import { addLog } from "../middleware/logs";
+import { AddParcelBody } from "../types/generic";
 
 const express = require("express");
 const router = express.Router();
@@ -19,7 +21,6 @@ const updatePartialStatus: RequestHandler = async (req, res) => {
   }
 };
 
-type AddParcelBody = { parcels: number[]; purchaseOrder: string; part: string };
 const addParcel: RequestHandler = async (req, res) => {
   try {
     const { parcels, purchaseOrder, part }: AddParcelBody = req.body;
@@ -41,6 +42,7 @@ const addParcel: RequestHandler = async (req, res) => {
 router.patch(
   "/set-partial/:order?/:name?",
   validate([param("order").exists().trim(), param("name").exists().trim()]),
+  addLog("setPartial"),
   updatePartialStatus
 );
 router.put(
@@ -50,6 +52,7 @@ router.put(
     body("purchaseOrder").trim().exists(),
     body("part").exists().trim(),
   ]),
+  addLog("addParcel"),
   addParcel
 );
 
