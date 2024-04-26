@@ -1,4 +1,5 @@
 import { PutRequest } from "@types_sql/index";
+import { SelectLogs } from "@types_sql/queries";
 import { runQuery } from "../connection";
 
 export const insertNewLog = async (userId: number, email: string, message: string) => {
@@ -18,6 +19,21 @@ export const insertNewLog = async (userId: number, email: string, message: strin
       throw new Error(`Failed to create new log relation ${relation.message}`);
 
     return relation.insertId;
+  } catch (error) {
+    console.error(error);
+    return;
+  }
+};
+
+export const selectLogs = async () => {
+  try {
+    const logs = await runQuery<SelectLogs>(
+      `SELECT user, log, UNIX_TIMESTAMP(date_created) AS dateCreated FROM logs`,
+      []
+    );
+    if ("code" in logs) throw new Error(`Failed to select all logs`);
+
+    return [...logs];
   } catch (error) {
     console.error(error);
     return;

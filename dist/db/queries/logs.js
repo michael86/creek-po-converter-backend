@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.insertNewLog = void 0;
+exports.selectLogs = exports.insertNewLog = void 0;
 const connection_1 = require("../connection");
 const insertNewLog = (userId, email, message) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -30,3 +30,16 @@ const insertNewLog = (userId, email, message) => __awaiter(void 0, void 0, void 
     }
 });
 exports.insertNewLog = insertNewLog;
+const selectLogs = () => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const logs = yield (0, connection_1.runQuery)(`SELECT user, log, UNIX_TIMESTAMP(date_created) AS dateCreated FROM logs`, []);
+        if ("code" in logs)
+            throw new Error(`Failed to select all logs`);
+        return [...logs];
+    }
+    catch (error) {
+        console.error(error);
+        return;
+    }
+});
+exports.selectLogs = selectLogs;
