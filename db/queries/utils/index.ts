@@ -11,6 +11,7 @@ import {
   SelectAmountReceived,
   SelectPartId,
   SelectPartial,
+  SelectPoDate,
 } from "@types_sql/queries";
 import { Parcel } from "types/generic";
 
@@ -343,6 +344,25 @@ export const insertParcelRelation = async (poId: number, pnId: number, parcelId:
     );
     if ("code" in res) throw new Error(`Failed to create new relation for parcel ${res.message}`);
     return res.insertId;
+  } catch (error) {
+    console.error(error);
+    return;
+  }
+};
+
+export const selectPurchaseOrderDate = async (id: number) => {
+  try {
+    const res = await runQuery<SelectPoDate>(
+      `SELECT UNIX_TIMESTAMP(date_created) as dateCreated from purchase_order WHERE id = ?`,
+      [id]
+    );
+
+    if ("code" in res || !res[0])
+      throw new Error(
+        `Failed to create new relation for parcel ${"code" in res ? res.message : res}`
+      );
+
+    return res[0].dateCreated;
   } catch (error) {
     console.error(error);
     return;
