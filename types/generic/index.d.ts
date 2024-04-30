@@ -1,6 +1,7 @@
 export type Parcel = { dateReceived: number; amountReceived: number };
 
 export type PurchaseOrder = {
+  dateCreated: number;
   purchaseOrder: string;
   orderRef: string;
   partNumbers: {

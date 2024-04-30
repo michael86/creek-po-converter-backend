@@ -76,6 +76,9 @@ const fetchPurchaseOrder = (id) => __awaiter(void 0, void 0, void 0, function* (
         const poId = yield (0, utils_1.selectPurchaseOrderId)(id);
         if (!poId)
             throw new Error(`Failed to select purchase order id for ${id} \n${poId}`);
+        const dateCreated = yield (0, utils_1.selectPurchaseOrderDate)(poId);
+        if (!dateCreated)
+            throw new Error(`Failed to select date for ${id} \n${dateCreated}`);
         const orderRef = yield (0, utils_1.selectOrderReference)(poId);
         if (!orderRef)
             throw new Error(`Failed to select order ref for id ${id} \n${orderRef}`);
@@ -83,6 +86,7 @@ const fetchPurchaseOrder = (id) => __awaiter(void 0, void 0, void 0, function* (
         if (!partRelations)
             throw new Error(`Failed to select part relations for id ${id} \n${partRelations}`);
         const retval = {
+            dateCreated,
             purchaseOrder: id,
             orderRef: orderRef,
             partNumbers: {},
@@ -114,11 +118,7 @@ const fetchPurchaseOrder = (id) => __awaiter(void 0, void 0, void 0, function* (
                 location,
             };
         }
-        return {
-            purchaseOrder: id,
-            orderRef: orderRef,
-            partNumbers: retval.partNumbers,
-        };
+        return retval;
     }
     catch (error) {
         console.error(error);

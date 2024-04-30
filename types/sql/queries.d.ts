@@ -1,3 +1,5 @@
+import { PurchaseOrder } from "types/generic";
+
 //user
 export type SelectEmail = (email: string) => Promise<number | void>;
 export type CreateUser = (email: string, password: string) => Promise<string | void>;
@@ -44,3 +46,4 @@ export type SelectLogs = {
   log: string;
   dateCreated: number;
 }[];
+export type SelectPoDate = { dateCreated: number }[];

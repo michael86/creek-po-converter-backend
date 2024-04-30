@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.insertParcelRelation = exports.addParcel = exports.setPartialStatus = exports.selectPartPartialStatus = exports.insertPartToPartial = exports.insertTotalOrdered = exports.insertPartNumber = exports.selectPartId = exports.insertOrderRef = exports.insertPurchaseOrder = exports.selectPartsReceived = exports.selectPartTotalOrdered = exports.selectPartDetails = exports.selectPartRelations = exports.selectOrderReference = exports.selectPurchaseOrderId = void 0;
+exports.selectPurchaseOrderDate = exports.insertParcelRelation = exports.addParcel = exports.setPartialStatus = exports.selectPartPartialStatus = exports.insertPartToPartial = exports.insertTotalOrdered = exports.insertPartNumber = exports.selectPartId = exports.insertOrderRef = exports.insertPurchaseOrder = exports.selectPartsReceived = exports.selectPartTotalOrdered = exports.selectPartDetails = exports.selectPartRelations = exports.selectOrderReference = exports.selectPurchaseOrderId = void 0;
 const connection_1 = require("../../connection");
 const selectPurchaseOrderId = (purchaseOrder) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -263,3 +263,16 @@ const insertParcelRelation = (poId, pnId, parcelId) => __awaiter(void 0, void 0,
     }
 });
 exports.insertParcelRelation = insertParcelRelation;
+const selectPurchaseOrderDate = (id) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const res = yield (0, connection_1.runQuery)(`SELECT UNIX_TIMESTAMP(date_created) as dateCreated from purchase_order WHERE id = ?`, [id]);
+        if ("code" in res || !res[0])
+            throw new Error(`Failed to create new relation for parcel ${"code" in res ? res.message : res}`);
+        return res[0].dateCreated;
+    }
+    catch (error) {
+        console.error(error);
+        return;
+    }
+});
+exports.selectPurchaseOrderDate = selectPurchaseOrderDate;

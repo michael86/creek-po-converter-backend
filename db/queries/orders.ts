@@ -23,6 +23,7 @@ import {
   selectPartRelations,
   selectPartTotalOrdered,
   selectPartsReceived,
+  selectPurchaseOrderDate,
   selectPurchaseOrderId,
   setPartialStatus,
 } from "./utils";
@@ -91,6 +92,9 @@ export const fetchPurchaseOrder: FetchPurchaseOrder = async (id) => {
     const poId = await selectPurchaseOrderId(id);
     if (!poId) throw new Error(`Failed to select purchase order id for ${id} \n${poId}`);
 
+    const dateCreated = await selectPurchaseOrderDate(poId);
+    if (!dateCreated) throw new Error(`Failed to select date for ${id} \n${dateCreated}`);
+
     const orderRef = await selectOrderReference(poId);
     if (!orderRef) throw new Error(`Failed to select order ref for id ${id} \n${orderRef}`);
 
@@ -99,6 +103,7 @@ export const fetchPurchaseOrder: FetchPurchaseOrder = async (id) => {
       throw new Error(`Failed to select part relations for id ${id} \n${partRelations}`);
 
     const retval: PurchaseOrder = {
+      dateCreated,
       purchaseOrder: id,
       orderRef: orderRef,
       partNumbers: {},
@@ -136,11 +141,7 @@ export const fetchPurchaseOrder: FetchPurchaseOrder = async (id) => {
       };
     }
 
-    return {
-      purchaseOrder: id,
-      orderRef: orderRef,
-      partNumbers: retval.partNumbers,
-    };
+    return retval;
   } catch (error) {
     console.error(error);
     return;
