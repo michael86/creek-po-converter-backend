@@ -12,6 +12,8 @@ import {
   SelectPartId,
   SelectPartial,
   SelectPoDate,
+  SelectDueDateRelation,
+  SelectDueDate,
 } from "@types_sql/queries";
 import { Parcel } from "types/generic";
 
@@ -150,6 +152,32 @@ export const selectPartsReceived = async (partNumber: number, purchaseOrder: num
     }
 
     return retval;
+  } catch (error) {
+    console.error(error);
+    return;
+  }
+};
+
+export const selectDateDue = async (partNumber: number, purchaseOrder: number) => {
+  try {
+    const dueDateRelation = await runQuery<SelectDueDateRelation>(
+      `SELECT due_date FROM po_pn_due WHERE purchase_order = ? AND part_number = ?`,
+      [purchaseOrder, partNumber]
+    );
+
+    if ("code" in dueDateRelation)
+      throw new Error(
+        `Error selecting due date relation for order: ${purchaseOrder} \nPart: ${partNumber} \n${dueDateRelation.message}`
+      );
+
+    const dueDate = await runQuery<SelectDueDate>(
+      `SELECT date_due as dateDue from date_due WHERE id = ? `,
+      [dueDateRelation[0].due_date]
+    );
+
+    if ("code" in dueDate) throw new Error(`Failed to select due date ${dueDate.message}`);
+
+    return dueDate[0].dateDue;
   } catch (error) {
     console.error(error);
     return;

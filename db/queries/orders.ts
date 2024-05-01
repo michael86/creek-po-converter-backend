@@ -22,6 +22,7 @@ import {
   insertPartToPartial,
   insertPurchaseOrder,
   insertTotalOrdered,
+  selectDateDue,
   selectOrderReference,
   selectPartDetails,
   selectPartId,
@@ -142,8 +143,12 @@ export const fetchPurchaseOrder: FetchPurchaseOrder = async (id) => {
       //Select any orders for this part
       const partsReceived = await selectPartsReceived(+part_number, poId);
 
+      const dateDue = await selectDateDue(+part_number, poId);
+      if (!dateDue) throw new Error(`Error selecting date due`);
+
       retval.partNumbers[part.name] = {
         name: part.name,
+        dateDue,
         totalOrdered: +totalOrdered,
         partial: partial as 0 | 1,
         description: part.description,

@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteAmountReceived = exports.deletePartialStatus = exports.deleteTotalOrdered = exports.deleteOrderPartLocation = exports.selectPurchaseOrderDate = exports.insertParcelRelation = exports.addParcel = exports.setPartialStatus = exports.selectPartPartialStatus = exports.insertDateDue = exports.insertPartToPartial = exports.insertTotalOrdered = exports.insertPartNumber = exports.selectPartId = exports.insertOrderRef = exports.insertPurchaseOrder = exports.selectPartsReceivedIds = exports.selectPartsReceived = exports.selectPartTotalOrderedId = exports.selectPartTotalOrdered = exports.selectPartDetails = exports.selectPartRelations = exports.selectOrderReference = exports.selectPurchaseOrderId = void 0;
+exports.deleteAmountReceived = exports.deletePartialStatus = exports.deleteTotalOrdered = exports.deleteOrderPartLocation = exports.selectPurchaseOrderDate = exports.insertParcelRelation = exports.addParcel = exports.setPartialStatus = exports.selectPartPartialStatus = exports.insertDateDue = exports.insertPartToPartial = exports.insertTotalOrdered = exports.insertPartNumber = exports.selectPartId = exports.insertOrderRef = exports.insertPurchaseOrder = exports.selectPartsReceivedIds = exports.selectDateDue = exports.selectPartsReceived = exports.selectPartTotalOrderedId = exports.selectPartTotalOrdered = exports.selectPartDetails = exports.selectPartRelations = exports.selectOrderReference = exports.selectPurchaseOrderId = void 0;
 const connection_1 = require("../../connection");
 const selectPurchaseOrderId = (purchaseOrder) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -120,6 +120,22 @@ const selectPartsReceived = (partNumber, purchaseOrder) => __awaiter(void 0, voi
     }
 });
 exports.selectPartsReceived = selectPartsReceived;
+const selectDateDue = (partNumber, purchaseOrder) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const dueDateRelation = yield (0, connection_1.runQuery)(`SELECT due_date FROM po_pn_due WHERE purchase_order = ? AND part_number = ?`, [purchaseOrder, partNumber]);
+        if ("code" in dueDateRelation)
+            throw new Error(`Error selecting due date relation for order: ${purchaseOrder} \nPart: ${partNumber} \n${dueDateRelation.message}`);
+        const dueDate = yield (0, connection_1.runQuery)(`SELECT date_due as dateDue from date_due WHERE id = ? `, [dueDateRelation[0].due_date]);
+        if ("code" in dueDate)
+            throw new Error(`Failed to select due date ${dueDate.message}`);
+        return dueDate[0].dateDue;
+    }
+    catch (error) {
+        console.error(error);
+        return;
+    }
+});
+exports.selectDateDue = selectDateDue;
 const selectPartsReceivedIds = (order, part) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const receivedRelations = yield (0, connection_1.runQuery)(`select parcel from po_pn_parcel where purchase_order = ? AND part_number = ?`, [order, part]);
