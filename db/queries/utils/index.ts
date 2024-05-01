@@ -91,18 +91,12 @@ export const selectPartDetails = async (partNumber: number) => {
 
 export const selectPartTotalOrdered = async (poId: number, pnId: number) => {
   try {
-    const countRelation = await runQuery<SelectCountRelation>(
-      `select total_ordered from po_pn_ordered where part_number = ? AND purchase_order = ?`,
-      [pnId, poId]
-    );
-    if ("code" in countRelation)
-      throw new Error(
-        `Failed to select part total ordered for purchase order: ${poId}  \npart number: ${pnId} \n${countRelation.message}`
-      );
+    const relation = await selectPartTotalOrderedId(poId, pnId);
+    if (!relation) return;
 
     const qty = await runQuery<SelectTotalOrdered>(
       `SELECT quantity FROM total_ordered WHERE id = ?`,
-      [countRelation[0].total_ordered]
+      [relation]
     );
 
     if ("code" in qty)
@@ -117,17 +111,28 @@ export const selectPartTotalOrdered = async (poId: number, pnId: number) => {
   }
 };
 
+export const selectPartTotalOrderedId = async (order: number, part: number) => {
+  try {
+    const id = await runQuery<SelectCountRelation>(
+      `select total_ordered from po_pn_ordered where purchase_order = ? AND part_number = ?`,
+      [order, part]
+    );
+    if ("code" in id)
+      throw new Error(
+        `Failed to select part total ordered for purchase order: ${order}  \npart number: ${part} \n${id.message}`
+      );
+
+    return id[0].total_ordered;
+  } catch (error) {
+    console.error(error);
+    return;
+  }
+};
+
 export const selectPartsReceived = async (partNumber: number, purchaseOrder: number) => {
   try {
-    const receivedRelations = await runQuery<SelectCount>(
-      `select parcel from po_pn_parcel where part_number = ? AND purchase_order = ?`,
-      [partNumber, purchaseOrder]
-    );
-
-    if ("code" in receivedRelations)
-      throw new Error(`Failed to select partsReceived ${receivedRelations.message}`);
-
-    if (!receivedRelations.length) return [];
+    const receivedRelations = await selectPartsReceivedIds(purchaseOrder, partNumber);
+    if (!receivedRelations) return;
 
     const retval: Parcel[] = [];
 
@@ -145,6 +150,25 @@ export const selectPartsReceived = async (partNumber: number, purchaseOrder: num
     }
 
     return retval;
+  } catch (error) {
+    console.error(error);
+    return;
+  }
+};
+
+export const selectPartsReceivedIds = async (order: number, part: number) => {
+  try {
+    const receivedRelations = await runQuery<SelectCount>(
+      `select parcel from po_pn_parcel where purchase_order = ? AND part_number = ?`,
+      [order, part]
+    );
+
+    if ("code" in receivedRelations)
+      throw new Error(`Failed to select partsReceived ${receivedRelations.message}`);
+
+    if (!receivedRelations.length) return;
+
+    return receivedRelations;
   } catch (error) {
     console.error(error);
     return;
@@ -282,6 +306,29 @@ export const insertPartToPartial = async (purchase: number, part: number) => {
   }
 };
 
+export const insertDateDue = async (purchase: number, part: number, due: string) => {
+  try {
+    const res = await runQuery<PutRequest>(
+      `INSERT INTO date_due (date_due) VALUES (STR_TO_DATE(?, '%d/%m/%Y'))`,
+      [due]
+    );
+    if ("code" in res) throw new Error(`Failed to insert due date \n${res.message}`);
+
+    const relation = await runQuery<PutRequest>(
+      `INSERT INTO po_pn_due (purchase_order, part_number, due_date) VALUES (?,?, ?)`,
+      [purchase, part, res.insertId]
+    );
+
+    if ("code" in relation)
+      throw new Error(`Failed to insert due date relation \n${relation.message}`);
+
+    return true;
+  } catch (error) {
+    console.error(error);
+    return;
+  }
+};
+
 export const selectPartPartialStatus = async (poId: number, pnId: number) => {
   try {
     const partial = await runQuery<SelectPartial>(
@@ -363,6 +410,88 @@ export const selectPurchaseOrderDate = async (id: number) => {
       );
 
     return res[0].dateCreated;
+  } catch (error) {
+    console.error(error);
+    return;
+  }
+};
+
+export const deleteOrderPartLocation = async (order: number, part: number) => {
+  try {
+    const res = await runQuery<PutRequest>(
+      `DELETE FROM po_pn_location WHERE purchase_order = ? AND part_number = ?`,
+      [order, part]
+    );
+
+    if ("code" in res)
+      throw new Error(
+        `Error deleting part location from purchase order: ${order} \npart: ${part} \n${res.message}`
+      );
+
+    return res.affectedRows;
+  } catch (error) {
+    console.error(error);
+    return;
+  }
+};
+
+export const deleteTotalOrdered = async (id: number, order: number, part: number) => {
+  try {
+    const res = await runQuery<PutRequest>(`DELETE FROM total_ordered WHERE id = ?`, [id]);
+    if ("code" in res)
+      throw new Error(`Failed to delete total ordered for id${id} \n${res.message}`);
+
+    const relationRes = await runQuery<PutRequest>(
+      `DELETE FROM po_pn_ordered WHERE purchase_order = ? AND part_number = ?`,
+      [order, part]
+    );
+    if ("code" in relationRes)
+      throw new Error(
+        `Failed to delete total ordered relation for id${id} \n${relationRes.message}`
+      );
+
+    return true;
+  } catch (error) {
+    console.error(error);
+    return;
+  }
+};
+
+export const deletePartialStatus = async (order: number, part: number) => {
+  try {
+    const res = await runQuery<PutRequest>(
+      `DELETE FROM po_pn_partial WHERE purchase_order = ? AND part_number = ?`,
+      [order, part]
+    );
+    if ("code" in res)
+      throw new Error(
+        `Error deleting partial status for order: ${order} \npart: ${part} \n${res.message}`
+      );
+
+    return res.affectedRows;
+  } catch (error) {
+    console.error(error);
+    return;
+  }
+};
+
+export const deleteAmountReceived = async (parcelIds: SelectCount, order: number, part: number) => {
+  try {
+    for (const { parcel } of parcelIds) {
+      const res = await runQuery<PutRequest>(`DELETE FROM amount_received WHERE id = ?`, [+parcel]);
+      if ("code" in res)
+        throw new Error(`Error deleting amount received id: ${parcel} \n${res.message}`);
+    }
+    const res = await runQuery<PutRequest>(
+      `DELETE FROM po_pn_parcel WHERE purchase_order = ? AND part_number = ?`,
+      [order, part]
+    );
+    if ("code" in res)
+      throw new Error(
+        `Error deleting amount received relation order: ${order} part: ${part} \n${res.message}`
+      );
+
+    return true;
   } catch (error) {
     console.error(error);
     return;

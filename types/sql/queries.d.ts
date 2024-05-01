@@ -24,6 +24,7 @@ export type AddParcelsToOrder = (
   purchaseOrder: string,
   part: string
 ) => Promise<true | void>;
+export type RemovePartFromOrder = (order: string, part: string) => Promise<true | void>;
 
 //SQL Select
 export type SelectPoId = { id: string }[];

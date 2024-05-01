@@ -4,12 +4,18 @@ import {
   InsertOrderToDb,
   SetPartialStatus,
   AddParcelsToOrder,
+  RemovePartFromOrder,
 } from "@types_sql/queries";
 import { PDFStructure, PurchaseOrder } from "types/generic";
 import { runQuery } from "../connection";
 import { FecthRequest, PutRequest } from "@types_sql/index";
 import {
   addParcel,
+  deleteAmountReceived,
+  deleteOrderPartLocation,
+  deletePartialStatus,
+  deleteTotalOrdered,
+  insertDateDue,
   insertOrderRef,
   insertParcelRelation,
   insertPartNumber,
@@ -22,7 +28,9 @@ import {
   selectPartPartialStatus,
   selectPartRelations,
   selectPartTotalOrdered,
+  selectPartTotalOrderedId,
   selectPartsReceived,
+  selectPartsReceivedIds,
   selectPurchaseOrderDate,
   selectPurchaseOrderId,
   setPartialStatus,
@@ -54,6 +62,9 @@ export const insertOrderToDb: InsertOrderToDb = async (data: PDFStructure) => {
 
       const partial = await insertPartToPartial(poId, partId);
       if (!partial) throw new Error(`Failed to insert partial ${partial}`);
+
+      const due = await insertDateDue(poId, partId, part[3]);
+      if (!due) throw new Error(`Failed to insert due date ${due}`);
     }
     return true;
   } catch (error) {
@@ -202,6 +213,33 @@ export const addParcelsToOrder: AddParcelsToOrder = async (
       const relation = await insertParcelRelation(poId, partId, parcelId);
       if (!relation) throw new Error(`Failed to insert parcel relation ${relation}`);
     }
+
+    return true;
+  } catch (error) {
+    console.error(error);
+    return;
+  }
+};
+
+export const removePartFromOrder: RemovePartFromOrder = async (order, part) => {
+  try {
+    const orderId = await selectPurchaseOrderId(order);
+    if (!orderId) return;
+
+    const partId = await selectPartId(part);
+    if (!partId) return;
+
+    const totalOrderedId = await selectPartTotalOrderedId(orderId, partId);
+    if (!totalOrderedId) return;
+
+    await deleteTotalOrdered(Number(totalOrderedId), orderId, partId);
+    await deletePartialStatus(orderId, partId);
+    await deleteOrderPartLocation(orderId, partId); //Dont check if deleted as location may not be assigned so no rows affected
+
+    const parcelIds = await selectPartsReceivedIds(orderId, partId);
+    if (!parcelIds?.length) return true;
+
+    const deletedParcels = await deleteAmountReceived(parcelIds, orderId, partId);
 
     return true;
   } catch (error) {

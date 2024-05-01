@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.addParcelsToOrder = exports.patchPartialStatus = exports.fetchPurchaseOrder = exports.fetchPurchaseOrders = exports.insertOrderToDb = void 0;
+exports.removePartFromOrder = exports.addParcelsToOrder = exports.patchPartialStatus = exports.fetchPurchaseOrder = exports.fetchPurchaseOrders = exports.insertOrderToDb = void 0;
 const connection_1 = require("../connection");
 const utils_1 = require("./utils");
 const locations_1 = require("./locations");
@@ -40,6 +40,9 @@ const insertOrderToDb = (data) => __awaiter(void 0, void 0, void 0, function* ()
             const partial = yield (0, utils_1.insertPartToPartial)(poId, partId);
             if (!partial)
                 throw new Error(`Failed to insert partial ${partial}`);
+            const due = yield (0, utils_1.insertDateDue)(poId, partId, part[3]);
+            if (!due)
+                throw new Error(`Failed to insert due date ${due}`);
         }
         return true;
     }
@@ -186,3 +189,29 @@ const addParcelsToOrder = (parcels, purchaseOrder, part) => __awaiter(void 0, vo
     }
 });
 exports.addParcelsToOrder = addParcelsToOrder;
+const removePartFromOrder = (order, part) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const orderId = yield (0, utils_1.selectPurchaseOrderId)(order);
+        if (!orderId)
+            return;
+        const partId = yield (0, utils_1.selectPartId)(part);
+        if (!partId)
+            return;
+        const totalOrderedId = yield (0, utils_1.selectPartTotalOrderedId)(orderId, partId);
+        if (!totalOrderedId)
+            return;
+        yield (0, utils_1.deleteTotalOrdered)(Number(totalOrderedId), orderId, partId);
+        yield (0, utils_1.deletePartialStatus)(orderId, partId);
+        yield (0, utils_1.deleteOrderPartLocation)(orderId, partId); //Dont check if deleted as location may not be assigned so no rows affected
+        const parcelIds = yield (0, utils_1.selectPartsReceivedIds)(orderId, partId);
+        if (!(parcelIds === null || parcelIds === void 0 ? void 0 : parcelIds.length))
+            return true;
+        const deletedParcels = yield (0, utils_1.deleteAmountReceived)(parcelIds, orderId, partId);
+        return true;
+    }
+    catch (error) {
+        console.error(error);
+        return;
+    }
+});
+exports.removePartFromOrder = removePartFromOrder;

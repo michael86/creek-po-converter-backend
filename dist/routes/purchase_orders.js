@@ -43,10 +43,24 @@ const addParcel = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         res.send({ status: 0 });
     }
 });
+const deletePart = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { order, name } = req.body;
+        if (!name || !order)
+            return res.status(400).send({ token: req.headers.newToken });
+        const result = yield (0, orders_1.removePartFromOrder)(order, name.toUpperCase());
+        res.send({ token: req.headers.newToken });
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).send({ token: req.headers.newToken });
+    }
+});
 router.patch("/set-partial/:order?/:name?", (0, validate_1.validate)([(0, express_validator_1.param)("order").exists().trim(), (0, express_validator_1.param)("name").exists().trim()]), (0, logs_1.addLog)("setPartial"), updatePartialStatus);
 router.put("/add-parcel/", (0, validate_1.validate)([
     (0, express_validator_1.body)("parcels.*").exists().trim().isNumeric(),
     (0, express_validator_1.body)("purchaseOrder").trim().exists(),
     (0, express_validator_1.body)("part").exists().trim(),
 ]), (0, logs_1.addLog)("addParcel"), addParcel);
+router.post("/delete/", (0, validate_1.validate)([(0, express_validator_1.body)("name").exists().trim(), (0, express_validator_1.body)("order").exists().trim()]), deletePart);
 module.exports = router;

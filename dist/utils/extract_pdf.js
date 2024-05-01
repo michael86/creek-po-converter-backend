@@ -31,7 +31,8 @@ const getData = (rows) => __awaiter(void 0, void 0, void 0, function* () {
                 const quantityIndex = row.length - 2;
                 const quantity = Math.floor(+row[quantityIndex]).toString();
                 const nextRowFirstElement = nextRow[0] || "";
-                data.push([row[1], quantity, nextRowFirstElement]);
+                const scheduled = nextRow[1] || "";
+                data.push([row[1], quantity, nextRowFirstElement, scheduled]);
             }
         }
     }
@@ -74,7 +75,6 @@ const processFile = (file, cb) => __awaiter(void 0, void 0, void 0, function* ()
                     cb(null);
                     return;
                 }
-                ;
                 if (DATA.length) {
                     cb({
                         DATA,
