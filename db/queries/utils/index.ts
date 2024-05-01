@@ -171,7 +171,7 @@ export const selectDateDue = async (partNumber: number, purchaseOrder: number) =
       );
 
     const dueDate = await runQuery<SelectDueDate>(
-      `SELECT date_due as dateDue from date_due WHERE id = ? `,
+      `SELECT UNIX_TIMESTAMP(date_due) as dateDue from date_due WHERE id = ? `,
       [dueDateRelation[0].due_date]
     );
 

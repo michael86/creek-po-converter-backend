@@ -125,7 +125,7 @@ const selectDateDue = (partNumber, purchaseOrder) => __awaiter(void 0, void 0, v
         const dueDateRelation = yield (0, connection_1.runQuery)(`SELECT due_date FROM po_pn_due WHERE purchase_order = ? AND part_number = ?`, [purchaseOrder, partNumber]);
         if ("code" in dueDateRelation)
             throw new Error(`Error selecting due date relation for order: ${purchaseOrder} \nPart: ${partNumber} \n${dueDateRelation.message}`);
-        const dueDate = yield (0, connection_1.runQuery)(`SELECT date_due as dateDue from date_due WHERE id = ? `, [dueDateRelation[0].due_date]);
+        const dueDate = yield (0, connection_1.runQuery)(`SELECT UNIX_TIMESTAMP(date_due) as dateDue from date_due WHERE id = ? `, [dueDateRelation[0].due_date]);
         if ("code" in dueDate)
             throw new Error(`Failed to select due date ${dueDate.message}`);
         return dueDate[0].dateDue;

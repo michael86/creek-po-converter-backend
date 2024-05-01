@@ -6,7 +6,7 @@ export type PurchaseOrder = {
   orderRef: string;
   partNumbers: {
     [key: string]: {
-      dateDue: string;
+      dateDue: number;
       name: string;
       partial: 1 | 0;
       totalOrdered: number | undefined;
