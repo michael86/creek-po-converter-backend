@@ -5,17 +5,16 @@ export type PurchaseOrder = {
   purchaseOrder: string;
   orderRef: string;
   partNumbers: {
-    [key: string]: {
-      dateDue: number;
-      name: string;
-      partial: 1 | 0;
-      totalOrdered: number | undefined;
-      description: string;
-      partsReceived: Parcel[] | undefined;
-      location?: string;
-    };
-  };
+    dateDue: number;
+    name: string;
+    partial: 1 | 0;
+    totalOrdered: number | undefined;
+    description: string;
+    partsReceived: Parcel[] | undefined;
+    location?: string;
+  }[];
 };
+
 export type AddParcelBody = { parcels: number[]; purchaseOrder: string; part: string };
 export type PDFStructure = { DATA: []; ORDER_REFERENCE: string; PURCHASE_ORDER: string };
 export type Log =

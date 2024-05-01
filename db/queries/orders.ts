@@ -111,6 +111,7 @@ export const fetchPurchaseOrder: FetchPurchaseOrder = async (id) => {
     if (!orderRef) throw new Error(`Failed to select order ref for id ${id} \n${orderRef}`);
 
     const partRelations = await selectPartRelations(poId);
+    console.log(partRelations);
     if (!partRelations)
       throw new Error(`Failed to select part relations for id ${id} \n${partRelations}`);
 
@@ -118,7 +119,7 @@ export const fetchPurchaseOrder: FetchPurchaseOrder = async (id) => {
       dateCreated,
       purchaseOrder: id,
       orderRef: orderRef,
-      partNumbers: {},
+      partNumbers: [],
     };
 
     //Begin filling out the order part status
@@ -146,7 +147,7 @@ export const fetchPurchaseOrder: FetchPurchaseOrder = async (id) => {
       const dateDue = await selectDateDue(+part_number, poId);
       if (!dateDue) throw new Error(`Error selecting date due`);
 
-      retval.partNumbers[part.name] = {
+      retval.partNumbers.push({
         name: part.name,
         dateDue,
         totalOrdered: +totalOrdered,
@@ -154,7 +155,7 @@ export const fetchPurchaseOrder: FetchPurchaseOrder = async (id) => {
         description: part.description,
         partsReceived,
         location,
-      };
+      });
     }
 
     return retval;
