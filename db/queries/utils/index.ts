@@ -134,7 +134,7 @@ export const selectPartTotalOrderedId = async (order: number, part: number) => {
 export const selectPartsReceived = async (partNumber: number, purchaseOrder: number) => {
   try {
     const receivedRelations = await selectPartsReceivedIds(purchaseOrder, partNumber);
-    if (!receivedRelations) return;
+    if (!receivedRelations) return [];
 
     const retval: Parcel[] = [];
 

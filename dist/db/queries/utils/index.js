@@ -99,7 +99,7 @@ const selectPartsReceived = (partNumber, purchaseOrder) => __awaiter(void 0, voi
     try {
         const receivedRelations = yield (0, exports.selectPartsReceivedIds)(purchaseOrder, partNumber);
         if (!receivedRelations)
-            return;
+            return [];
         const retval = [];
         for (const { parcel } of receivedRelations) {
             const total = yield (0, connection_1.runQuery)(`SELECT amount_received as amountReceived, UNIX_TIMESTAMP(date_created) as dateReceived FROM amount_received WHERE id = ?`, parcel);
