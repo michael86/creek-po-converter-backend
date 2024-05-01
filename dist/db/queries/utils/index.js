@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.selectPurchaseOrderDate = exports.insertParcelRelation = exports.addParcel = exports.setPartialStatus = exports.selectPartPartialStatus = exports.insertPartToPartial = exports.insertTotalOrdered = exports.insertPartNumber = exports.selectPartId = exports.insertOrderRef = exports.insertPurchaseOrder = exports.selectPartsReceived = exports.selectPartTotalOrdered = exports.selectPartDetails = exports.selectPartRelations = exports.selectOrderReference = exports.selectPurchaseOrderId = void 0;
+exports.deleteAmountReceived = exports.deletePartialStatus = exports.deleteTotalOrdered = exports.deleteOrderPartLocation = exports.selectPurchaseOrderDate = exports.insertParcelRelation = exports.addParcel = exports.setPartialStatus = exports.selectPartPartialStatus = exports.insertDateDue = exports.insertPartToPartial = exports.insertTotalOrdered = exports.insertPartNumber = exports.selectPartId = exports.insertOrderRef = exports.insertPurchaseOrder = exports.selectPartsReceivedIds = exports.selectPartsReceived = exports.selectPartTotalOrderedId = exports.selectPartTotalOrdered = exports.selectPartDetails = exports.selectPartRelations = exports.selectOrderReference = exports.selectPurchaseOrderId = void 0;
 const connection_1 = require("../../connection");
 const selectPurchaseOrderId = (purchaseOrder) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -68,10 +68,10 @@ const selectPartDetails = (partNumber) => __awaiter(void 0, void 0, void 0, func
 exports.selectPartDetails = selectPartDetails;
 const selectPartTotalOrdered = (poId, pnId) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const countRelation = yield (0, connection_1.runQuery)(`select total_ordered from po_pn_ordered where part_number = ? AND purchase_order = ?`, [pnId, poId]);
-        if ("code" in countRelation)
-            throw new Error(`Failed to select part total ordered for purchase order: ${poId}  \npart number: ${pnId} \n${countRelation.message}`);
-        const qty = yield (0, connection_1.runQuery)(`SELECT quantity FROM total_ordered WHERE id = ?`, [countRelation[0].total_ordered]);
+        const relation = yield (0, exports.selectPartTotalOrderedId)(poId, pnId);
+        if (!relation)
+            return;
+        const qty = yield (0, connection_1.runQuery)(`SELECT quantity FROM total_ordered WHERE id = ?`, [relation]);
         if ("code" in qty)
             throw new Error(`Error selecing total ordered for purchase order: ${poId}  \npart number: ${pnId} \n${qty.message}`);
         return qty[0].quantity;
@@ -82,13 +82,24 @@ const selectPartTotalOrdered = (poId, pnId) => __awaiter(void 0, void 0, void 0,
     }
 });
 exports.selectPartTotalOrdered = selectPartTotalOrdered;
+const selectPartTotalOrderedId = (order, part) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const id = yield (0, connection_1.runQuery)(`select total_ordered from po_pn_ordered where purchase_order = ? AND part_number = ?`, [order, part]);
+        if ("code" in id)
+            throw new Error(`Failed to select part total ordered for purchase order: ${order}  \npart number: ${part} \n${id.message}`);
+        return id[0].total_ordered;
+    }
+    catch (error) {
+        console.error(error);
+        return;
+    }
+});
+exports.selectPartTotalOrderedId = selectPartTotalOrderedId;
 const selectPartsReceived = (partNumber, purchaseOrder) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const receivedRelations = yield (0, connection_1.runQuery)(`select parcel from po_pn_parcel where part_number = ? AND purchase_order = ?`, [partNumber, purchaseOrder]);
-        if ("code" in receivedRelations)
-            throw new Error(`Failed to select partsReceived ${receivedRelations.message}`);
-        if (!receivedRelations.length)
-            return [];
+        const receivedRelations = yield (0, exports.selectPartsReceivedIds)(purchaseOrder, partNumber);
+        if (!receivedRelations)
+            return;
         const retval = [];
         for (const { parcel } of receivedRelations) {
             const total = yield (0, connection_1.runQuery)(`SELECT amount_received as amountReceived, UNIX_TIMESTAMP(date_created) as dateReceived FROM amount_received WHERE id = ?`, parcel);
@@ -109,6 +120,21 @@ const selectPartsReceived = (partNumber, purchaseOrder) => __awaiter(void 0, voi
     }
 });
 exports.selectPartsReceived = selectPartsReceived;
+const selectPartsReceivedIds = (order, part) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const receivedRelations = yield (0, connection_1.runQuery)(`select parcel from po_pn_parcel where purchase_order = ? AND part_number = ?`, [order, part]);
+        if ("code" in receivedRelations)
+            throw new Error(`Failed to select partsReceived ${receivedRelations.message}`);
+        if (!receivedRelations.length)
+            return;
+        return receivedRelations;
+    }
+    catch (error) {
+        console.error(error);
+        return;
+    }
+});
+exports.selectPartsReceivedIds = selectPartsReceivedIds;
 const insertPurchaseOrder = (po) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const purchase = yield (0, connection_1.runQuery)(`insert into purchase_order (purchase_order) values (?)`, po);
@@ -211,6 +237,22 @@ const insertPartToPartial = (purchase, part) => __awaiter(void 0, void 0, void 0
     }
 });
 exports.insertPartToPartial = insertPartToPartial;
+const insertDateDue = (purchase, part, due) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const res = yield (0, connection_1.runQuery)(`INSERT INTO date_due (date_due) VALUES (STR_TO_DATE(?, '%d/%m/%Y'))`, [due]);
+        if ("code" in res)
+            throw new Error(`Failed to insert due date \n${res.message}`);
+        const relation = yield (0, connection_1.runQuery)(`INSERT INTO po_pn_due (purchase_order, part_number, due_date) VALUES (?,?, ?)`, [purchase, part, res.insertId]);
+        if ("code" in relation)
+            throw new Error(`Failed to insert due date relation \n${relation.message}`);
+        return true;
+    }
+    catch (error) {
+        console.error(error);
+        return;
+    }
+});
+exports.insertDateDue = insertDateDue;
 const selectPartPartialStatus = (poId, pnId) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const partial = yield (0, connection_1.runQuery)(`SELECT partial FROM po_pn_partial WHERE purchase_order = ? AND part_number = ?`, [poId, pnId]);
@@ -276,3 +318,63 @@ const selectPurchaseOrderDate = (id) => __awaiter(void 0, void 0, void 0, functi
     }
 });
 exports.selectPurchaseOrderDate = selectPurchaseOrderDate;
+const deleteOrderPartLocation = (order, part) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const res = yield (0, connection_1.runQuery)(`DELETE FROM po_pn_location WHERE purchase_order = ? AND part_number = ?`, [order, part]);
+        if ("code" in res)
+            throw new Error(`Error deleting part location from purchase order: ${order} \npart: ${part} \n${res.message}`);
+        return res.affectedRows;
+    }
+    catch (error) {
+        console.error(error);
+        return;
+    }
+});
+exports.deleteOrderPartLocation = deleteOrderPartLocation;
+const deleteTotalOrdered = (id, order, part) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const res = yield (0, connection_1.runQuery)(`DELETE FROM total_ordered WHERE id = ?`, [id]);
+        if ("code" in res)
+            throw new Error(`Failed to delete total ordered for id${id} \n${res.message}`);
+        const relationRes = yield (0, connection_1.runQuery)(`DELETE FROM po_pn_ordered WHERE purchase_order = ? AND part_number = ?`, [order, part]);
+        if ("code" in relationRes)
+            throw new Error(`Failed to delete total ordered relation for id${id} \n${relationRes.message}`);
+        return true;
+    }
+    catch (error) {
+        console.error(error);
+        return;
+    }
+});
+exports.deleteTotalOrdered = deleteTotalOrdered;
+const deletePartialStatus = (order, part) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const res = yield (0, connection_1.runQuery)(`DELETE FROM po_pn_partial WHERE purchase_order = ? AND part_number = ?`, [order, part]);
+        if ("code" in res)
+            throw new Error(`Error deleting partial status for order: ${order} \npart: ${part} \n${res.message}`);
+        return res.affectedRows;
+    }
+    catch (error) {
+        console.error(error);
+        return;
+    }
+});
+exports.deletePartialStatus = deletePartialStatus;
+const deleteAmountReceived = (parcelIds, order, part) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        for (const { parcel } of parcelIds) {
+            const res = yield (0, connection_1.runQuery)(`DELETE FROM amount_received WHERE id = ?`, [+parcel]);
+            if ("code" in res)
+                throw new Error(`Error deleting amount received id: ${parcel} \n${res.message}`);
+        }
+        const res = yield (0, connection_1.runQuery)(`DELETE FROM po_pn_parcel WHERE purchase_order = ? AND part_number = ?`, [order, part]);
+        if ("code" in res)
+            throw new Error(`Error deleting amount received relation order: ${order} part: ${part} \n${res.message}`);
+        return true;
+    }
+    catch (error) {
+        console.error(error);
+        return;
+    }
+});
+exports.deleteAmountReceived = deleteAmountReceived;

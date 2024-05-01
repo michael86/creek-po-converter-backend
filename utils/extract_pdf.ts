@@ -26,7 +26,8 @@ const getData: GetData = async (rows) => {
         const quantityIndex = row.length - 2;
         const quantity = Math.floor(+row[quantityIndex]).toString();
         const nextRowFirstElement = nextRow[0] || "";
-        data.push([row[1], quantity, nextRowFirstElement]);
+        const scheduled = nextRow[1] || "";
+        data.push([row[1], quantity, nextRowFirstElement, scheduled]);
       }
     }
   }
@@ -76,8 +77,8 @@ export const processFile = async (file: string, cb: CallableFunction) => {
 
       if (!ORDER_REFERENCE || !PURCHASE_ORDER) {
         cb(null);
-        return
-      };
+        return;
+      }
 
       if (DATA.length) {
         cb({

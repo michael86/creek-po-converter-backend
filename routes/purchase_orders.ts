@@ -1,5 +1,5 @@
 import { RequestHandler } from "express";
-import { patchPartialStatus, addParcelsToOrder } from "../db/queries/orders";
+import { patchPartialStatus, addParcelsToOrder, removePartFromOrder } from "../db/queries/orders";
 import { validate } from "../middleware/validate";
 import { body, param } from "express-validator";
 import { addLog } from "../middleware/logs";
@@ -39,6 +39,20 @@ const addParcel: RequestHandler = async (req, res) => {
   }
 };
 
+const deletePart: RequestHandler = async (req, res) => {
+  try {
+    const { order, name }: { order: string; name: string } = req.body;
+    if (!name || !order) return res.status(400).send({ token: req.headers.newToken });
+
+    const result = await removePartFromOrder(order, name.toUpperCase());
+
+    res.send({ token: req.headers.newToken });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ token: req.headers.newToken });
+  }
+};
+
 router.patch(
   "/set-partial/:order?/:name?",
   validate([param("order").exists().trim(), param("name").exists().trim()]),
@@ -54,6 +68,12 @@ router.put(
   ]),
   addLog("addParcel"),
   addParcel
+);
+
+router.post(
+  "/delete/",
+  validate([body("name").exists().trim(), body("order").exists().trim()]),
+  deletePart
 );
 
 module.exports = router;
