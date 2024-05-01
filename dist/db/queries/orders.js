@@ -112,8 +112,12 @@ const fetchPurchaseOrder = (id) => __awaiter(void 0, void 0, void 0, function* (
             const location = yield (0, locations_1.selectLocationForPart)(poId, +part_number);
             //Select any orders for this part
             const partsReceived = yield (0, utils_1.selectPartsReceived)(+part_number, poId);
+            const dateDue = yield (0, utils_1.selectDateDue)(+part_number, poId);
+            if (!dateDue)
+                throw new Error(`Error selecting date due`);
             retval.partNumbers[part.name] = {
                 name: part.name,
+                dateDue,
                 totalOrdered: +totalOrdered,
                 partial: partial,
                 description: part.description,
