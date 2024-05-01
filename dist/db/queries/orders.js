@@ -86,13 +86,14 @@ const fetchPurchaseOrder = (id) => __awaiter(void 0, void 0, void 0, function* (
         if (!orderRef)
             throw new Error(`Failed to select order ref for id ${id} \n${orderRef}`);
         const partRelations = yield (0, utils_1.selectPartRelations)(poId);
+        console.log(partRelations);
         if (!partRelations)
             throw new Error(`Failed to select part relations for id ${id} \n${partRelations}`);
         const retval = {
             dateCreated,
             purchaseOrder: id,
             orderRef: orderRef,
-            partNumbers: {},
+            partNumbers: [],
         };
         //Begin filling out the order part status
         for (const { part_number } of partRelations) {
@@ -115,7 +116,7 @@ const fetchPurchaseOrder = (id) => __awaiter(void 0, void 0, void 0, function* (
             const dateDue = yield (0, utils_1.selectDateDue)(+part_number, poId);
             if (!dateDue)
                 throw new Error(`Error selecting date due`);
-            retval.partNumbers[part.name] = {
+            retval.partNumbers.push({
                 name: part.name,
                 dateDue,
                 totalOrdered: +totalOrdered,
@@ -123,7 +124,7 @@ const fetchPurchaseOrder = (id) => __awaiter(void 0, void 0, void 0, function* (
                 description: part.description,
                 partsReceived,
                 location,
-            };
+            });
         }
         return retval;
     }
