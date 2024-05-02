@@ -41,6 +41,7 @@ export const patchLocation = async (locationId: number, lineId: number) => {
       lineId,
     ]);
     if ("code" in res) throw new Error(`Error patching line location ${res.message}`);
+
     return res.affectedRows;
   } catch (error) {
     console.error(error);

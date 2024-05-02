@@ -162,17 +162,14 @@ export const selectPartTotalOrderedId = async (order: number, part: number) => {
   }
 };
 
-export const selectPartsReceived = async (partNumber: number, purchaseOrder: number) => {
+export const selectPartsReceived = async (receviedIds: SelectCountRelation) => {
   try {
-    const receivedRelations = await selectPartsReceivedIds(purchaseOrder, partNumber);
-    if (!receivedRelations) return [];
-
     const retval: Parcel[] = [];
 
-    for (const { parcel } of receivedRelations) {
+    for (const { receivedId } of receviedIds) {
       const total = await runQuery<SelectAmountReceived>(
         `SELECT amount_received as amountReceived, UNIX_TIMESTAMP(date_created) as dateReceived FROM amount_received WHERE id = ?`,
-        parcel
+        receivedId
       );
       if ("code" in total) throw new Error(`failed to select amount received ${total.message}`);
       if (!total[0]) return;
@@ -205,19 +202,18 @@ export const selectDateDue = async (id: number) => {
   }
 };
 
-export const selectPartsReceivedIds = async (order: number, part: number) => {
+export const selectPartsReceivedIds = async (lineId: number) => {
   try {
-    const receivedRelations = await runQuery<SelectCount>(
-      `select parcel from po_pn_parcel where purchase_order = ? AND part_number = ?`,
-      [order, part]
+    const res = await runQuery<SelectCountRelation>(
+      `SELECT received_id AS receivedId FROM line_received WHERE line_id =? `,
+      [lineId]
     );
 
-    if ("code" in receivedRelations)
-      throw new Error(`Failed to select partsReceived ${receivedRelations.message}`);
+    if ("code" in res) throw new Error(`Failed to select partsReceived ${res.message}`);
 
-    if (!receivedRelations.length) return;
+    if (!res.length) return;
 
-    return receivedRelations;
+    return res;
   } catch (error) {
     console.error(error);
     return;
@@ -470,11 +466,11 @@ export const addParcel = async (amount: number) => {
   }
 };
 
-export const insertParcelRelation = async (poId: number, pnId: number, parcelId: number) => {
+export const insertParcelRelation = async (lineId: number, parcelId: number) => {
   try {
     const res = await runQuery<PutRequest>(
-      `INSERT INTO po_pn_parcel (purchase_order, part_number, parcel) VALUES (?,?,?)`,
-      [poId, pnId, parcelId]
+      `INSERT INTO line_received (line_id, received_id) VALUES (?,?)`,
+      [lineId, parcelId]
     );
     if ("code" in res) throw new Error(`Failed to create new relation for parcel ${res.message}`);
     return res.insertId;

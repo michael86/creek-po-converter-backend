@@ -11,8 +11,8 @@ const router = express.Router();
 const updatePartialStatus: RequestHandler = async (req, res) => {
   try {
     const { index } = req.params;
-    console.log("index ", index);
-    const result = await patchPartialStatus(index);
+
+    const result = await patchPartialStatus(Number(index));
     if (!result) throw new Error(`Failed to patch partial status `);
 
     res.send({ status: 1, token: req.headers.newToken });
@@ -24,14 +24,14 @@ const updatePartialStatus: RequestHandler = async (req, res) => {
 
 const addParcel: RequestHandler = async (req, res) => {
   try {
-    const { parcels, purchaseOrder, part }: AddParcelBody = req.body;
+    const { parcels, index }: AddParcelBody = req.body;
 
-    if (!parcels || !purchaseOrder || !part) {
+    if (!parcels || !index) {
       res.status(400).send();
       return;
     }
 
-    const result = await addParcelsToOrder(parcels, purchaseOrder, part);
+    const result = await addParcelsToOrder(parcels, index);
 
     res.send({ status: result ? 1 : 0, token: req.headers.newToken });
   } catch (error) {
@@ -64,8 +64,7 @@ router.put(
   "/add-parcel/",
   validate([
     body("parcels.*").exists().trim().isNumeric(),
-    body("purchaseOrder").trim().exists(),
-    body("part").exists().trim(),
+    body("index").exists().trim().isNumeric(),
   ]),
   addLog("addParcel"),
   addParcel

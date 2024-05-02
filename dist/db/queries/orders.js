@@ -125,13 +125,14 @@ const fetchPurchaseOrder = (id) => __awaiter(void 0, void 0, void 0, function* (
             const location = lineRelations.locationId !== null
                 ? yield (0, locations_1.selectLocation)(lineRelations.locationId)
                 : lineRelations.locationId;
+            const partsReceviedIds = yield (0, utils_1.selectPartsReceivedIds)(line);
             retval.partNumbers.push({
                 name: part.name,
                 dateDue,
                 totalOrdered,
                 partial: partial,
                 description,
-                partsReceived: [],
+                partsReceived: !(partsReceviedIds === null || partsReceviedIds === void 0 ? void 0 : partsReceviedIds.length) ? [] : yield (0, utils_1.selectPartsReceived)(partsReceviedIds),
                 location,
                 lineId: line,
             });
@@ -177,19 +178,13 @@ exports.patchPartialStatus = patchPartialStatus;
  * @param part string
  * @returns true | void
  */
-const addParcelsToOrder = (parcels, purchaseOrder, part) => __awaiter(void 0, void 0, void 0, function* () {
+const addParcelsToOrder = (parcels, index) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const poId = yield (0, utils_1.selectPurchaseOrderId)(purchaseOrder);
-        if (!poId)
-            throw new Error(`Failed to select if for purchase order: ${purchaseOrder}`);
-        const partId = yield (0, utils_1.selectPartId)(part);
-        if (!partId)
-            throw new Error(`Failed to select partId for order: ${part}`);
         for (const parcel of parcels) {
             const parcelId = yield (0, utils_1.addParcel)(parcel);
             if (!parcelId)
                 throw new Error(`Failed to insert parcel ${parcelId}`);
-            const relation = yield (0, utils_1.insertParcelRelation)(poId, partId, parcelId);
+            const relation = yield (0, utils_1.insertParcelRelation)(index, parcelId);
             if (!relation)
                 throw new Error(`Failed to insert parcel relation ${relation}`);
         }
