@@ -62,11 +62,9 @@ export function addLog(log: Log) {
         message = `user set line ${sanitizeToHtmlEntities(index)} to partial delivery `;
         break;
       case "addParcel":
-        const { parcels, purchaseOrder, part: pa }: AddParcelBody = req.body;
+        const { parcels, index: ind }: AddParcelBody = req.body;
         const total = parcels.reduce((a, b) => +a + +b, 0);
-        message = `User booked in ${total} units for ${sanitizeToHtmlEntities(
-          pa
-        )} in purchase or ${sanitizeToHtmlEntities(purchaseOrder)}`;
+        message = `User booked in ${total} units `;
         break;
 
       default:

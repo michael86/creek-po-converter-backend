@@ -122,14 +122,11 @@ const selectPartTotalOrderedId = (order, part) => __awaiter(void 0, void 0, void
     }
 });
 exports.selectPartTotalOrderedId = selectPartTotalOrderedId;
-const selectPartsReceived = (partNumber, purchaseOrder) => __awaiter(void 0, void 0, void 0, function* () {
+const selectPartsReceived = (receviedIds) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const receivedRelations = yield (0, exports.selectPartsReceivedIds)(purchaseOrder, partNumber);
-        if (!receivedRelations)
-            return [];
         const retval = [];
-        for (const { parcel } of receivedRelations) {
-            const total = yield (0, connection_1.runQuery)(`SELECT amount_received as amountReceived, UNIX_TIMESTAMP(date_created) as dateReceived FROM amount_received WHERE id = ?`, parcel);
+        for (const { receivedId } of receviedIds) {
+            const total = yield (0, connection_1.runQuery)(`SELECT amount_received as amountReceived, UNIX_TIMESTAMP(date_created) as dateReceived FROM amount_received WHERE id = ?`, receivedId);
             if ("code" in total)
                 throw new Error(`failed to select amount received ${total.message}`);
             if (!total[0])
@@ -160,14 +157,14 @@ const selectDateDue = (id) => __awaiter(void 0, void 0, void 0, function* () {
     }
 });
 exports.selectDateDue = selectDateDue;
-const selectPartsReceivedIds = (order, part) => __awaiter(void 0, void 0, void 0, function* () {
+const selectPartsReceivedIds = (lineId) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const receivedRelations = yield (0, connection_1.runQuery)(`select parcel from po_pn_parcel where purchase_order = ? AND part_number = ?`, [order, part]);
-        if ("code" in receivedRelations)
-            throw new Error(`Failed to select partsReceived ${receivedRelations.message}`);
-        if (!receivedRelations.length)
+        const res = yield (0, connection_1.runQuery)(`SELECT received_id AS receivedId FROM line_received WHERE line_id =? `, [lineId]);
+        if ("code" in res)
+            throw new Error(`Failed to select partsReceived ${res.message}`);
+        if (!res.length)
             return;
-        return receivedRelations;
+        return res;
     }
     catch (error) {
         console.error(error);
@@ -380,9 +377,9 @@ const addParcel = (amount) => __awaiter(void 0, void 0, void 0, function* () {
     }
 });
 exports.addParcel = addParcel;
-const insertParcelRelation = (poId, pnId, parcelId) => __awaiter(void 0, void 0, void 0, function* () {
+const insertParcelRelation = (lineId, parcelId) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const res = yield (0, connection_1.runQuery)(`INSERT INTO po_pn_parcel (purchase_order, part_number, parcel) VALUES (?,?,?)`, [poId, pnId, parcelId]);
+        const res = yield (0, connection_1.runQuery)(`INSERT INTO line_received (line_id, received_id) VALUES (?,?)`, [lineId, parcelId]);
         if ("code" in res)
             throw new Error(`Failed to create new relation for parcel ${res.message}`);
         return res.insertId;

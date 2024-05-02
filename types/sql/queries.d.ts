@@ -17,13 +17,8 @@ export type InsertPrefix = (prefix: string) => Promise<true | void>;
 export type InsertOrderToDb = (data: Data) => Promise<true | "ER_DUP_ENTRY" | void>;
 export type FetchPurchaseOrder = (id: string) => Promise<PurchaseOrder | void>;
 export type FetchPurchaseOrders = () => Promise<string[] | void>;
-
 export type SetPartialStatus = (id: number) => Promise<true | void>;
-export type AddParcelsToOrder = (
-  parcels: number[],
-  purchaseOrder: string,
-  part: string
-) => Promise<true | void>;
+export type AddParcelsToOrder = (parcels: number[], index: number) => Promise<true | void>;
 export type RemovePartFromOrder = (order: string, part: string) => Promise<true | void>;
 
 //SQL Select
@@ -32,7 +27,7 @@ export type SelectOrderReferenceRelation = { order_reference: string }[];
 export type SelectOrderReference = { order_reference: string }[];
 export type SelectPartRelation = { part_number: string }[];
 export type SelectPart = { name: string; description: string; partial_delivery: "1" | "0" }[];
-export type SelectCountRelation = { total_ordered: string }[];
+export type SelectCountRelation = { receivedId: string }[];
 export type SelectCount = { parcel: string }[];
 export type SelectTotalOrdered = { quantity: string }[];
 export type SelectAmountReceived = { amountReceived: string; dateReceived: string }[];

@@ -35,6 +35,7 @@ import {
   selectPartPartialStatus,
   selectPartTotalOrdered,
   selectPartTotalOrderedId,
+  selectPartsReceived,
   selectPartsReceivedIds,
   selectPoLines,
   selectPurchaseOrderDate,
@@ -159,13 +160,15 @@ export const fetchPurchaseOrder: FetchPurchaseOrder = async (id) => {
           ? await selectLocation(lineRelations.locationId)
           : lineRelations.locationId;
 
+      const partsReceviedIds = await selectPartsReceivedIds(line);
+
       retval.partNumbers.push({
         name: part.name,
         dateDue,
         totalOrdered,
         partial: partial as 0 | 1,
         description,
-        partsReceived: [],
+        partsReceived: !partsReceviedIds?.length ? [] : await selectPartsReceived(partsReceviedIds),
         location,
         lineId: line,
       });
@@ -216,22 +219,12 @@ export const patchPartialStatus: SetPartialStatus = async (id: number) => {
  * @returns true | void
  */
 
-export const addParcelsToOrder: AddParcelsToOrder = async (
-  parcels: number[],
-  purchaseOrder: string,
-  part: string
-) => {
+export const addParcelsToOrder: AddParcelsToOrder = async (parcels, index) => {
   try {
-    const poId = await selectPurchaseOrderId(purchaseOrder);
-    if (!poId) throw new Error(`Failed to select if for purchase order: ${purchaseOrder}`);
-
-    const partId = await selectPartId(part);
-    if (!partId) throw new Error(`Failed to select partId for order: ${part}`);
-
     for (const parcel of parcels) {
       const parcelId = await addParcel(parcel);
       if (!parcelId) throw new Error(`Failed to insert parcel ${parcelId}`);
-      const relation = await insertParcelRelation(poId, partId, parcelId);
+      const relation = await insertParcelRelation(index, parcelId);
       if (!relation) throw new Error(`Failed to insert parcel relation ${relation}`);
     }
 

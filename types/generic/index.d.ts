@@ -16,7 +16,7 @@ export type PurchaseOrder = {
   }[];
 };
 
-export type AddParcelBody = { parcels: number[]; purchaseOrder: string; part: string };
+export type AddParcelBody = { parcels: number[]; index: number };
 export type PDFStructure = { DATA: []; ORDER_REFERENCE: string; PURCHASE_ORDER: string };
 export type Log =
   | "login"
