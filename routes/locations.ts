@@ -1,5 +1,10 @@
 import { selectPartId, selectPurchaseOrderId } from "../db/queries/utils";
-import { insertLocation, selectLocationId, selectLocationIdForPart } from "../db/queries/locations";
+import {
+  insertLocation,
+  patchLocation,
+  selectLocationId,
+  selectLocationIdForPart,
+} from "../db/queries/locations";
 import { RequestHandler } from "express";
 import { validate } from "../middleware/validate";
 import { body } from "express-validator";
@@ -10,26 +15,15 @@ const router = express.Router();
 
 const updateLocation: RequestHandler = async (req, res) => {
   try {
-    const { order, part, location } = req.body;
-    if (!order || !part || !location) {
+    const { location, line } = req.body;
+    if (!location || !line) {
       res.status(400).send({ token: req.headers.newToken });
     }
 
-    const orderId = await selectPurchaseOrderId(order);
-    if (!orderId) throw new Error(`Failed to select order id for ${order}`);
-
-    const partId = await selectPartId(part);
-    if (!partId) throw new Error(`Failed to select part id for ${part}`);
-
-    const id = await selectLocationIdForPart(orderId, partId);
     const locationId = await selectLocationId(location);
     if (!locationId) throw new Error("Failed to select location id");
-    // purchaseId, partId, location;
-    const query = id
-      ? `UPDATE po_pn_location SET location = ? WHERE purchase_order = ? AND part_number = ?`
-      : `INSERT INTO po_pn_location (location, purchase_order, part_number) VALUES (?, ?, ?)`;
 
-    const updated = await insertLocation(orderId, partId, locationId, query);
+    const updated = await patchLocation(locationId, line);
     if (!updated) throw new Error(`Failed to insert location for part`);
 
     res.send({ token: req.headers.newToken });
@@ -41,11 +35,7 @@ const updateLocation: RequestHandler = async (req, res) => {
 
 router.post(
   "/update",
-  validate([
-    body("order").trim().notEmpty(),
-    body("part").trim().notEmpty(),
-    body("location").trim().notEmpty(),
-  ]),
+  validate([body("line").trim().notEmpty().isNumeric(), body("location").trim().notEmpty()]),
   addLog("updateLocation"),
   updateLocation
 );

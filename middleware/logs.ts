@@ -27,11 +27,11 @@ export function addLog(log: Log) {
         message = "User validated there token";
         break;
       case "updateLocation":
-        let { order, part, location } = req.body;
-        order = sanitizeToHtmlEntities(order);
-        part = sanitizeToHtmlEntities(part);
+        let { line, location } = req.body;
+        line = sanitizeToHtmlEntities(line);
+
         location = sanitizeToHtmlEntities(location);
-        message = `user updated location for ${part} on order ${order} to ${location}`;
+        message = `user updated location for line ${line} to ${location}`;
         break;
 
       case "isPrefixValid":
@@ -58,10 +58,8 @@ export function addLog(log: Log) {
         break;
 
       case "setPartial":
-        const { order: o, name } = req.params;
-        message = `user set ${sanitizeToHtmlEntities(
-          name
-        )} to partial delivery for order ${sanitizeToHtmlEntities(o)}`;
+        const { index } = req.params;
+        message = `user set line ${sanitizeToHtmlEntities(index)} to partial delivery `;
         break;
       case "addParcel":
         const { parcels, purchaseOrder, part: pa }: AddParcelBody = req.body;

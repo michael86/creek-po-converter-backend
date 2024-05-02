@@ -11,7 +11,8 @@ export type PurchaseOrder = {
     totalOrdered: number | undefined;
     description: string;
     partsReceived: Parcel[] | undefined;
-    location?: string;
+    location: string | null;
+    lineId: number;
   }[];
 };
 

@@ -10,9 +10,10 @@ const router = express.Router();
 
 const updatePartialStatus: RequestHandler = async (req, res) => {
   try {
-    const { order, name } = req.params;
-    const result = await patchPartialStatus(order, name);
-    if (!result) throw new Error(`Failed to patch partial status \nOrder:${order} \nName${name}`);
+    const { index } = req.params;
+    console.log("index ", index);
+    const result = await patchPartialStatus(index);
+    if (!result) throw new Error(`Failed to patch partial status `);
 
     res.send({ status: 1, token: req.headers.newToken });
   } catch (error) {
@@ -54,8 +55,8 @@ const deletePart: RequestHandler = async (req, res) => {
 };
 
 router.patch(
-  "/set-partial/:order?/:name?",
-  validate([param("order").exists().trim(), param("name").exists().trim()]),
+  "/set-partial/:index?",
+  validate([param("index").exists().trim().isNumeric()]),
   addLog("setPartial"),
   updatePartialStatus
 );

@@ -34,15 +34,24 @@ const insertOrderToDb = (data) => __awaiter(void 0, void 0, void 0, function* ()
             const partId = yield (0, utils_1.insertPartNumber)(part);
             if (!partId)
                 throw new Error(`Failed to insert part ${part[0]} \n${partId}`);
-            const quantity = yield (0, utils_1.insertTotalOrdered)(part[1], poId, partId);
-            if (!quantity)
+            const quantityId = yield (0, utils_1.insertTotalOrdered)(part[1]);
+            if (!quantityId)
                 throw new Error(`Failed to insert part quantity ${part}`);
-            const partial = yield (0, utils_1.insertPartToPartial)(poId, partId);
-            if (!partial)
-                throw new Error(`Failed to insert partial ${partial}`);
-            const due = yield (0, utils_1.insertDateDue)(poId, partId, part[3]);
-            if (!due)
-                throw new Error(`Failed to insert due date ${due}`);
+            const partialId = yield (0, utils_1.insertPartToPartial)();
+            if (!partialId)
+                throw new Error(`Failed to insert partial ${partialId}`);
+            const dueId = yield (0, utils_1.insertDateDue)(part[3]);
+            if (!dueId)
+                throw new Error(`Failed to insert due date ${dueId}`);
+            const descId = yield (0, utils_1.insertDescription)(part[2]);
+            if (!descId)
+                throw new Error(`Failed to insert new description \n${descId}`);
+            const lineId = yield (0, utils_1.createLineRelation)(partId, descId, quantityId, dueId, partialId);
+            if (!lineId)
+                throw new Error(`Failed to insert create line relation ${lineId}`);
+            const orderRelation = yield (0, utils_1.insertOrderLineRelation)(poId, lineId);
+            if (!orderRelation)
+                throw new Error(`Failed to insert create line relation ${orderRelation}`);
         }
         return true;
     }
@@ -79,51 +88,52 @@ const fetchPurchaseOrder = (id) => __awaiter(void 0, void 0, void 0, function* (
         const poId = yield (0, utils_1.selectPurchaseOrderId)(id);
         if (!poId)
             throw new Error(`Failed to select purchase order id for ${id} \n${poId}`);
-        const dateCreated = yield (0, utils_1.selectPurchaseOrderDate)(poId);
-        if (!dateCreated)
-            throw new Error(`Failed to select date for ${id} \n${dateCreated}`);
         const orderRef = yield (0, utils_1.selectOrderReference)(poId);
         if (!orderRef)
             throw new Error(`Failed to select order ref for id ${id} \n${orderRef}`);
-        const partRelations = yield (0, utils_1.selectPartRelations)(poId);
-        console.log(partRelations);
-        if (!partRelations)
-            throw new Error(`Failed to select part relations for id ${id} \n${partRelations}`);
+        const dateCreated = yield (0, utils_1.selectPurchaseOrderDate)(poId);
+        if (!dateCreated)
+            throw new Error(`Failed to select date for ${id} \n${dateCreated}`);
+        const lines = yield (0, utils_1.selectPoLines)(poId);
+        if (!lines)
+            throw new Error(`No lines for purchase order: ${poId}`);
         const retval = {
             dateCreated,
             purchaseOrder: id,
             orderRef: orderRef,
             partNumbers: [],
         };
-        //Begin filling out the order part status
-        for (const { part_number } of partRelations) {
-            //Select details such as description, partial order and so on
-            const part = yield (0, utils_1.selectPartDetails)(+part_number);
+        for (const { line } of lines) {
+            const lineRelations = yield (0, utils_1.selectLineRelations)(line);
+            if (!lineRelations)
+                throw new Error(`Error selecting line relations for order: ${id} and line: ${line}`);
+            const part = yield (0, utils_1.selectPartDetails)(lineRelations.partId);
             if (!part)
-                throw new Error(`Failed to select part details for ${id} \n${part}`);
-            //Select the total amount ordered
-            const totalOrdered = yield (0, utils_1.selectPartTotalOrdered)(poId, +part_number);
-            if (!totalOrdered)
-                throw new Error(`Failed to select total ordered for ${id} \n${totalOrdered}`);
-            //Select if partial
-            const partial = yield (0, utils_1.selectPartPartialStatus)(poId, +part_number);
-            if (typeof partial !== "number")
-                throw new Error(`Failed to select part partial status for ${id} \n${partial}`);
-            //Select Location
-            const location = yield (0, locations_1.selectLocationForPart)(poId, +part_number);
-            //Select any orders for this part
-            const partsReceived = yield (0, utils_1.selectPartsReceived)(+part_number, poId);
-            const dateDue = yield (0, utils_1.selectDateDue)(+part_number, poId);
+                throw new Error(`failed to select part name`);
+            const dateDue = yield (0, utils_1.selectDateDue)(lineRelations.dueDateId);
             if (!dateDue)
-                throw new Error(`Error selecting date due`);
+                throw new Error(`failed to select date due`);
+            const totalOrdered = yield (0, utils_1.selectPartTotalOrdered)(lineRelations.totalOrderedId);
+            if (!totalOrdered)
+                throw new Error(`failed to select total ordered`);
+            const partial = yield (0, utils_1.selectPartPartialStatus)(lineRelations.partialId);
+            if (typeof partial !== "number")
+                throw new Error(`Failed to select partial`);
+            const description = yield (0, utils_1.selectDescription)(lineRelations.descId);
+            if (!description)
+                throw new Error(`Failed to select description`);
+            const location = lineRelations.locationId !== null
+                ? yield (0, locations_1.selectLocation)(lineRelations.locationId)
+                : lineRelations.locationId;
             retval.partNumbers.push({
                 name: part.name,
                 dateDue,
-                totalOrdered: +totalOrdered,
+                totalOrdered,
                 partial: partial,
-                description: part.description,
-                partsReceived,
+                description,
+                partsReceived: [],
                 location,
+                lineId: line,
             });
         }
         return retval;
@@ -142,17 +152,14 @@ exports.fetchPurchaseOrder = fetchPurchaseOrder;
  * @param name stirng - partnumber
  * @returns
  */
-const patchPartialStatus = (order, name) => __awaiter(void 0, void 0, void 0, function* () {
+const patchPartialStatus = (id) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const id = yield (0, utils_1.selectPurchaseOrderId)(order);
-        if (!id)
-            throw new Error(`Failed to select id for purchase order ${order}`);
-        const partId = yield (0, utils_1.selectPartId)(name);
-        if (!partId)
-            throw new Error(`Failed to fetch part id ${name}`);
-        const res = yield (0, utils_1.setPartialStatus)(id, partId);
-        if (!res)
-            throw new Error(`Failed to set partial_delivery to 1 for id ${res}`);
+        console.log("id ", id);
+        const res = yield (0, connection_1.runQuery)(`SELECT partial_id as partialId FROM \`lines\` WHERE id = ?`, [id]);
+        if ("code" in res)
+            throw new Error(`Failed to select partial_id from lines ${res.message}`);
+        console.log(res);
+        yield (0, utils_1.setPartialStatus)(res[0].partialId);
         return true;
     }
     catch (error) {
