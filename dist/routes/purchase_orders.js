@@ -17,10 +17,11 @@ const express = require("express");
 const router = express.Router();
 const updatePartialStatus = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { order, name } = req.params;
-        const result = yield (0, orders_1.patchPartialStatus)(order, name);
+        const { index } = req.params;
+        console.log("index ", index);
+        const result = yield (0, orders_1.patchPartialStatus)(index);
         if (!result)
-            throw new Error(`Failed to patch partial status \nOrder:${order} \nName${name}`);
+            throw new Error(`Failed to patch partial status `);
         res.send({ status: 1, token: req.headers.newToken });
     }
     catch (error) {
@@ -56,7 +57,7 @@ const deletePart = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         res.status(500).send({ token: req.headers.newToken });
     }
 });
-router.patch("/set-partial/:order?/:name?", (0, validate_1.validate)([(0, express_validator_1.param)("order").exists().trim(), (0, express_validator_1.param)("name").exists().trim()]), (0, logs_1.addLog)("setPartial"), updatePartialStatus);
+router.patch("/set-partial/:index?", (0, validate_1.validate)([(0, express_validator_1.param)("index").exists().trim().isNumeric()]), (0, logs_1.addLog)("setPartial"), updatePartialStatus);
 router.put("/add-parcel/", (0, validate_1.validate)([
     (0, express_validator_1.body)("parcels.*").exists().trim().isNumeric(),
     (0, express_validator_1.body)("purchaseOrder").trim().exists(),

@@ -34,6 +34,20 @@ export const selectLocationId = async (location: string) => {
   }
 };
 
+export const patchLocation = async (locationId: number, lineId: number) => {
+  try {
+    const res = await runQuery<PutRequest>(`UPDATE \`lines\` SET location_id = ? WHERE id = ?`, [
+      locationId,
+      lineId,
+    ]);
+    if ("code" in res) throw new Error(`Error patching line location ${res.message}`);
+    return res.affectedRows;
+  } catch (error) {
+    console.error(error);
+    return;
+  }
+};
+
 export const insertLocation = async (
   purchaseId: number,
   partId: number,
@@ -55,23 +69,15 @@ export const insertLocation = async (
   }
 };
 
-export const selectLocationForPart = async (poId: number, pnId: number) => {
+export const selectLocation = async (id: number) => {
   try {
-    const locationId = await selectLocationIdForPart(poId, pnId);
+    const res = await runQuery<SelectLocation>(`SELECT location FROM locations WHERE id = ?`, id);
 
-    if (!locationId) return;
+    if ("code" in res) throw new Error(`Failed to select location ${res.message}`);
 
-    const location = await runQuery<SelectLocation>(
-      `SELECT location FROM locations WHERE id = ?`,
-      locationId
-    );
-
-    if ("code" in location)
-      throw new Error(`Couldn't find location for location id ${locationId} \n${location.message}`);
-
-    return location[0].location;
+    return res[0].location;
   } catch (error) {
     console.error(error);
-    return;
+    return null;
   }
 };

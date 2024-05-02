@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.selectLocationForPart = exports.insertLocation = exports.selectLocationId = exports.selectLocationIdForPart = void 0;
+exports.selectLocation = exports.insertLocation = exports.patchLocation = exports.selectLocationId = exports.selectLocationIdForPart = void 0;
 const connection_1 = require("../connection");
 const selectLocationIdForPart = (order, part) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
@@ -38,6 +38,22 @@ const selectLocationId = (location) => __awaiter(void 0, void 0, void 0, functio
     }
 });
 exports.selectLocationId = selectLocationId;
+const patchLocation = (locationId, lineId) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const res = yield (0, connection_1.runQuery)(`UPDATE \`lines\` SET location_id = ? WHERE id = ?`, [
+            locationId,
+            lineId,
+        ]);
+        if ("code" in res)
+            throw new Error(`Error patching line location ${res.message}`);
+        return res.affectedRows;
+    }
+    catch (error) {
+        console.error(error);
+        return;
+    }
+});
+exports.patchLocation = patchLocation;
 const insertLocation = (purchaseId, partId, location, query) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         //DO NOT SWITCH THE QUERY VARS ORDER!!!!!
@@ -52,19 +68,16 @@ const insertLocation = (purchaseId, partId, location, query) => __awaiter(void 0
     }
 });
 exports.insertLocation = insertLocation;
-const selectLocationForPart = (poId, pnId) => __awaiter(void 0, void 0, void 0, function* () {
+const selectLocation = (id) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const locationId = yield (0, exports.selectLocationIdForPart)(poId, pnId);
-        if (!locationId)
-            return;
-        const location = yield (0, connection_1.runQuery)(`SELECT location FROM locations WHERE id = ?`, locationId);
-        if ("code" in location)
-            throw new Error(`Couldn't find location for location id ${locationId} \n${location.message}`);
-        return location[0].location;
+        const res = yield (0, connection_1.runQuery)(`SELECT location FROM locations WHERE id = ?`, id);
+        if ("code" in res)
+            throw new Error(`Failed to select location ${res.message}`);
+        return res[0].location;
     }
     catch (error) {
         console.error(error);
-        return;
+        return null;
     }
 });
-exports.selectLocationForPart = selectLocationForPart;
+exports.selectLocation = selectLocation;

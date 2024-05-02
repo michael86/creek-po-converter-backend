@@ -18,7 +18,7 @@ export type InsertOrderToDb = (data: Data) => Promise<true | "ER_DUP_ENTRY" | vo
 export type FetchPurchaseOrder = (id: string) => Promise<PurchaseOrder | void>;
 export type FetchPurchaseOrders = () => Promise<string[] | void>;
 
-export type SetPartialStatus = (order: string, name: string) => Promise<true | void>;
+export type SetPartialStatus = (id: number) => Promise<true | void>;
 export type AddParcelsToOrder = (
   parcels: number[],
   purchaseOrder: string,
@@ -36,7 +36,7 @@ export type SelectCountRelation = { total_ordered: string }[];
 export type SelectCount = { parcel: string }[];
 export type SelectTotalOrdered = { quantity: string }[];
 export type SelectAmountReceived = { amountReceived: string; dateReceived: string }[];
-export type SelectDueDateRelation = { due_date: number }[];
+export type SelectDueDateRelation = { dueDate: number }[];
 export type SelectDueDate = { dateDue: number }[];
 export type SelectPartId = { id: string }[];
 export type SelectPartial = { partial: number }[];
@@ -44,6 +44,17 @@ export type SelectPartLocationId = { location: string }[] | [];
 export type SelectLocationId = { id: string }[];
 export type SelectLocation = { location: string }[];
 export type SelectUserId = { id: string }[];
+export type SelectOrderLines = { line: number }[];
+export type SelectDescription = { description: string }[];
+export type SelectPartialId = { partialId: number }[];
+export type SelectLineRelations = {
+  partId: number;
+  descId: number;
+  totalOrderedId: number;
+  dueDateId: number;
+  partialId: number;
+  locationId: number | null;
+}[];
 export type SelectLogs = {
   user: string;
   log: string;

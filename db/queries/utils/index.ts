@@ -14,6 +14,9 @@ import {
   SelectPoDate,
   SelectDueDateRelation,
   SelectDueDate,
+  SelectOrderLines,
+  SelectLineRelations,
+  SelectDescription,
 } from "@types_sql/queries";
 import { Parcel } from "types/generic";
 
@@ -31,6 +34,40 @@ export const selectPurchaseOrderId = async (purchaseOrder: string) => {
   } catch (error) {
     console.error(error);
     return;
+  }
+};
+
+export const selectPoLines = async (id: number) => {
+  try {
+    const lines = await runQuery<SelectOrderLines>(
+      "SELECT `line` FROM `order_lines` WHERE `order` = ?",
+      [id]
+    );
+    if ("code" in lines) throw new Error(`Error selecting order (${id}) lines\n${lines.message}`);
+
+    return lines;
+  } catch (error) {
+    console.error(error);
+    return;
+  }
+};
+
+export const selectLineRelations = async (id: number) => {
+  try {
+    const relations = await runQuery<SelectLineRelations>(
+      `SELECT part_id as partId,
+       description_id as descId,
+       total_ordered_id as totalOrderedId,
+       due_date_id as dueDateId, 
+       partial_id as partialId,
+       location_id as locationId from \`lines\` where id = ?`,
+      [id]
+    );
+
+    if ("code" in relations) throw new Error(relations.message);
+    return relations[0];
+  } catch (error) {
+    console.error(error);
   }
 };
 
@@ -91,22 +128,16 @@ export const selectPartDetails = async (partNumber: number) => {
   }
 };
 
-export const selectPartTotalOrdered = async (poId: number, pnId: number) => {
+export const selectPartTotalOrdered = async (id: number) => {
   try {
-    const relation = await selectPartTotalOrderedId(poId, pnId);
-    if (!relation) return;
-
-    const qty = await runQuery<SelectTotalOrdered>(
+    const res = await runQuery<SelectTotalOrdered>(
       `SELECT quantity FROM total_ordered WHERE id = ?`,
-      [relation]
+      [id]
     );
 
-    if ("code" in qty)
-      throw new Error(
-        `Error selecing total ordered for purchase order: ${poId}  \npart number: ${pnId} \n${qty.message}`
-      );
+    if ("code" in res) throw new Error(`Error selecing total ordered ${res.message}`);
 
-    return qty[0].quantity;
+    return +res[0].quantity;
   } catch (error) {
     console.error(error);
     return;
@@ -115,16 +146,16 @@ export const selectPartTotalOrdered = async (poId: number, pnId: number) => {
 
 export const selectPartTotalOrderedId = async (order: number, part: number) => {
   try {
-    const id = await runQuery<SelectCountRelation>(
+    const ids = await runQuery<SelectCountRelation>(
       `select total_ordered from po_pn_ordered where purchase_order = ? AND part_number = ?`,
       [order, part]
     );
-    if ("code" in id)
+    if ("code" in ids)
       throw new Error(
-        `Failed to select part total ordered for purchase order: ${order}  \npart number: ${part} \n${id.message}`
+        `Failed to select part total ordered for purchase order: ${order}  \npart number: ${part} \n${ids.message}`
       );
 
-    return id[0].total_ordered;
+    return ids;
   } catch (error) {
     console.error(error);
     return;
@@ -158,26 +189,16 @@ export const selectPartsReceived = async (partNumber: number, purchaseOrder: num
   }
 };
 
-export const selectDateDue = async (partNumber: number, purchaseOrder: number) => {
+export const selectDateDue = async (id: number) => {
   try {
-    const dueDateRelation = await runQuery<SelectDueDateRelation>(
-      `SELECT due_date FROM po_pn_due WHERE purchase_order = ? AND part_number = ?`,
-      [purchaseOrder, partNumber]
+    const res = await runQuery<SelectDueDateRelation>(
+      `SELECT UNIX_TIMESTAMP(date_due) as dueDate FROM date_due WHERE id = ?`,
+      [id]
     );
 
-    if ("code" in dueDateRelation)
-      throw new Error(
-        `Error selecting due date relation for order: ${purchaseOrder} \nPart: ${partNumber} \n${dueDateRelation.message}`
-      );
+    if ("code" in res) throw new Error(`Error selecting due date \n${res.message}`);
 
-    const dueDate = await runQuery<SelectDueDate>(
-      `SELECT UNIX_TIMESTAMP(date_due) as dateDue from date_due WHERE id = ? `,
-      [dueDateRelation[0].due_date]
-    );
-
-    if ("code" in dueDate) throw new Error(`Failed to select due date ${dueDate.message}`);
-
-    return dueDate[0].dateDue;
+    return res[0].dueDate;
   } catch (error) {
     console.error(error);
     return;
@@ -277,7 +298,7 @@ export const insertPartNumber = async (part: [string, string, string]) => {
       if (partNumber.code === "ER_DUP_ENTRY") {
         const id = await selectPartId(part[0]);
         if (!id) throw new Error(`Failed to find id for ${part[0]}`);
-        return +id;
+        return id;
       }
 
       throw new Error(
@@ -292,11 +313,7 @@ export const insertPartNumber = async (part: [string, string, string]) => {
   }
 };
 
-export const insertTotalOrdered = async (
-  totalOrdered: string,
-  purchaseOrder: number,
-  partId: number
-) => {
+export const insertTotalOrdered = async (totalOrdered: string) => {
   try {
     const quantity = await runQuery<PutRequest>(
       `INSERT INTO total_ordered (quantity) VALUES (?);`,
@@ -306,12 +323,6 @@ export const insertTotalOrdered = async (
     if ("code" in quantity)
       throw new Error(`Error adding purchase order, failed to insert quantity ${quantity.message}`);
 
-    const pnCount = await runQuery<PutRequest>(
-      `INSERT INTO \`po_pn_ordered\` (purchase_order, part_number, total_ordered) VALUES (?, ?,? );`,
-      [purchaseOrder, partId, quantity.insertId]
-    );
-    if ("code" in pnCount)
-      throw new Error(`Error adding purchase order, failed to insert sku ${pnCount.message}`);
     return quantity.insertId;
   } catch (error) {
     console.error(error);
@@ -319,14 +330,13 @@ export const insertTotalOrdered = async (
   }
 };
 
-export const insertPartToPartial = async (purchase: number, part: number) => {
+export const insertPartToPartial = async () => {
   try {
     const partial = await runQuery<PutRequest>(
-      `INSERT INTO po_pn_partial (purchase_order, part_number) VALUES (?, ?);`,
-      [purchase, part]
+      `INSERT INTO partial (partial_status) VALUES (0);`,
+      ""
     );
-    if ("code" in partial)
-      throw new Error(`Failed to insert part ${part} into partial for order ${purchase}`);
+    if ("code" in partial) throw new Error(`Failed to insert partial ${partial.message}`);
     return partial.insertId;
   } catch (error) {
     console.error(error);
@@ -334,7 +344,7 @@ export const insertPartToPartial = async (purchase: number, part: number) => {
   }
 };
 
-export const insertDateDue = async (purchase: number, part: number, due: string) => {
+export const insertDateDue = async (due: string) => {
   try {
     const res = await runQuery<PutRequest>(
       `INSERT INTO date_due (date_due) VALUES (STR_TO_DATE(?, '%d/%m/%Y'))`,
@@ -342,51 +352,100 @@ export const insertDateDue = async (purchase: number, part: number, due: string)
     );
     if ("code" in res) throw new Error(`Failed to insert due date \n${res.message}`);
 
-    const relation = await runQuery<PutRequest>(
-      `INSERT INTO po_pn_due (purchase_order, part_number, due_date) VALUES (?,?, ?)`,
-      [purchase, part, res.insertId]
-    );
-
-    if ("code" in relation)
-      throw new Error(`Failed to insert due date relation \n${relation.message}`);
-
-    return true;
+    return res.insertId;
   } catch (error) {
     console.error(error);
     return;
   }
 };
 
-export const selectPartPartialStatus = async (poId: number, pnId: number) => {
+export const createLineRelation = async (
+  part: number,
+  description: number,
+  total: number,
+  due: number,
+  partialId: number
+) => {
   try {
-    const partial = await runQuery<SelectPartial>(
-      `SELECT partial FROM po_pn_partial WHERE purchase_order = ? AND part_number = ?`,
-      [poId, pnId]
+    const res = await runQuery<PutRequest>(
+      `INSERT INTO \`lines\` (part_id, description_id, total_ordered_id, due_date_id, partial_id) VALUES (?,?,?,?,?)`,
+      [part, description, total, due, partialId]
     );
-
-    if ("code" in partial)
-      throw new Error(
-        `Failed to select partial status for purchase order: ${poId} \nPart Number: ${pnId}`
-      );
-
-    return partial[0].partial;
+    if ("code" in res) throw new Error(`Error creating line relation \n${res.message}`);
+    return res.insertId;
   } catch (error) {
     console.error(error);
     return;
   }
 };
 
-export const setPartialStatus = async (purchaseId: number, partId: number) => {
+export const insertOrderLineRelation = async (orderId: number, lineId: number) => {
+  try {
+    const res = await runQuery<PutRequest>(
+      "INSERT INTO `order_lines` (`order`, `line`) VALUES (?,?)",
+      [orderId, lineId]
+    );
+    if ("code" in res) throw new Error(`Error creating order line relation \n${res.message}`);
+    return res.insertId;
+  } catch (error) {
+    console.error(error);
+    return;
+  }
+};
+
+export const insertDescription = async (description: string) => {
+  try {
+    const res = await runQuery<PutRequest>(`INSERT INTO descriptions (description) VALUES (?)`, [
+      description,
+    ]);
+    if ("code" in res) throw new Error(`Failed to insert description ${res.message}`);
+
+    return res.insertId;
+  } catch (error) {
+    console.error(error);
+    return;
+  }
+};
+
+export const selectPartPartialStatus = async (id: number) => {
+  try {
+    const res = await runQuery<SelectPartial>(
+      `SELECT partial_status as partial FROM partial WHERE id = ?`,
+      [id]
+    );
+
+    if ("code" in res) throw new Error(`Failed to select partial_status ${res.message}`);
+
+    return res[0].partial;
+  } catch (error) {
+    console.error(error);
+    return;
+  }
+};
+
+export const selectDescription = async (id: number) => {
+  try {
+    const res = await runQuery<SelectDescription>(
+      `SELECT description from descriptions WHERE id = ?`,
+      [id]
+    );
+    if ("code" in res) throw new Error(`Failed to select description ${res.message}`);
+    return res[0].description;
+  } catch (error) {
+    console.error(error);
+    return;
+  }
+};
+
+export const setPartialStatus = async (id: number) => {
   try {
     const patched = await runQuery<PutRequest>(
-      `UPDATE po_pn_partial SET partial = 1 WHERE purchase_order = ? AND part_number =? `,
-      [purchaseId, partId]
+      `UPDATE partial SET partial_status = 1 WHERE id = ?`,
+      [id]
     );
 
     if ("code" in patched || !patched.affectedRows)
-      throw new Error(
-        `Failed to update partial status for order ${purchaseId} \nPart: ${partId} \n${patched}`
-      );
+      throw new Error(`Failed to update partial status for id: ${id} \n${patched.message}`);
 
     return true;
   } catch (error) {

@@ -5,17 +5,21 @@ import {
   SetPartialStatus,
   AddParcelsToOrder,
   RemovePartFromOrder,
+  SelectPartialId,
 } from "@types_sql/queries";
 import { PDFStructure, PurchaseOrder } from "types/generic";
 import { runQuery } from "../connection";
-import { FecthRequest, PutRequest } from "@types_sql/index";
+import { FecthRequest } from "@types_sql/index";
 import {
   addParcel,
+  createLineRelation,
   deleteAmountReceived,
   deleteOrderPartLocation,
   deletePartialStatus,
   deleteTotalOrdered,
   insertDateDue,
+  insertDescription,
+  insertOrderLineRelation,
   insertOrderRef,
   insertParcelRelation,
   insertPartNumber,
@@ -23,20 +27,21 @@ import {
   insertPurchaseOrder,
   insertTotalOrdered,
   selectDateDue,
+  selectDescription,
+  selectLineRelations,
   selectOrderReference,
   selectPartDetails,
   selectPartId,
   selectPartPartialStatus,
-  selectPartRelations,
   selectPartTotalOrdered,
   selectPartTotalOrderedId,
-  selectPartsReceived,
   selectPartsReceivedIds,
+  selectPoLines,
   selectPurchaseOrderDate,
   selectPurchaseOrderId,
   setPartialStatus,
 } from "./utils";
-import { selectLocationForPart } from "./locations";
+import { selectLocation } from "./locations";
 
 /**
  *
@@ -58,14 +63,23 @@ export const insertOrderToDb: InsertOrderToDb = async (data: PDFStructure) => {
       const partId = await insertPartNumber(part);
       if (!partId) throw new Error(`Failed to insert part ${part[0]} \n${partId}`);
 
-      const quantity = await insertTotalOrdered(part[1], poId, partId);
-      if (!quantity) throw new Error(`Failed to insert part quantity ${part}`);
+      const quantityId = await insertTotalOrdered(part[1]);
+      if (!quantityId) throw new Error(`Failed to insert part quantity ${part}`);
 
-      const partial = await insertPartToPartial(poId, partId);
-      if (!partial) throw new Error(`Failed to insert partial ${partial}`);
+      const partialId = await insertPartToPartial();
+      if (!partialId) throw new Error(`Failed to insert partial ${partialId}`);
 
-      const due = await insertDateDue(poId, partId, part[3]);
-      if (!due) throw new Error(`Failed to insert due date ${due}`);
+      const dueId = await insertDateDue(part[3]);
+      if (!dueId) throw new Error(`Failed to insert due date ${dueId}`);
+
+      const descId = await insertDescription(part[2]);
+      if (!descId) throw new Error(`Failed to insert new description \n${descId}`);
+
+      const lineId = await createLineRelation(partId, descId, quantityId, dueId, partialId);
+      if (!lineId) throw new Error(`Failed to insert create line relation ${lineId}`);
+
+      const orderRelation = await insertOrderLineRelation(poId, lineId);
+      if (!orderRelation) throw new Error(`Failed to insert create line relation ${orderRelation}`);
     }
     return true;
   } catch (error) {
@@ -104,16 +118,14 @@ export const fetchPurchaseOrder: FetchPurchaseOrder = async (id) => {
     const poId = await selectPurchaseOrderId(id);
     if (!poId) throw new Error(`Failed to select purchase order id for ${id} \n${poId}`);
 
-    const dateCreated = await selectPurchaseOrderDate(poId);
-    if (!dateCreated) throw new Error(`Failed to select date for ${id} \n${dateCreated}`);
-
     const orderRef = await selectOrderReference(poId);
     if (!orderRef) throw new Error(`Failed to select order ref for id ${id} \n${orderRef}`);
 
-    const partRelations = await selectPartRelations(poId);
-    console.log(partRelations);
-    if (!partRelations)
-      throw new Error(`Failed to select part relations for id ${id} \n${partRelations}`);
+    const dateCreated = await selectPurchaseOrderDate(poId);
+    if (!dateCreated) throw new Error(`Failed to select date for ${id} \n${dateCreated}`);
+
+    const lines = await selectPoLines(poId);
+    if (!lines) throw new Error(`No lines for purchase order: ${poId}`);
 
     const retval: PurchaseOrder = {
       dateCreated,
@@ -122,39 +134,40 @@ export const fetchPurchaseOrder: FetchPurchaseOrder = async (id) => {
       partNumbers: [],
     };
 
-    //Begin filling out the order part status
-    for (const { part_number } of partRelations) {
-      //Select details such as description, partial order and so on
-      const part = await selectPartDetails(+part_number);
-      if (!part) throw new Error(`Failed to select part details for ${id} \n${part}`);
+    for (const { line } of lines) {
+      const lineRelations = await selectLineRelations(line);
+      if (!lineRelations)
+        throw new Error(`Error selecting line relations for order: ${id} and line: ${line}`);
 
-      //Select the total amount ordered
-      const totalOrdered = await selectPartTotalOrdered(poId, +part_number);
-      if (!totalOrdered)
-        throw new Error(`Failed to select total ordered for ${id} \n${totalOrdered}`);
+      const part = await selectPartDetails(lineRelations.partId);
+      if (!part) throw new Error(`failed to select part name`);
 
-      //Select if partial
-      const partial = await selectPartPartialStatus(poId, +part_number);
-      if (typeof partial !== "number")
-        throw new Error(`Failed to select part partial status for ${id} \n${partial}`);
+      const dateDue = await selectDateDue(lineRelations.dueDateId);
+      if (!dateDue) throw new Error(`failed to select date due`);
 
-      //Select Location
-      const location = await selectLocationForPart(poId, +part_number);
+      const totalOrdered = await selectPartTotalOrdered(lineRelations.totalOrderedId);
+      if (!totalOrdered) throw new Error(`failed to select total ordered`);
 
-      //Select any orders for this part
-      const partsReceived = await selectPartsReceived(+part_number, poId);
+      const partial = await selectPartPartialStatus(lineRelations.partialId);
+      if (typeof partial !== "number") throw new Error(`Failed to select partial`);
 
-      const dateDue = await selectDateDue(+part_number, poId);
-      if (!dateDue) throw new Error(`Error selecting date due`);
+      const description = await selectDescription(lineRelations.descId);
+      if (!description) throw new Error(`Failed to select description`);
+
+      const location =
+        lineRelations.locationId !== null
+          ? await selectLocation(lineRelations.locationId)
+          : lineRelations.locationId;
 
       retval.partNumbers.push({
         name: part.name,
         dateDue,
-        totalOrdered: +totalOrdered,
+        totalOrdered,
         partial: partial as 0 | 1,
-        description: part.description,
-        partsReceived,
+        description,
+        partsReceived: [],
         location,
+        lineId: line,
       });
     }
 
@@ -173,16 +186,18 @@ export const fetchPurchaseOrder: FetchPurchaseOrder = async (id) => {
  * @param name stirng - partnumber
  * @returns
  */
-export const patchPartialStatus: SetPartialStatus = async (order: string, name: string) => {
+export const patchPartialStatus: SetPartialStatus = async (id: number) => {
   try {
-    const id = await selectPurchaseOrderId(order);
-    if (!id) throw new Error(`Failed to select id for purchase order ${order}`);
+    console.log("id ", id);
+    const res = await runQuery<SelectPartialId>(
+      `SELECT partial_id as partialId FROM \`lines\` WHERE id = ?`,
+      [id]
+    );
+    if ("code" in res) throw new Error(`Failed to select partial_id from lines ${res.message}`);
 
-    const partId = await selectPartId(name);
-    if (!partId) throw new Error(`Failed to fetch part id ${name}`);
+    console.log(res);
 
-    const res = await setPartialStatus(id, partId);
-    if (!res) throw new Error(`Failed to set partial_delivery to 1 for id ${res}`);
+    await setPartialStatus(res[0].partialId);
 
     return true;
   } catch (error) {

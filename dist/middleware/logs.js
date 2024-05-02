@@ -36,11 +36,10 @@ function addLog(log) {
                     message = "User validated there token";
                     break;
                 case "updateLocation":
-                    let { order, part, location } = req.body;
-                    order = (0, utils_1.sanitizeToHtmlEntities)(order);
-                    part = (0, utils_1.sanitizeToHtmlEntities)(part);
+                    let { line, location } = req.body;
+                    line = (0, utils_1.sanitizeToHtmlEntities)(line);
                     location = (0, utils_1.sanitizeToHtmlEntities)(location);
-                    message = `user updated location for ${part} on order ${order} to ${location}`;
+                    message = `user updated location for line ${line} to ${location}`;
                     break;
                 case "isPrefixValid":
                     const { prefix } = req.params;
@@ -63,8 +62,8 @@ function addLog(log) {
                         : "User viewed all purchase order names ";
                     break;
                 case "setPartial":
-                    const { order: o, name } = req.params;
-                    message = `user set ${(0, utils_1.sanitizeToHtmlEntities)(name)} to partial delivery for order ${(0, utils_1.sanitizeToHtmlEntities)(o)}`;
+                    const { index } = req.params;
+                    message = `user set line ${(0, utils_1.sanitizeToHtmlEntities)(index)} to partial delivery `;
                     break;
                 case "addParcel":
                     const { parcels, purchaseOrder, part: pa } = req.body;

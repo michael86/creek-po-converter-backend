@@ -9,7 +9,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const utils_1 = require("../db/queries/utils");
 const locations_1 = require("../db/queries/locations");
 const validate_1 = require("../middleware/validate");
 const express_validator_1 = require("express-validator");
@@ -18,25 +17,14 @@ const express = require("express");
 const router = express.Router();
 const updateLocation = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { order, part, location } = req.body;
-        if (!order || !part || !location) {
+        const { location, line } = req.body;
+        if (!location || !line) {
             res.status(400).send({ token: req.headers.newToken });
         }
-        const orderId = yield (0, utils_1.selectPurchaseOrderId)(order);
-        if (!orderId)
-            throw new Error(`Failed to select order id for ${order}`);
-        const partId = yield (0, utils_1.selectPartId)(part);
-        if (!partId)
-            throw new Error(`Failed to select part id for ${part}`);
-        const id = yield (0, locations_1.selectLocationIdForPart)(orderId, partId);
         const locationId = yield (0, locations_1.selectLocationId)(location);
         if (!locationId)
             throw new Error("Failed to select location id");
-        // purchaseId, partId, location;
-        const query = id
-            ? `UPDATE po_pn_location SET location = ? WHERE purchase_order = ? AND part_number = ?`
-            : `INSERT INTO po_pn_location (location, purchase_order, part_number) VALUES (?, ?, ?)`;
-        const updated = yield (0, locations_1.insertLocation)(orderId, partId, locationId, query);
+        const updated = yield (0, locations_1.patchLocation)(locationId, line);
         if (!updated)
             throw new Error(`Failed to insert location for part`);
         res.send({ token: req.headers.newToken });
@@ -46,9 +34,5 @@ const updateLocation = (req, res) => __awaiter(void 0, void 0, void 0, function*
         res.status(500).send({ token: req.headers.newToken });
     }
 });
-router.post("/update", (0, validate_1.validate)([
-    (0, express_validator_1.body)("order").trim().notEmpty(),
-    (0, express_validator_1.body)("part").trim().notEmpty(),
-    (0, express_validator_1.body)("location").trim().notEmpty(),
-]), (0, logs_1.addLog)("updateLocation"), updateLocation);
+router.post("/update", (0, validate_1.validate)([(0, express_validator_1.body)("line").trim().notEmpty().isNumeric(), (0, express_validator_1.body)("location").trim().notEmpty()]), (0, logs_1.addLog)("updateLocation"), updateLocation);
 module.exports = router;
