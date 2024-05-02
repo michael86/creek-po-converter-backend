@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 02, 2024 at 01:38 PM
+-- Generation Time: May 02, 2024 at 03:36 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -45,21 +45,6 @@ CREATE TABLE `date_due` (
   `date_created` datetime NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `date_due`
---
-
-INSERT INTO `date_due` (`id`, `date_due`, `date_created`) VALUES
-(1, '2024-07-09', '2024-05-02 09:54:39'),
-(2, '2024-08-07', '2024-05-02 09:54:39'),
-(3, '2024-05-02', '2024-05-02 11:48:35'),
-(4, '2024-05-02', '2024-05-02 11:48:35'),
-(5, '2024-05-02', '2024-05-02 11:48:35'),
-(6, '2024-05-02', '2024-05-02 11:48:35'),
-(7, '2024-05-02', '2024-05-02 11:50:09'),
-(8, '2024-05-02', '2024-05-02 11:50:09'),
-(9, '2024-05-02', '2024-05-02 11:50:09');
-
 -- --------------------------------------------------------
 
 --
@@ -71,21 +56,6 @@ CREATE TABLE `descriptions` (
   `description` varchar(255) NOT NULL,
   `date_created` datetime NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `descriptions`
---
-
-INSERT INTO `descriptions` (`id`, `description`, `date_created`) VALUES
-(1, 'CHECK VALVE SEAL [21-0002 ]', '2024-05-02 09:54:39'),
-(2, 'CHECK VALVE SEAL [21-0002 ]', '2024-05-02 09:54:39'),
-(3, '3.9PF 0402 COG/NPO 50V 0.1PF', '2024-05-02 11:48:35'),
-(4, 'ECS-260-12-37B2-CKM-TR', '2024-05-02 11:48:35'),
-(5, '150080RS75000 RED 0805', '2024-05-02 11:48:35'),
-(6, '2.2k 1206 EXB-38V222JV', '2024-05-02 11:48:35'),
-(7, '~CABLE MARKER SIZE 13 NO. 1', '2024-05-02 11:50:09'),
-(8, '~CABLE MARKER SIZE 13 NO. 3', '2024-05-02 11:50:09'),
-(9, 'Carriage & Packing Charge', '2024-05-02 11:50:09');
 
 -- --------------------------------------------------------
 
@@ -104,20 +74,18 @@ CREATE TABLE `lines` (
   `date_created` datetime NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+-- --------------------------------------------------------
+
 --
--- Dumping data for table `lines`
+-- Table structure for table `line_received`
 --
 
-INSERT INTO `lines` (`id`, `part_id`, `description_id`, `total_ordered_id`, `due_date_id`, `partial_id`, `location_id`, `date_created`) VALUES
-(1, 1, 1, 1, 1, 1, 1, '2024-05-02 09:54:39'),
-(2, 1, 2, 2, 2, 2, 10, '2024-05-02 09:54:39'),
-(3, 3, 3, 3, 3, 3, 3, '2024-05-02 11:48:35'),
-(4, 4, 4, 4, 4, 4, 5, '2024-05-02 11:48:35'),
-(5, 5, 5, 5, 5, 5, 13, '2024-05-02 11:48:35'),
-(6, 6, 6, 6, 6, 6, 15, '2024-05-02 11:48:35'),
-(7, 7, 7, 7, 7, 7, NULL, '2024-05-02 11:50:09'),
-(8, 8, 8, 8, 8, 8, NULL, '2024-05-02 11:50:09'),
-(9, 9, 9, 9, 9, 9, NULL, '2024-05-02 11:50:09');
+CREATE TABLE `line_received` (
+  `id` int(11) NOT NULL,
+  `line_id` int(11) NOT NULL,
+  `received_id` int(11) NOT NULL,
+  `date_created` datetime NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -313,96 +281,11 @@ CREATE TABLE `logs` (
 --
 
 INSERT INTO `logs` (`id`, `log`, `user`, `date_created`) VALUES
-(1, 'User validated there token', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 09:54:27'),
-(2, 'User validated there token', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 09:54:32'),
-(3, 'user uploaded file PO&#45;025610&#46;pdf', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 09:54:38'),
-(4, 'User viewed all purchase order names ', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 10:27:22'),
-(5, 'user viewed purchase order 025610', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 10:30:42'),
-(6, 'User validated there token', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 10:46:22'),
-(7, 'User viewed all purchase order names ', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 10:46:25'),
-(8, 'user viewed purchase order 025610', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 10:46:27'),
-(9, 'User viewed all purchase order names ', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 10:47:53'),
-(10, 'user viewed purchase order 025610', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 10:47:55'),
-(11, 'User viewed all purchase order names ', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 10:48:29'),
-(12, 'user viewed purchase order 025610', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 10:48:31'),
-(13, 'User viewed all purchase order names ', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 10:49:02'),
-(14, 'user viewed purchase order 025610', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 10:49:03'),
-(15, 'User viewed all purchase order names ', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 10:49:46'),
-(16, 'user viewed purchase order 025610', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 10:49:47'),
-(17, 'User viewed all purchase order names ', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 11:38:52'),
-(18, 'user viewed purchase order 025610', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 11:38:53'),
-(19, 'User viewed all purchase order names ', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 11:39:34'),
-(20, 'user viewed purchase order 025610', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 11:39:36'),
-(21, 'User viewed all purchase order names ', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 11:40:08'),
-(22, 'user viewed purchase order 025610', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 11:40:10'),
-(23, 'User viewed all purchase order names ', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 11:45:13'),
-(24, 'user viewed purchase order 025610', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 11:45:14'),
-(25, 'user uploaded file PO&#45;025621&#46;pdf', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 11:48:35'),
-(26, 'User viewed all purchase order names ', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 11:48:37'),
-(27, 'user viewed purchase order 025621', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 11:48:39'),
-(28, 'user updated location for ECAPT0997 on order 025621 to A&#45;4', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 11:49:47'),
-(29, 'User validated there token', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 11:49:54'),
-(30, 'User validated there token', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 11:49:59'),
-(31, 'user uploaded file PO&#45;025624&#46;pdf', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 11:50:08'),
-(32, 'User viewed all purchase order names ', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 11:50:11'),
-(33, 'user viewed purchase order 025624', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 11:50:13'),
-(34, 'user viewed purchase order 025610', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 11:57:45'),
-(35, 'User validated there token', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 11:59:34'),
-(36, 'User viewed all purchase order names ', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 12:00:59'),
-(37, 'user viewed purchase order 025621', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 12:01:00'),
-(38, 'User validated there token', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 12:13:09'),
-(39, 'User viewed all purchase order names ', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 12:13:13'),
-(40, 'user viewed purchase order 025610', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 12:13:14'),
-(41, 'User validated there token', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 12:13:43'),
-(42, 'User validated there token', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 12:13:51'),
-(43, 'User viewed all purchase order names ', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 12:13:54'),
-(44, 'user viewed purchase order 025610', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 12:13:55'),
-(45, 'User validated there token', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 12:15:10'),
-(46, 'User validated there token', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 12:15:15'),
-(47, 'User viewed all purchase order names ', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 12:15:18'),
-(48, 'user viewed purchase order 025610', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 12:15:19'),
-(49, 'user updated location for line 1 to A&#45;1', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 12:15:21'),
-(50, 'user viewed purchase order 025621', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 12:15:26'),
-(51, 'user viewed purchase order 025610', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 12:15:28'),
-(52, 'user updated location for line 2 to B&#45;6', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 12:15:35'),
-(53, 'user viewed purchase order 025621', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 12:15:37'),
-(54, 'user updated location for line 3 to A&#45;3', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 12:15:40'),
-(55, 'user updated location for line 4 to B&#45;1', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 12:15:42'),
-(56, 'user updated location for line 5 to B&#45;9', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 12:15:45'),
-(57, 'user updated location for line 6 to B&#45;11', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 12:15:47'),
-(58, 'user viewed purchase order 025610', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 12:15:54'),
-(59, 'user viewed purchase order 025624', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 12:15:56'),
-(60, 'user viewed purchase order 025621', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 12:22:12'),
-(61, 'user viewed purchase order 025610', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 12:22:15'),
-(62, 'User validated there token', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 12:34:46'),
-(63, 'User viewed all purchase order names ', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 12:34:48'),
-(64, 'user viewed purchase order 025610', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 12:34:50'),
-(65, 'user set line 0 to partial delivery ', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 12:34:52'),
-(66, 'User validated there token', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 12:35:24'),
-(67, 'User validated there token', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 12:35:28'),
-(68, 'User viewed all purchase order names ', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 12:35:30'),
-(69, 'user viewed purchase order 025610', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 12:35:31'),
-(70, 'user set line 0 to partial delivery ', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 12:35:35'),
-(71, 'User validated there token', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 12:35:50'),
-(72, 'User validated there token', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 12:35:55'),
-(73, 'User viewed all purchase order names ', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 12:35:57'),
-(74, 'user viewed purchase order 025610', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 12:35:58'),
-(75, 'user set line 0 to partial delivery ', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 12:36:02'),
-(76, 'User validated there token', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 12:36:27'),
-(77, 'User validated there token', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 12:36:35'),
-(78, 'User viewed all purchase order names ', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 12:36:39'),
-(79, 'user viewed purchase order 025610', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 12:36:40'),
-(80, 'user set line 0 to partial delivery ', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 12:36:44'),
-(81, 'User validated there token', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 12:37:52'),
-(82, 'User validated there token', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 12:37:57'),
-(83, 'User viewed all purchase order names ', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 12:37:59'),
-(84, 'user viewed purchase order 025610', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 12:38:00'),
-(85, 'user set line 1 to partial delivery ', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 12:38:04'),
-(86, 'user viewed purchase order 025621', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 12:38:07'),
-(87, 'user viewed purchase order 025610', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 12:38:08'),
-(88, 'user set line 2 to partial delivery ', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 12:38:13'),
-(89, 'user viewed purchase order 025624', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 12:38:16'),
-(90, 'user set line 8 to partial delivery ', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 12:38:19');
+(1, 'User validated there token', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 14:31:57'),
+(2, 'User viewed all purchase order names ', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 14:32:00'),
+(3, 'User validated there token', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 14:33:05'),
+(4, 'User viewed all purchase order names ', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 14:33:07'),
+(5, 'User validated there token', 'michaelh@creekviewelectronics.co.uk', '2024-05-02 14:33:29');
 
 -- --------------------------------------------------------
 
@@ -417,21 +300,6 @@ CREATE TABLE `order_lines` (
   `date_created` datetime NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `order_lines`
---
-
-INSERT INTO `order_lines` (`id`, `order`, `line`, `date_created`) VALUES
-(1, 1, 1, '2024-05-02 09:54:39'),
-(2, 1, 2, '2024-05-02 09:54:39'),
-(3, 2, 3, '2024-05-02 11:48:35'),
-(4, 2, 4, '2024-05-02 11:48:35'),
-(5, 2, 5, '2024-05-02 11:48:35'),
-(6, 2, 6, '2024-05-02 11:48:35'),
-(7, 3, 7, '2024-05-02 11:50:09'),
-(8, 3, 8, '2024-05-02 11:50:09'),
-(9, 3, 9, '2024-05-02 11:50:09');
-
 -- --------------------------------------------------------
 
 --
@@ -444,15 +312,6 @@ CREATE TABLE `order_reference` (
   `date` datetime NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `order_reference`
---
-
-INSERT INTO `order_reference` (`id`, `order_reference`, `date`) VALUES
-(1, '67187/90', '2024-05-02 09:54:39'),
-(2, '067199/200', '2024-05-02 11:48:35'),
-(3, '67158', '2024-05-02 11:50:09');
-
 -- --------------------------------------------------------
 
 --
@@ -464,21 +323,6 @@ CREATE TABLE `partial` (
   `partial_status` tinyint(1) NOT NULL DEFAULT 0,
   `date_created` datetime NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `partial`
---
-
-INSERT INTO `partial` (`id`, `partial_status`, `date_created`) VALUES
-(1, 1, '2024-05-02 09:54:39'),
-(2, 1, '2024-05-02 09:54:39'),
-(3, 0, '2024-05-02 11:48:35'),
-(4, 0, '2024-05-02 11:48:35'),
-(5, 0, '2024-05-02 11:48:35'),
-(6, 0, '2024-05-02 11:48:35'),
-(7, 0, '2024-05-02 11:50:09'),
-(8, 1, '2024-05-02 11:50:09'),
-(9, 0, '2024-05-02 11:50:09');
 
 -- --------------------------------------------------------
 
@@ -493,20 +337,6 @@ CREATE TABLE `part_number` (
   `date_created` datetime NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `part_number`
---
-
-INSERT INTO `part_number` (`id`, `part`, `description`, `date_created`) VALUES
-(1, 'EPART0836', 'CHECK VALVE SEAL [21-0002 ]', '2024-05-02 09:54:39'),
-(3, 'ECAPT0997', '3.9PF 0402 COG/NPO 50V 0.1PF', '2024-05-02 11:48:35'),
-(4, 'ECRYS0109', 'ECS-260-12-37B2-CKM-TR', '2024-05-02 11:48:35'),
-(5, 'ELEDS0237', '150080RS75000 RED 0805', '2024-05-02 11:48:35'),
-(6, 'EREST1347', '2.2k 1206 EXB-38V222JV', '2024-05-02 11:48:35'),
-(7, 'EMARK0004', '~CABLE MARKER SIZE 13 NO. 1', '2024-05-02 11:50:09'),
-(8, 'EMARK0006', '~CABLE MARKER SIZE 13 NO. 3', '2024-05-02 11:50:09'),
-(9, 'CARRIAGE', 'Carriage & Packing Charge', '2024-05-02 11:50:09');
-
 -- --------------------------------------------------------
 
 --
@@ -518,15 +348,6 @@ CREATE TABLE `po_or` (
   `purchase_order` int(32) NOT NULL,
   `order_reference` int(32) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `po_or`
---
-
-INSERT INTO `po_or` (`id`, `purchase_order`, `order_reference`) VALUES
-(1, 1, 1),
-(2, 2, 2),
-(3, 3, 3);
 
 -- --------------------------------------------------------
 
@@ -601,15 +422,6 @@ CREATE TABLE `purchase_order` (
   `date_created` datetime NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `purchase_order`
---
-
-INSERT INTO `purchase_order` (`id`, `purchase_order`, `date_created`) VALUES
-(1, '025610', '2024-05-02 09:54:39'),
-(2, '025621', '2024-05-02 11:48:35'),
-(3, '025624', '2024-05-02 11:50:09');
-
 -- --------------------------------------------------------
 
 --
@@ -627,7 +439,7 @@ CREATE TABLE `tokens` (
 --
 
 INSERT INTO `tokens` (`id`, `token`, `date_created`) VALUES
-(1, 'uvmV9lHtI2nhhPHFjyzBKiQSYO3HQrEr1714649899334', '2024-04-23 15:50:58'),
+(1, 'A5RAtsEuKDmdtJMnJR445wMOsKy90RUH1714656787526', '2024-04-23 15:50:58'),
 (2, '7jzNkjYv5BlVPLK6BeGsQKtlOQsJ65p71714384866312', '2024-04-16 11:02:41'),
 (3, 'MvckUGidFRkUm9RqL5FoIKp96wfpjPfJ1713265791629', '2024-04-16 11:07:28'),
 (4, 'kTcapaesywj4axDYtHOOdpoGhemnD9xh1714555576374', '2024-04-16 11:16:09'),
@@ -649,21 +461,6 @@ CREATE TABLE `total_ordered` (
   `quantity` int(11) NOT NULL,
   `date_created` datetime NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `total_ordered`
---
-
-INSERT INTO `total_ordered` (`id`, `quantity`, `date_created`) VALUES
-(1, 1000, '2024-05-02 09:54:39'),
-(2, 1000, '2024-05-02 09:54:39'),
-(3, 2500, '2024-05-02 11:48:35'),
-(4, 1000, '2024-05-02 11:48:35'),
-(5, 1000, '2024-05-02 11:48:35'),
-(6, 1000, '2024-05-02 11:48:35'),
-(7, 1000, '2024-05-02 11:50:09'),
-(8, 1000, '2024-05-02 11:50:09'),
-(9, 1, '2024-05-02 11:50:09');
 
 -- --------------------------------------------------------
 
@@ -713,96 +510,11 @@ CREATE TABLE `user_log` (
 --
 
 INSERT INTO `user_log` (`id`, `user`, `action`, `date_created`) VALUES
-(1, 1, 1, '2024-05-02 09:54:27'),
-(2, 1, 2, '2024-05-02 09:54:32'),
-(3, 1, 3, '2024-05-02 09:54:38'),
-(4, 1, 4, '2024-05-02 10:27:22'),
-(5, 1, 5, '2024-05-02 10:30:42'),
-(6, 1, 6, '2024-05-02 10:46:22'),
-(7, 1, 7, '2024-05-02 10:46:25'),
-(8, 1, 8, '2024-05-02 10:46:27'),
-(9, 1, 9, '2024-05-02 10:47:53'),
-(10, 1, 10, '2024-05-02 10:47:55'),
-(11, 1, 11, '2024-05-02 10:48:29'),
-(12, 1, 12, '2024-05-02 10:48:31'),
-(13, 1, 13, '2024-05-02 10:49:02'),
-(14, 1, 14, '2024-05-02 10:49:03'),
-(15, 1, 15, '2024-05-02 10:49:46'),
-(16, 1, 16, '2024-05-02 10:49:47'),
-(17, 1, 17, '2024-05-02 11:38:52'),
-(18, 1, 18, '2024-05-02 11:38:53'),
-(19, 1, 19, '2024-05-02 11:39:34'),
-(20, 1, 20, '2024-05-02 11:39:36'),
-(21, 1, 21, '2024-05-02 11:40:08'),
-(22, 1, 22, '2024-05-02 11:40:10'),
-(23, 1, 23, '2024-05-02 11:45:13'),
-(24, 1, 24, '2024-05-02 11:45:14'),
-(25, 1, 25, '2024-05-02 11:48:35'),
-(26, 1, 26, '2024-05-02 11:48:37'),
-(27, 1, 27, '2024-05-02 11:48:39'),
-(28, 1, 28, '2024-05-02 11:49:47'),
-(29, 1, 29, '2024-05-02 11:49:54'),
-(30, 1, 30, '2024-05-02 11:49:59'),
-(31, 1, 31, '2024-05-02 11:50:08'),
-(32, 1, 32, '2024-05-02 11:50:11'),
-(33, 1, 33, '2024-05-02 11:50:13'),
-(34, 1, 34, '2024-05-02 11:57:45'),
-(35, 1, 35, '2024-05-02 11:59:34'),
-(36, 1, 36, '2024-05-02 12:00:59'),
-(37, 1, 37, '2024-05-02 12:01:00'),
-(38, 1, 38, '2024-05-02 12:13:09'),
-(39, 1, 39, '2024-05-02 12:13:13'),
-(40, 1, 40, '2024-05-02 12:13:14'),
-(41, 1, 41, '2024-05-02 12:13:43'),
-(42, 1, 42, '2024-05-02 12:13:51'),
-(43, 1, 43, '2024-05-02 12:13:54'),
-(44, 1, 44, '2024-05-02 12:13:55'),
-(45, 1, 45, '2024-05-02 12:15:10'),
-(46, 1, 46, '2024-05-02 12:15:15'),
-(47, 1, 47, '2024-05-02 12:15:18'),
-(48, 1, 48, '2024-05-02 12:15:19'),
-(49, 1, 49, '2024-05-02 12:15:21'),
-(50, 1, 50, '2024-05-02 12:15:26'),
-(51, 1, 51, '2024-05-02 12:15:28'),
-(52, 1, 52, '2024-05-02 12:15:35'),
-(53, 1, 53, '2024-05-02 12:15:37'),
-(54, 1, 54, '2024-05-02 12:15:40'),
-(55, 1, 55, '2024-05-02 12:15:42'),
-(56, 1, 56, '2024-05-02 12:15:45'),
-(57, 1, 57, '2024-05-02 12:15:47'),
-(58, 1, 58, '2024-05-02 12:15:54'),
-(59, 1, 59, '2024-05-02 12:15:56'),
-(60, 1, 60, '2024-05-02 12:22:12'),
-(61, 1, 61, '2024-05-02 12:22:15'),
-(62, 1, 62, '2024-05-02 12:34:46'),
-(63, 1, 63, '2024-05-02 12:34:48'),
-(64, 1, 64, '2024-05-02 12:34:50'),
-(65, 1, 65, '2024-05-02 12:34:52'),
-(66, 1, 66, '2024-05-02 12:35:24'),
-(67, 1, 67, '2024-05-02 12:35:28'),
-(68, 1, 68, '2024-05-02 12:35:30'),
-(69, 1, 69, '2024-05-02 12:35:32'),
-(70, 1, 70, '2024-05-02 12:35:35'),
-(71, 1, 71, '2024-05-02 12:35:50'),
-(72, 1, 72, '2024-05-02 12:35:55'),
-(73, 1, 73, '2024-05-02 12:35:57'),
-(74, 1, 74, '2024-05-02 12:35:58'),
-(75, 1, 75, '2024-05-02 12:36:02'),
-(76, 1, 76, '2024-05-02 12:36:27'),
-(77, 1, 77, '2024-05-02 12:36:35'),
-(78, 1, 78, '2024-05-02 12:36:39'),
-(79, 1, 79, '2024-05-02 12:36:40'),
-(80, 1, 80, '2024-05-02 12:36:44'),
-(81, 1, 81, '2024-05-02 12:37:52'),
-(82, 1, 82, '2024-05-02 12:37:57'),
-(83, 1, 83, '2024-05-02 12:37:59'),
-(84, 1, 84, '2024-05-02 12:38:00'),
-(85, 1, 85, '2024-05-02 12:38:04'),
-(86, 1, 86, '2024-05-02 12:38:07'),
-(87, 1, 87, '2024-05-02 12:38:08'),
-(88, 1, 88, '2024-05-02 12:38:13'),
-(89, 1, 89, '2024-05-02 12:38:16'),
-(90, 1, 90, '2024-05-02 12:38:19');
+(1, 1, 1, '2024-05-02 14:31:57'),
+(2, 1, 2, '2024-05-02 14:32:00'),
+(3, 1, 3, '2024-05-02 14:33:05'),
+(4, 1, 4, '2024-05-02 14:33:07'),
+(5, 1, 5, '2024-05-02 14:33:29');
 
 -- --------------------------------------------------------
 
@@ -858,6 +570,12 @@ ALTER TABLE `descriptions`
 -- Indexes for table `lines`
 --
 ALTER TABLE `lines`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `line_received`
+--
+ALTER TABLE `line_received`
   ADD PRIMARY KEY (`id`);
 
 --
@@ -963,19 +681,25 @@ ALTER TABLE `amount_received`
 -- AUTO_INCREMENT for table `date_due`
 --
 ALTER TABLE `date_due`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `descriptions`
 --
 ALTER TABLE `descriptions`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `lines`
 --
 ALTER TABLE `lines`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `line_received`
+--
+ALTER TABLE `line_received`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `locations`
@@ -987,37 +711,37 @@ ALTER TABLE `locations`
 -- AUTO_INCREMENT for table `logs`
 --
 ALTER TABLE `logs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=91;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `order_lines`
 --
 ALTER TABLE `order_lines`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `order_reference`
 --
 ALTER TABLE `order_reference`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `partial`
 --
 ALTER TABLE `partial`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `part_number`
 --
 ALTER TABLE `part_number`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `po_or`
 --
 ALTER TABLE `po_or`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `prefixes`
@@ -1029,7 +753,7 @@ ALTER TABLE `prefixes`
 -- AUTO_INCREMENT for table `purchase_order`
 --
 ALTER TABLE `purchase_order`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `tokens`
@@ -1041,7 +765,7 @@ ALTER TABLE `tokens`
 -- AUTO_INCREMENT for table `total_ordered`
 --
 ALTER TABLE `total_ordered`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `users`
@@ -1053,7 +777,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `user_log`
 --
 ALTER TABLE `user_log`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=91;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `user_token`
