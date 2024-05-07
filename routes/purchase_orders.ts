@@ -42,10 +42,10 @@ const addParcel: RequestHandler = async (req, res) => {
 
 const deletePart: RequestHandler = async (req, res) => {
   try {
-    const { order, name }: { order: string; name: string } = req.body;
-    if (!name || !order) return res.status(400).send({ token: req.headers.newToken });
+    const { lineId } = req.body;
+    if (!lineId) return res.status(400).send({ token: req.headers.newToken });
 
-    const result = await removePartFromOrder(order, name.toUpperCase());
+    const result = await removePartFromOrder(lineId);
 
     res.send({ token: req.headers.newToken });
   } catch (error) {
@@ -70,10 +70,6 @@ router.put(
   addParcel
 );
 
-router.post(
-  "/delete/",
-  validate([body("name").exists().trim(), body("order").exists().trim()]),
-  deletePart
-);
+router.post("/delete/", validate([body("lineId").exists().trim().isNumeric()]), deletePart);
 
 module.exports = router;

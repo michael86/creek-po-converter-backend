@@ -14,7 +14,13 @@ import {
   addParcel,
   createLineRelation,
   deleteAmountReceived,
+  deleteDescription,
+  deleteDueDate,
+  deleteLineRelations,
+  deleteOrderLine,
   deleteOrderPartLocation,
+  deleteParcel,
+  deleteParcelRelations,
   deletePartialStatus,
   deleteTotalOrdered,
   insertDateDue,
@@ -191,14 +197,11 @@ export const fetchPurchaseOrder: FetchPurchaseOrder = async (id) => {
  */
 export const patchPartialStatus: SetPartialStatus = async (id: number) => {
   try {
-    console.log("id ", id);
     const res = await runQuery<SelectPartialId>(
       `SELECT partial_id as partialId FROM \`lines\` WHERE id = ?`,
       [id]
     );
     if ("code" in res) throw new Error(`Failed to select partial_id from lines ${res.message}`);
-
-    console.log(res);
 
     await setPartialStatus(res[0].partialId);
 
@@ -235,25 +238,28 @@ export const addParcelsToOrder: AddParcelsToOrder = async (parcels, index) => {
   }
 };
 
-export const removePartFromOrder: RemovePartFromOrder = async (order, part) => {
+export const removePartFromOrder: RemovePartFromOrder = async (id) => {
   try {
-    const orderId = await selectPurchaseOrderId(order);
-    if (!orderId) return;
+    const relations = await selectLineRelations(id);
+    if (!relations) return;
 
-    const partId = await selectPartId(part);
-    if (!partId) return;
+    //Delete part from order
+    await deleteDescription(relations.descId);
+    await deleteTotalOrdered(relations.totalOrderedId);
+    await deleteDueDate(relations.dueDateId);
+    await deletePartialStatus(relations.partialId);
+    await deleteLineRelations(id);
+    await deleteOrderLine(id);
 
-    const totalOrderedId = await selectPartTotalOrderedId(orderId, partId);
-    if (!totalOrderedId) return;
+    //handle edgecase of parcels being received but part being delete.
+    const parcelRelations = await selectPartsReceivedIds(id);
+    if (!parcelRelations) return true;
 
-    await deleteTotalOrdered(Number(totalOrderedId), orderId, partId);
-    await deletePartialStatus(orderId, partId);
-    await deleteOrderPartLocation(orderId, partId); //Dont check if deleted as location may not be assigned so no rows affected
+    for (const { receivedId } of parcelRelations) {
+      await deleteParcel(Number(receivedId));
+    }
 
-    const parcelIds = await selectPartsReceivedIds(orderId, partId);
-    if (!parcelIds?.length) return true;
-
-    const deletedParcels = await deleteAmountReceived(parcelIds, orderId, partId);
+    await deleteParcelRelations(id);
 
     return true;
   } catch (error) {

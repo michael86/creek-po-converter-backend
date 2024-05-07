@@ -155,11 +155,9 @@ exports.fetchPurchaseOrder = fetchPurchaseOrder;
  */
 const patchPartialStatus = (id) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        console.log("id ", id);
         const res = yield (0, connection_1.runQuery)(`SELECT partial_id as partialId FROM \`lines\` WHERE id = ?`, [id]);
         if ("code" in res)
             throw new Error(`Failed to select partial_id from lines ${res.message}`);
-        console.log(res);
         yield (0, utils_1.setPartialStatus)(res[0].partialId);
         return true;
     }
@@ -196,24 +194,26 @@ const addParcelsToOrder = (parcels, index) => __awaiter(void 0, void 0, void 0, 
     }
 });
 exports.addParcelsToOrder = addParcelsToOrder;
-const removePartFromOrder = (order, part) => __awaiter(void 0, void 0, void 0, function* () {
+const removePartFromOrder = (id) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const orderId = yield (0, utils_1.selectPurchaseOrderId)(order);
-        if (!orderId)
+        const relations = yield (0, utils_1.selectLineRelations)(id);
+        if (!relations)
             return;
-        const partId = yield (0, utils_1.selectPartId)(part);
-        if (!partId)
-            return;
-        const totalOrderedId = yield (0, utils_1.selectPartTotalOrderedId)(orderId, partId);
-        if (!totalOrderedId)
-            return;
-        yield (0, utils_1.deleteTotalOrdered)(Number(totalOrderedId), orderId, partId);
-        yield (0, utils_1.deletePartialStatus)(orderId, partId);
-        yield (0, utils_1.deleteOrderPartLocation)(orderId, partId); //Dont check if deleted as location may not be assigned so no rows affected
-        const parcelIds = yield (0, utils_1.selectPartsReceivedIds)(orderId, partId);
-        if (!(parcelIds === null || parcelIds === void 0 ? void 0 : parcelIds.length))
+        //Delete part from order
+        yield (0, utils_1.deleteDescription)(relations.descId);
+        yield (0, utils_1.deleteTotalOrdered)(relations.totalOrderedId);
+        yield (0, utils_1.deleteDueDate)(relations.dueDateId);
+        yield (0, utils_1.deletePartialStatus)(relations.partialId);
+        yield (0, utils_1.deleteLineRelations)(id);
+        yield (0, utils_1.deleteOrderLine)(id);
+        //handle edgecase of parcels being received but part being delete.
+        const parcelRelations = yield (0, utils_1.selectPartsReceivedIds)(id);
+        if (!parcelRelations)
             return true;
-        const deletedParcels = yield (0, utils_1.deleteAmountReceived)(parcelIds, orderId, partId);
+        for (const { receivedId } of parcelRelations) {
+            yield (0, utils_1.deleteParcel)(Number(receivedId));
+        }
+        yield (0, utils_1.deleteParcelRelations)(id);
         return true;
     }
     catch (error) {

@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteAmountReceived = exports.deletePartialStatus = exports.deleteTotalOrdered = exports.deleteOrderPartLocation = exports.selectPurchaseOrderDate = exports.insertParcelRelation = exports.addParcel = exports.setPartialStatus = exports.selectDescription = exports.selectPartPartialStatus = exports.insertDescription = exports.insertOrderLineRelation = exports.createLineRelation = exports.insertDateDue = exports.insertPartToPartial = exports.insertTotalOrdered = exports.insertPartNumber = exports.selectPartId = exports.insertOrderRef = exports.insertPurchaseOrder = exports.selectPartsReceivedIds = exports.selectDateDue = exports.selectPartsReceived = exports.selectPartTotalOrderedId = exports.selectPartTotalOrdered = exports.selectPartDetails = exports.selectPartRelations = exports.selectOrderReference = exports.selectLineRelations = exports.selectPoLines = exports.selectPurchaseOrderId = void 0;
+exports.deleteAmountReceived = exports.deletePartialStatus = exports.deleteDueDate = exports.deleteTotalOrdered = exports.deleteOrderPartLocation = exports.selectPurchaseOrderDate = exports.insertParcelRelation = exports.addParcel = exports.setPartialStatus = exports.selectDescription = exports.selectPartPartialStatus = exports.insertDescription = exports.insertOrderLineRelation = exports.createLineRelation = exports.insertDateDue = exports.insertPartToPartial = exports.insertTotalOrdered = exports.insertPartNumber = exports.selectPartId = exports.insertOrderRef = exports.insertPurchaseOrder = exports.deleteParcelRelations = exports.deleteParcel = exports.selectPartsReceivedIds = exports.selectDateDue = exports.selectPartsReceived = exports.selectPartTotalOrderedId = exports.selectPartTotalOrdered = exports.selectPartDetails = exports.selectPartRelations = exports.selectOrderReference = exports.deleteDescription = exports.deleteOrderLine = exports.deleteLineRelations = exports.selectLineRelations = exports.selectPoLines = exports.selectPurchaseOrderId = void 0;
 const connection_1 = require("../../connection");
 const selectPurchaseOrderId = (purchaseOrder) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -54,6 +54,45 @@ const selectLineRelations = (id) => __awaiter(void 0, void 0, void 0, function* 
     }
 });
 exports.selectLineRelations = selectLineRelations;
+const deleteLineRelations = (id) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const res = yield (0, connection_1.runQuery)(`DELETE FROM \`lines\` WHERE id = ? `, id);
+        if ("code" in res)
+            throw new Error(`Error deleting line ${res.message}`);
+        return res.affectedRows;
+    }
+    catch (error) {
+        console.error(error);
+        return;
+    }
+});
+exports.deleteLineRelations = deleteLineRelations;
+const deleteOrderLine = (id) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const res = yield (0, connection_1.runQuery)(`DELETE FROM \`order_lines\` WHERE line = ? `, id);
+        if ("code" in res)
+            throw new Error(`Error deleting line ${res.message}`);
+        return res.affectedRows;
+    }
+    catch (error) {
+        console.error(error);
+        return;
+    }
+});
+exports.deleteOrderLine = deleteOrderLine;
+const deleteDescription = (id) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const res = yield (0, connection_1.runQuery)(`DELETE FROM \`descriptions\` WHERE id = ?`, [id]);
+        if ("code" in res)
+            throw new Error(`Error deleting description \n${res.message}`);
+        return res.affectedRows;
+    }
+    catch (error) {
+        console.error(error);
+        return;
+    }
+});
+exports.deleteDescription = deleteDescription;
 const selectOrderReference = (id) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const refId = yield (0, connection_1.runQuery)(`SELECT order_reference FROM po_or WHERE purchase_order = ?`, [id]);
@@ -172,6 +211,32 @@ const selectPartsReceivedIds = (lineId) => __awaiter(void 0, void 0, void 0, fun
     }
 });
 exports.selectPartsReceivedIds = selectPartsReceivedIds;
+const deleteParcel = (id) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const res = yield (0, connection_1.runQuery)(`DELETE FROM \`amount_received\` WHERE id = ?`, id);
+        if ("code" in res)
+            throw new Error(`Failed to delete parcel from order \n${res.message}`);
+        return res.affectedRows;
+    }
+    catch (error) {
+        console.error(error);
+        return;
+    }
+});
+exports.deleteParcel = deleteParcel;
+const deleteParcelRelations = (id) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const res = yield (0, connection_1.runQuery)(`DELETE FROM \`line_received\` WHERE line_id = ?`, id);
+        if ("code" in res)
+            throw new Error(`Failed to delete parcel relations ${res.message}`);
+        return true;
+    }
+    catch (error) {
+        console.error(error);
+        return;
+    }
+});
+exports.deleteParcelRelations = deleteParcelRelations;
 const insertPurchaseOrder = (po) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const purchase = yield (0, connection_1.runQuery)(`insert into purchase_order (purchase_order) values (?)`, po);
@@ -416,15 +481,12 @@ const deleteOrderPartLocation = (order, part) => __awaiter(void 0, void 0, void 
     }
 });
 exports.deleteOrderPartLocation = deleteOrderPartLocation;
-const deleteTotalOrdered = (id, order, part) => __awaiter(void 0, void 0, void 0, function* () {
+const deleteTotalOrdered = (id) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const res = yield (0, connection_1.runQuery)(`DELETE FROM total_ordered WHERE id = ?`, [id]);
         if ("code" in res)
             throw new Error(`Failed to delete total ordered for id${id} \n${res.message}`);
-        const relationRes = yield (0, connection_1.runQuery)(`DELETE FROM po_pn_ordered WHERE purchase_order = ? AND part_number = ?`, [order, part]);
-        if ("code" in relationRes)
-            throw new Error(`Failed to delete total ordered relation for id${id} \n${relationRes.message}`);
-        return true;
+        return res.affectedRows;
     }
     catch (error) {
         console.error(error);
@@ -432,11 +494,24 @@ const deleteTotalOrdered = (id, order, part) => __awaiter(void 0, void 0, void 0
     }
 });
 exports.deleteTotalOrdered = deleteTotalOrdered;
-const deletePartialStatus = (order, part) => __awaiter(void 0, void 0, void 0, function* () {
+const deleteDueDate = (id) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const res = yield (0, connection_1.runQuery)(`DELETE FROM po_pn_partial WHERE purchase_order = ? AND part_number = ?`, [order, part]);
+        const res = yield (0, connection_1.runQuery)(`DELETE FROM \`date_due\` WHERE id = ?`, [id]);
         if ("code" in res)
-            throw new Error(`Error deleting partial status for order: ${order} \npart: ${part} \n${res.message}`);
+            throw new Error(`Failed to delete total ordered for id${id} \n${res.message}`);
+        return res.affectedRows;
+    }
+    catch (error) {
+        console.error(error);
+        return;
+    }
+});
+exports.deleteDueDate = deleteDueDate;
+const deletePartialStatus = (id) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const res = yield (0, connection_1.runQuery)(`DELETE FROM \`partial\` WHERE id = ?`, [id]);
+        if ("code" in res)
+            throw new Error(`Error deleting partial status \n${res.message}`);
         return res.affectedRows;
     }
     catch (error) {
