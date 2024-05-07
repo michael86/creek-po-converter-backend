@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.removePartFromOrder = exports.addParcelsToOrder = exports.patchPartialStatus = exports.fetchPurchaseOrder = exports.fetchPurchaseOrders = exports.insertOrderToDb = void 0;
+exports.updateDateDue = exports.selectDateDueRelation = exports.updateDescription = exports.selectDescriptionRelation = exports.removePartFromOrder = exports.addParcelsToOrder = exports.patchPartialStatus = exports.fetchPurchaseOrder = exports.fetchPurchaseOrders = exports.insertOrderToDb = void 0;
 const connection_1 = require("../connection");
 const utils_1 = require("./utils");
 const locations_1 = require("./locations");
@@ -154,17 +154,11 @@ exports.fetchPurchaseOrder = fetchPurchaseOrder;
  * @returns
  */
 const patchPartialStatus = (id) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const res = yield (0, connection_1.runQuery)(`SELECT partial_id as partialId FROM \`lines\` WHERE id = ?`, [id]);
-        if ("code" in res)
-            throw new Error(`Failed to select partial_id from lines ${res.message}`);
-        yield (0, utils_1.setPartialStatus)(res[0].partialId);
-        return true;
-    }
-    catch (error) {
-        console.error(error);
-        return;
-    }
+    const res = yield (0, connection_1.runQuery)(`SELECT partial_id as partialId FROM \`lines\` WHERE id = ?`, [id]);
+    if ("code" in res)
+        throw new Error(`Failed to select partial_id from lines ${res.message}`);
+    yield (0, utils_1.setPartialStatus)(res[0].partialId);
+    return true;
 });
 exports.patchPartialStatus = patchPartialStatus;
 /**
@@ -177,48 +171,67 @@ exports.patchPartialStatus = patchPartialStatus;
  * @returns true | void
  */
 const addParcelsToOrder = (parcels, index) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        for (const parcel of parcels) {
-            const parcelId = yield (0, utils_1.addParcel)(parcel);
-            if (!parcelId)
-                throw new Error(`Failed to insert parcel ${parcelId}`);
-            const relation = yield (0, utils_1.insertParcelRelation)(index, parcelId);
-            if (!relation)
-                throw new Error(`Failed to insert parcel relation ${relation}`);
-        }
-        return true;
+    for (const parcel of parcels) {
+        const parcelId = yield (0, utils_1.addParcel)(parcel);
+        if (!parcelId)
+            throw new Error(`Failed to insert parcel ${parcelId}`);
+        const relation = yield (0, utils_1.insertParcelRelation)(index, parcelId);
+        if (!relation)
+            throw new Error(`Failed to insert parcel relation ${relation}`);
     }
-    catch (error) {
-        console.error(error);
-        return;
-    }
+    return true;
 });
 exports.addParcelsToOrder = addParcelsToOrder;
 const removePartFromOrder = (id) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const relations = yield (0, utils_1.selectLineRelations)(id);
-        if (!relations)
-            return;
-        //Delete part from order
-        yield (0, utils_1.deleteDescription)(relations.descId);
-        yield (0, utils_1.deleteTotalOrdered)(relations.totalOrderedId);
-        yield (0, utils_1.deleteDueDate)(relations.dueDateId);
-        yield (0, utils_1.deletePartialStatus)(relations.partialId);
-        yield (0, utils_1.deleteLineRelations)(id);
-        yield (0, utils_1.deleteOrderLine)(id);
-        //handle edgecase of parcels being received but part being delete.
-        const parcelRelations = yield (0, utils_1.selectPartsReceivedIds)(id);
-        if (!parcelRelations)
-            return true;
-        for (const { receivedId } of parcelRelations) {
-            yield (0, utils_1.deleteParcel)(Number(receivedId));
-        }
-        yield (0, utils_1.deleteParcelRelations)(id);
-        return true;
-    }
-    catch (error) {
-        console.error(error);
+    const relations = yield (0, utils_1.selectLineRelations)(id);
+    if (!relations)
         return;
+    //Delete part from order
+    yield (0, utils_1.deleteDescription)(relations.descId);
+    yield (0, utils_1.deleteTotalOrdered)(relations.totalOrderedId);
+    yield (0, utils_1.deleteDueDate)(relations.dueDateId);
+    yield (0, utils_1.deletePartialStatus)(relations.partialId);
+    yield (0, utils_1.deleteLineRelations)(id);
+    yield (0, utils_1.deleteOrderLine)(id);
+    //handle edgecase of parcels being received but part being delete.
+    const parcelRelations = yield (0, utils_1.selectPartsReceivedIds)(id);
+    if (!parcelRelations)
+        return true;
+    for (const { receivedId } of parcelRelations) {
+        yield (0, utils_1.deleteParcel)(Number(receivedId));
     }
+    yield (0, utils_1.deleteParcelRelations)(id);
+    return true;
 });
 exports.removePartFromOrder = removePartFromOrder;
+const selectDescriptionRelation = (id) => __awaiter(void 0, void 0, void 0, function* () {
+    const res = yield (0, connection_1.runQuery)(`SELECT description_id as id from \`lines\` WHERE id = ?`, id);
+    if ("code" in res)
+        throw new Error(`Error selecting description id: ${res.message}`);
+    return res[0].id;
+});
+exports.selectDescriptionRelation = selectDescriptionRelation;
+const updateDescription = (desc, id) => __awaiter(void 0, void 0, void 0, function* () {
+    const relation = yield (0, exports.selectDescriptionRelation)(id);
+    const res = yield (0, utils_1.selectDescription)(relation);
+    return res;
+});
+exports.updateDescription = updateDescription;
+const selectDateDueRelation = (id) => __awaiter(void 0, void 0, void 0, function* () {
+    const res = yield (0, connection_1.runQuery)(`SELECT due_date_id AS id FROM \`lines\` WHERE id = ?`, id);
+    if ("code" in res)
+        throw new Error(`Failed to select due date relation: ${res.message}`);
+    return res[0].id;
+});
+exports.selectDateDueRelation = selectDateDueRelation;
+const updateDateDue = (dateDue, id) => __awaiter(void 0, void 0, void 0, function* () {
+    const relation = yield (0, exports.selectDateDueRelation)(id);
+    const res = yield (0, connection_1.runQuery)(`UPDATE date_due SET date_due = ? WHERE id = ?`, [
+        dateDue,
+        relation,
+    ]);
+    if ("code" in res)
+        throw new Error(`Failed to patch date due: ${res.message}`);
+    return true;
+});
+exports.updateDateDue = updateDateDue;

@@ -31,7 +31,7 @@
     "baseUrl": ".",
     "paths": {
       "@types_sql/*": ["types/sql/*"],
-      "@types_utils/*": ["types/utils/*"],
+
       "@user_queries": ["db/queries/user.ts"],
       "@order_queries": ["db/queries/order.ts"],
       "@parts_queries": ["db/queries/parts.ts"]
