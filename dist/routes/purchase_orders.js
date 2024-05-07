@@ -45,10 +45,10 @@ const addParcel = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
 });
 const deletePart = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { order, name } = req.body;
-        if (!name || !order)
+        const { lineId } = req.body;
+        if (!lineId)
             return res.status(400).send({ token: req.headers.newToken });
-        const result = yield (0, orders_1.removePartFromOrder)(order, name.toUpperCase());
+        const result = yield (0, orders_1.removePartFromOrder)(lineId);
         res.send({ token: req.headers.newToken });
     }
     catch (error) {
@@ -61,5 +61,5 @@ router.put("/add-parcel/", (0, validate_1.validate)([
     (0, express_validator_1.body)("parcels.*").exists().trim().isNumeric(),
     (0, express_validator_1.body)("index").exists().trim().isNumeric(),
 ]), (0, logs_1.addLog)("addParcel"), addParcel);
-router.post("/delete/", (0, validate_1.validate)([(0, express_validator_1.body)("name").exists().trim(), (0, express_validator_1.body)("order").exists().trim()]), deletePart);
+router.post("/delete/", (0, validate_1.validate)([(0, express_validator_1.body)("lineId").exists().trim().isNumeric()]), deletePart);
 module.exports = router;

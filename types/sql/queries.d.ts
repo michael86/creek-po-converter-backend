@@ -19,7 +19,7 @@ export type FetchPurchaseOrder = (id: string) => Promise<PurchaseOrder | void>;
 export type FetchPurchaseOrders = () => Promise<string[] | void>;
 export type SetPartialStatus = (id: number) => Promise<true | void>;
 export type AddParcelsToOrder = (parcels: number[], index: number) => Promise<true | void>;
-export type RemovePartFromOrder = (order: string, part: string) => Promise<true | void>;
+export type RemovePartFromOrder = (id: number) => Promise<true | void>;
 
 //SQL Select
 export type SelectPoId = { id: string }[];

@@ -71,6 +71,40 @@ export const selectLineRelations = async (id: number) => {
   }
 };
 
+export const deleteLineRelations = async (id: number) => {
+  try {
+    const res = await runQuery<PutRequest>(`DELETE FROM \`lines\` WHERE id = ? `, id);
+    if ("code" in res) throw new Error(`Error deleting line ${res.message}`);
+    return res.affectedRows;
+  } catch (error) {
+    console.error(error);
+    return;
+  }
+};
+
+export const deleteOrderLine = async (id: number) => {
+  try {
+    const res = await runQuery<PutRequest>(`DELETE FROM \`order_lines\` WHERE line = ? `, id);
+    if ("code" in res) throw new Error(`Error deleting line ${res.message}`);
+    return res.affectedRows;
+  } catch (error) {
+    console.error(error);
+    return;
+  }
+};
+
+export const deleteDescription = async (id: number) => {
+  try {
+    const res = await runQuery<PutRequest>(`DELETE FROM \`descriptions\` WHERE id = ?`, [id]);
+    if ("code" in res) throw new Error(`Error deleting description \n${res.message}`);
+
+    return res.affectedRows;
+  } catch (error) {
+    console.error(error);
+    return;
+  }
+};
+
 export const selectOrderReference = async (id: number) => {
   try {
     const refId = await runQuery<SelectOrderReference>(
@@ -214,6 +248,29 @@ export const selectPartsReceivedIds = async (lineId: number) => {
     if (!res.length) return;
 
     return res;
+  } catch (error) {
+    console.error(error);
+    return;
+  }
+};
+
+export const deleteParcel = async (id: number) => {
+  try {
+    const res = await runQuery<PutRequest>(`DELETE FROM \`amount_received\` WHERE id = ?`, id);
+    if ("code" in res) throw new Error(`Failed to delete parcel from order \n${res.message}`);
+
+    return res.affectedRows;
+  } catch (error) {
+    console.error(error);
+    return;
+  }
+};
+
+export const deleteParcelRelations = async (id: number) => {
+  try {
+    const res = await runQuery<PutRequest>(`DELETE FROM \`line_received\` WHERE line_id = ?`, id);
+    if ("code" in res) throw new Error(`Failed to delete parcel relations ${res.message}`);
+    return true;
   } catch (error) {
     console.error(error);
     return;
@@ -518,38 +575,36 @@ export const deleteOrderPartLocation = async (order: number, part: number) => {
   }
 };
 
-export const deleteTotalOrdered = async (id: number, order: number, part: number) => {
+export const deleteTotalOrdered = async (id: number) => {
   try {
     const res = await runQuery<PutRequest>(`DELETE FROM total_ordered WHERE id = ?`, [id]);
     if ("code" in res)
       throw new Error(`Failed to delete total ordered for id${id} \n${res.message}`);
 
-    const relationRes = await runQuery<PutRequest>(
-      `DELETE FROM po_pn_ordered WHERE purchase_order = ? AND part_number = ?`,
-      [order, part]
-    );
-    if ("code" in relationRes)
-      throw new Error(
-        `Failed to delete total ordered relation for id${id} \n${relationRes.message}`
-      );
-
-    return true;
+    return res.affectedRows;
   } catch (error) {
     console.error(error);
     return;
   }
 };
 
-export const deletePartialStatus = async (order: number, part: number) => {
+export const deleteDueDate = async (id: number) => {
   try {
-    const res = await runQuery<PutRequest>(
-      `DELETE FROM po_pn_partial WHERE purchase_order = ? AND part_number = ?`,
-      [order, part]
-    );
+    const res = await runQuery<PutRequest>(`DELETE FROM \`date_due\` WHERE id = ?`, [id]);
     if ("code" in res)
-      throw new Error(
-        `Error deleting partial status for order: ${order} \npart: ${part} \n${res.message}`
-      );
+      throw new Error(`Failed to delete total ordered for id${id} \n${res.message}`);
+
+    return res.affectedRows;
+  } catch (error) {
+    console.error(error);
+    return;
+  }
+};
+
+export const deletePartialStatus = async (id: number) => {
+  try {
+    const res = await runQuery<PutRequest>(`DELETE FROM \`partial\` WHERE id = ?`, [id]);
+    if ("code" in res) throw new Error(`Error deleting partial status \n${res.message}`);
 
     return res.affectedRows;
   } catch (error) {
