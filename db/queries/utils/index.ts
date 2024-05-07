@@ -221,19 +221,14 @@ export const selectPartsReceived = async (receviedIds: SelectCountRelation) => {
 };
 
 export const selectDateDue = async (id: number) => {
-  try {
-    const res = await runQuery<SelectDueDateRelation>(
-      `SELECT UNIX_TIMESTAMP(date_due) as dueDate FROM date_due WHERE id = ?`,
-      [id]
-    );
+  const res = await runQuery<SelectDueDateRelation>(
+    `SELECT UNIX_TIMESTAMP(date_due) as dueDate FROM date_due WHERE id = ?`,
+    [id]
+  );
 
-    if ("code" in res) throw new Error(`Error selecting due date \n${res.message}`);
+  if ("code" in res) throw new Error(`Error selecting due date \n${res.message}`);
 
-    return res[0].dueDate;
-  } catch (error) {
-    console.error(error);
-    return;
-  }
+  return res[0].dueDate;
 };
 
 export const selectPartsReceivedIds = async (lineId: number) => {
@@ -477,17 +472,40 @@ export const selectPartPartialStatus = async (id: number) => {
 };
 
 export const selectDescription = async (id: number) => {
-  try {
-    const res = await runQuery<SelectDescription>(
-      `SELECT description from descriptions WHERE id = ?`,
-      [id]
-    );
-    if ("code" in res) throw new Error(`Failed to select description ${res.message}`);
-    return res[0].description;
-  } catch (error) {
-    console.error(error);
-    return;
-  }
+  const res = await runQuery<SelectDescription>(
+    `SELECT description from descriptions WHERE id = ?`,
+    [id]
+  );
+  if ("code" in res) throw new Error(`Failed to select description ${res.message}`);
+  return res[0].description;
+};
+
+export const updateDescription = async (desc: string, id: number) => {
+  const res = await runQuery<PutRequest>(`UPDATE descriptions SET description = ? WHERE id = ?`, [
+    desc,
+    id,
+  ]);
+  if ("code" in res) throw new Error(`Failed to select description ${res.message}`);
+  return res.affectedRows;
+};
+
+export const updateTotalOrdered = async (count: number, id: number) => {
+  const relation = await runQuery<{ id: number }[]>(
+    `SELECT total_ordered_id as id FROM \`lines\` WHERE id = ?`,
+    id
+  );
+  if ("code" in relation) throw new Error(`Failed to select total ordered id: ${relation.message}`);
+
+  return await updatePartTotalOrdered(count, relation[0].id);
+};
+
+export const updatePartTotalOrdered = async (count: number, id: number) => {
+  const res = await runQuery<PutRequest>(`UPDATE total_ordered SET quantity = ? WHERE id = ?`, [
+    count,
+    id,
+  ]);
+  if ("code" in res) throw new Error(`Failed to update total ordered count: ${res.message}`);
+  return res.affectedRows;
 };
 
 export const setPartialStatus = async (id: number) => {

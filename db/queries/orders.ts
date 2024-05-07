@@ -9,7 +9,7 @@ import {
 } from "@types_sql/queries";
 import { PDFStructure, PurchaseOrder } from "types/generic";
 import { runQuery } from "../connection";
-import { FecthRequest } from "@types_sql/index";
+import { FecthRequest, PutRequest } from "@types_sql/index";
 import {
   addParcel,
   createLineRelation,
@@ -196,20 +196,15 @@ export const fetchPurchaseOrder: FetchPurchaseOrder = async (id) => {
  * @returns
  */
 export const patchPartialStatus: SetPartialStatus = async (id: number) => {
-  try {
-    const res = await runQuery<SelectPartialId>(
-      `SELECT partial_id as partialId FROM \`lines\` WHERE id = ?`,
-      [id]
-    );
-    if ("code" in res) throw new Error(`Failed to select partial_id from lines ${res.message}`);
+  const res = await runQuery<SelectPartialId>(
+    `SELECT partial_id as partialId FROM \`lines\` WHERE id = ?`,
+    [id]
+  );
+  if ("code" in res) throw new Error(`Failed to select partial_id from lines ${res.message}`);
 
-    await setPartialStatus(res[0].partialId);
+  await setPartialStatus(res[0].partialId);
 
-    return true;
-  } catch (error) {
-    console.error(error);
-    return;
-  }
+  return true;
 };
 
 /**
@@ -223,47 +218,71 @@ export const patchPartialStatus: SetPartialStatus = async (id: number) => {
  */
 
 export const addParcelsToOrder: AddParcelsToOrder = async (parcels, index) => {
-  try {
-    for (const parcel of parcels) {
-      const parcelId = await addParcel(parcel);
-      if (!parcelId) throw new Error(`Failed to insert parcel ${parcelId}`);
-      const relation = await insertParcelRelation(index, parcelId);
-      if (!relation) throw new Error(`Failed to insert parcel relation ${relation}`);
-    }
-
-    return true;
-  } catch (error) {
-    console.error(error);
-    return;
+  for (const parcel of parcels) {
+    const parcelId = await addParcel(parcel);
+    if (!parcelId) throw new Error(`Failed to insert parcel ${parcelId}`);
+    const relation = await insertParcelRelation(index, parcelId);
+    if (!relation) throw new Error(`Failed to insert parcel relation ${relation}`);
   }
+
+  return true;
 };
 
 export const removePartFromOrder: RemovePartFromOrder = async (id) => {
-  try {
-    const relations = await selectLineRelations(id);
-    if (!relations) return;
+  const relations = await selectLineRelations(id);
+  if (!relations) return;
 
-    //Delete part from order
-    await deleteDescription(relations.descId);
-    await deleteTotalOrdered(relations.totalOrderedId);
-    await deleteDueDate(relations.dueDateId);
-    await deletePartialStatus(relations.partialId);
-    await deleteLineRelations(id);
-    await deleteOrderLine(id);
+  //Delete part from order
+  await deleteDescription(relations.descId);
+  await deleteTotalOrdered(relations.totalOrderedId);
+  await deleteDueDate(relations.dueDateId);
+  await deletePartialStatus(relations.partialId);
+  await deleteLineRelations(id);
+  await deleteOrderLine(id);
 
-    //handle edgecase of parcels being received but part being delete.
-    const parcelRelations = await selectPartsReceivedIds(id);
-    if (!parcelRelations) return true;
+  //handle edgecase of parcels being received but part being delete.
+  const parcelRelations = await selectPartsReceivedIds(id);
+  if (!parcelRelations) return true;
 
-    for (const { receivedId } of parcelRelations) {
-      await deleteParcel(Number(receivedId));
-    }
-
-    await deleteParcelRelations(id);
-
-    return true;
-  } catch (error) {
-    console.error(error);
-    return;
+  for (const { receivedId } of parcelRelations) {
+    await deleteParcel(Number(receivedId));
   }
+
+  await deleteParcelRelations(id);
+
+  return true;
+};
+
+export const selectDescriptionRelation = async (id: number) => {
+  const res = await runQuery<{ id: number }[]>(
+    `SELECT description_id as id from \`lines\` WHERE id = ?`,
+    id
+  );
+  if ("code" in res) throw new Error(`Error selecting description id: ${res.message}`);
+  return res[0].id;
+};
+
+export const updateDescription = async (desc: string, id: number) => {
+  const relation = await selectDescriptionRelation(id);
+  const res = await selectDescription(relation);
+  return res;
+};
+
+export const selectDateDueRelation = async (id: number) => {
+  const res = await runQuery<{ id: number }[]>(
+    `SELECT due_date_id AS id FROM \`lines\` WHERE id = ?`,
+    id
+  );
+  if ("code" in res) throw new Error(`Failed to select due date relation: ${res.message}`);
+  return res[0].id;
+};
+
+export const updateDateDue = async (dateDue: string, id: number) => {
+  const relation = await selectDateDueRelation(id);
+  const res = await runQuery<PutRequest>(`UPDATE date_due SET date_due = ? WHERE id = ?`, [
+    dateDue,
+    relation,
+  ]);
+  if ("code" in res) throw new Error(`Failed to patch date due: ${res.message}`);
+  return true;
 };

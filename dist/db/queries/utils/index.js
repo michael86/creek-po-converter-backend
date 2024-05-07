@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteAmountReceived = exports.deletePartialStatus = exports.deleteDueDate = exports.deleteTotalOrdered = exports.deleteOrderPartLocation = exports.selectPurchaseOrderDate = exports.insertParcelRelation = exports.addParcel = exports.setPartialStatus = exports.selectDescription = exports.selectPartPartialStatus = exports.insertDescription = exports.insertOrderLineRelation = exports.createLineRelation = exports.insertDateDue = exports.insertPartToPartial = exports.insertTotalOrdered = exports.insertPartNumber = exports.selectPartId = exports.insertOrderRef = exports.insertPurchaseOrder = exports.deleteParcelRelations = exports.deleteParcel = exports.selectPartsReceivedIds = exports.selectDateDue = exports.selectPartsReceived = exports.selectPartTotalOrderedId = exports.selectPartTotalOrdered = exports.selectPartDetails = exports.selectPartRelations = exports.selectOrderReference = exports.deleteDescription = exports.deleteOrderLine = exports.deleteLineRelations = exports.selectLineRelations = exports.selectPoLines = exports.selectPurchaseOrderId = void 0;
+exports.deleteAmountReceived = exports.deletePartialStatus = exports.deleteDueDate = exports.deleteTotalOrdered = exports.deleteOrderPartLocation = exports.selectPurchaseOrderDate = exports.insertParcelRelation = exports.addParcel = exports.setPartialStatus = exports.updatePartTotalOrdered = exports.updateTotalOrdered = exports.updateDescription = exports.selectDescription = exports.selectPartPartialStatus = exports.insertDescription = exports.insertOrderLineRelation = exports.createLineRelation = exports.insertDateDue = exports.insertPartToPartial = exports.insertTotalOrdered = exports.insertPartNumber = exports.selectPartId = exports.insertOrderRef = exports.insertPurchaseOrder = exports.deleteParcelRelations = exports.deleteParcel = exports.selectPartsReceivedIds = exports.selectDateDue = exports.selectPartsReceived = exports.selectPartTotalOrderedId = exports.selectPartTotalOrdered = exports.selectPartDetails = exports.selectPartRelations = exports.selectOrderReference = exports.deleteDescription = exports.deleteOrderLine = exports.deleteLineRelations = exports.selectLineRelations = exports.selectPoLines = exports.selectPurchaseOrderId = void 0;
 const connection_1 = require("../../connection");
 const selectPurchaseOrderId = (purchaseOrder) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -184,16 +184,10 @@ const selectPartsReceived = (receviedIds) => __awaiter(void 0, void 0, void 0, f
 });
 exports.selectPartsReceived = selectPartsReceived;
 const selectDateDue = (id) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const res = yield (0, connection_1.runQuery)(`SELECT UNIX_TIMESTAMP(date_due) as dueDate FROM date_due WHERE id = ?`, [id]);
-        if ("code" in res)
-            throw new Error(`Error selecting due date \n${res.message}`);
-        return res[0].dueDate;
-    }
-    catch (error) {
-        console.error(error);
-        return;
-    }
+    const res = yield (0, connection_1.runQuery)(`SELECT UNIX_TIMESTAMP(date_due) as dueDate FROM date_due WHERE id = ?`, [id]);
+    if ("code" in res)
+        throw new Error(`Error selecting due date \n${res.message}`);
+    return res[0].dueDate;
 });
 exports.selectDateDue = selectDateDue;
 const selectPartsReceivedIds = (lineId) => __awaiter(void 0, void 0, void 0, function* () {
@@ -404,18 +398,39 @@ const selectPartPartialStatus = (id) => __awaiter(void 0, void 0, void 0, functi
 });
 exports.selectPartPartialStatus = selectPartPartialStatus;
 const selectDescription = (id) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const res = yield (0, connection_1.runQuery)(`SELECT description from descriptions WHERE id = ?`, [id]);
-        if ("code" in res)
-            throw new Error(`Failed to select description ${res.message}`);
-        return res[0].description;
-    }
-    catch (error) {
-        console.error(error);
-        return;
-    }
+    const res = yield (0, connection_1.runQuery)(`SELECT description from descriptions WHERE id = ?`, [id]);
+    if ("code" in res)
+        throw new Error(`Failed to select description ${res.message}`);
+    return res[0].description;
 });
 exports.selectDescription = selectDescription;
+const updateDescription = (desc, id) => __awaiter(void 0, void 0, void 0, function* () {
+    const res = yield (0, connection_1.runQuery)(`UPDATE descriptions SET description = ? WHERE id = ?`, [
+        desc,
+        id,
+    ]);
+    if ("code" in res)
+        throw new Error(`Failed to select description ${res.message}`);
+    return res.affectedRows;
+});
+exports.updateDescription = updateDescription;
+const updateTotalOrdered = (count, id) => __awaiter(void 0, void 0, void 0, function* () {
+    const relation = yield (0, connection_1.runQuery)(`SELECT total_ordered_id as id FROM \`lines\` WHERE id = ?`, id);
+    if ("code" in relation)
+        throw new Error(`Failed to select total ordered id: ${relation.message}`);
+    return yield (0, exports.updatePartTotalOrdered)(count, relation[0].id);
+});
+exports.updateTotalOrdered = updateTotalOrdered;
+const updatePartTotalOrdered = (count, id) => __awaiter(void 0, void 0, void 0, function* () {
+    const res = yield (0, connection_1.runQuery)(`UPDATE total_ordered SET quantity = ? WHERE id = ?`, [
+        count,
+        id,
+    ]);
+    if ("code" in res)
+        throw new Error(`Failed to update total ordered count: ${res.message}`);
+    return res.affectedRows;
+});
+exports.updatePartTotalOrdered = updatePartTotalOrdered;
 const setPartialStatus = (id) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const patched = yield (0, connection_1.runQuery)(`UPDATE partial SET partial_status = 1 WHERE id = ?`, [id]);
