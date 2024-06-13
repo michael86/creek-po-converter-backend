@@ -3,6 +3,11 @@ Back end for [Creek PO Converter]([docs/CONTRIBUTING.md](https://github.com/mich
 
 A simple CRUD API for interacting with a sql database storing information from purchase orders and allowing users to view, and update the status on parts being delivered. 
 
+## Tech used
+1. NodeJS
+2. Express
+3. MySQL
+
 ## Middleware
 
 1. [Express-validator](https://www.npmjs.com/package/express-validator) to validate and sanitize data received from the client
