@@ -37,6 +37,7 @@ const getData: GetData = async (rows) => {
 
 const shouldIncludeString: ShouldIncludeString = async (string, row) => {
   const prefixes = await fetchPrefixes();
+  
   if (!prefixes) return;
 
   return prefixes.some(
@@ -50,7 +51,7 @@ const getOrderReference = (rows: Rows) => {
   let filtered = rows.filter(
     (row) => row.length === 3 && row[0].toLowerCase().includes("order refer")
   );
-
+  console.log(`filtered ${filtered}`)
   if (!filtered[0]?.[1]) return;
   return filtered[0][1];
 };
@@ -71,9 +72,12 @@ export const processFile = async (file: string, cb: CallableFunction) => {
       if (err) throw new Error(`pdf2table ${err}`);
 
       const DATA = await getData(rows);
-
+      console.log(`DATA ${DATA}`)
       const ORDER_REFERENCE = getOrderReference(rows);
+      console.log(`ORDER_REFERENCE ${ORDER_REFERENCE}`)
+
       const PURCHASE_ORDER = getPurchaseOrder(rows);
+      console.log(`PURCHASE_ORDER ${PURCHASE_ORDER}`)
 
       if (!ORDER_REFERENCE || !PURCHASE_ORDER) {
         cb(null);

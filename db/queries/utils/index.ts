@@ -220,14 +220,16 @@ export const selectPartsReceived = async (receviedIds: SelectCountRelation) => {
   }
 };
 
+
 export const selectDateDue = async (id: number) => {
+
   const res = await runQuery<SelectDueDateRelation>(
     `SELECT UNIX_TIMESTAMP(date_due) as dueDate FROM date_due WHERE id = ?`,
     [id]
   );
 
   if ("code" in res) throw new Error(`Error selecting due date \n${res.message}`);
-
+  
   return res[0].dueDate;
 };
 
