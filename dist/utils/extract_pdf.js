@@ -48,6 +48,7 @@ const shouldIncludeString = (string, row) => __awaiter(void 0, void 0, void 0, f
 const getOrderReference = (rows) => {
     var _a;
     let filtered = rows.filter((row) => row.length === 3 && row[0].toLowerCase().includes("order refer"));
+    console.log(`filtered ${filtered}`);
     if (!((_a = filtered[0]) === null || _a === void 0 ? void 0 : _a[1]))
         return;
     return filtered[0][1];
@@ -69,8 +70,11 @@ const processFile = (file, cb) => __awaiter(void 0, void 0, void 0, function* ()
                 if (err)
                     throw new Error(`pdf2table ${err}`);
                 const DATA = yield getData(rows);
+                console.log(`DATA ${DATA}`);
                 const ORDER_REFERENCE = getOrderReference(rows);
+                console.log(`ORDER_REFERENCE ${ORDER_REFERENCE}`);
                 const PURCHASE_ORDER = getPurchaseOrder(rows);
+                console.log(`PURCHASE_ORDER ${PURCHASE_ORDER}`);
                 if (!ORDER_REFERENCE || !PURCHASE_ORDER) {
                     cb(null);
                     return;
