@@ -123,6 +123,7 @@ const validateUserToken = (email, tokenReceived) => __awaiter(void 0, void 0, vo
         ]);
         if ("code" in token)
             throw new Error(`Failed to validate user token\nNo token for token id ${token.message}`);
+        console.log("passed token validation");
         return tokenReceived === token[0].token;
     }
     catch (error) {

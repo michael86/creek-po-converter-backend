@@ -53,23 +53,41 @@ const handleLogin: RequestHandler = async (req, res) => {
       return;
     }
 
-    let user = await validateLogin(email);
+    console.log("\x1b[31m", "--------------------------------------------------------");
+    console.log("NEW LOGIN");
 
+    console.log("\x1b[37m", "email: ", email);
+    console.log("password: ", password.length);
+    let user = await validateLogin(email);
+    console.log("user: ", user);
     if (!user?.length) {
       res.send({ status: 2 });
       return;
     }
 
     if (sha256(password) !== user[0]) {
+      console.log("password doesn't match");
+      console.log("\x1b[31m", "END LOG IN");
+      console.log("\x1b[31m", "--------------------------------------------------------");
+      console.log("\x1b[37m", "");
+      console.log("\x1b[0m", "");
       res.send({ status: 2 });
       return;
     }
+
     const token = generateToken();
+    console.log("token: ", token);
     if (!token) throw new Error(`Failed to generate token ${token}`);
 
     const tokenStored = await updateUserToken(email, token);
+    console.log("tokenStored: ", tokenStored);
     if (!tokenStored)
       throw new Error(`Failed to update user token on logging in %\n ${tokenStored}`);
+
+    console.log("\x1b[31m", "END LOG IN");
+    console.log("\x1b[31m", "--------------------------------------------------------");
+    console.log("\x1b[37m", "");
+    console.log("\x1b[0m", "");
 
     res.send({ status: 1, token, role: await getUserRole(email) });
   } catch (error) {
@@ -81,15 +99,22 @@ const handleLogin: RequestHandler = async (req, res) => {
 const validateToken: RequestHandler = async (req, res) => {
   const { token, email } = req.params;
 
+  console.log("\x1b[31m", "--------------------------------------------------------");
+  console.log("\x1b[31m", "New Token Validation");
+
   try {
     if (!token || !email) throw new Error(`validate token failed ${token}`);
+    console.log("Token: ", token);
+    console.log("email: ", email);
     const valid = await validateUserToken(email, token);
-
+    console.log("valid: ", valid);
     if (!valid) {
       res.send({ valid });
       return;
     }
 
+    console.log("\x1b[31m", "End Token Validation");
+    console.log("\x1b[31m", "--------------------------------------------------------");
     res.send({ valid, role: await getUserRole(email) });
   } catch (error) {
     console.error("Error validating token ", error);
@@ -100,13 +125,19 @@ const validateToken: RequestHandler = async (req, res) => {
 const handleLogout: RequestHandler = async (req, res) => {
   const { token, email } = req.headers as UserHeaders;
 
+  console.log("\x1b[31m", "--------------------------------------------------------");
+  console.log("\x1b[31m", "New Log Out");
+
   try {
     if (!token || !email)
       throw new Error(`Failed to log out user \n TOKEN: ${token}\n EMAIL: ${email}`);
 
     const loggedout = await setTokenToNull(email, token);
+    console.log("logged out: ", loggedout);
     if (!loggedout) throw new Error(`Failed to log out user ${loggedout}`);
 
+    console.log("\x1b[31m", "End Log Out");
+    console.log("\x1b[31m", "--------------------------------------------------------");
     res.send({ status: 1 });
   } catch (error) {
     console.error(error);

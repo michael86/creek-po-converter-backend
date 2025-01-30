@@ -133,7 +133,7 @@ export const validateUserToken: ValidateUserToken = async (
     ]);
     if ("code" in token)
       throw new Error(`Failed to validate user token\nNo token for token id ${token.message}`);
-
+    console.log("passed token validation");
     return tokenReceived === token[0].token;
   } catch (error) {
     console.error("Failed to validate User Token ", error);
