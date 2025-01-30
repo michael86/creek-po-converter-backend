@@ -47,21 +47,37 @@ const handleLogin = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
             res.send({ status: 0 });
             return;
         }
+        console.log("\x1b[31m", "--------------------------------------------------------");
+        console.log("NEW LOGIN");
+        console.log("\x1b[37m", "email: ", email);
+        console.log("password: ", password.length);
         let user = yield (0, user_1.validateLogin)(email);
+        console.log("user: ", user);
         if (!(user === null || user === void 0 ? void 0 : user.length)) {
             res.send({ status: 2 });
             return;
         }
         if (sha256(password) !== user[0]) {
+            console.log("password doesn't match");
+            console.log("\x1b[31m", "END LOG IN");
+            console.log("\x1b[31m", "--------------------------------------------------------");
+            console.log("\x1b[37m", "");
+            console.log("\x1b[0m", "");
             res.send({ status: 2 });
             return;
         }
         const token = (0, tokens_1.generateToken)();
+        console.log("token: ", token);
         if (!token)
             throw new Error(`Failed to generate token ${token}`);
         const tokenStored = yield (0, user_1.updateUserToken)(email, token);
+        console.log("tokenStored: ", tokenStored);
         if (!tokenStored)
             throw new Error(`Failed to update user token on logging in %\n ${tokenStored}`);
+        console.log("\x1b[31m", "END LOG IN");
+        console.log("\x1b[31m", "--------------------------------------------------------");
+        console.log("\x1b[37m", "");
+        console.log("\x1b[0m", "");
         res.send({ status: 1, token, role: yield (0, user_1.getUserRole)(email) });
     }
     catch (error) {
@@ -71,14 +87,21 @@ const handleLogin = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
 });
 const validateToken = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { token, email } = req.params;
+    console.log("\x1b[31m", "--------------------------------------------------------");
+    console.log("\x1b[31m", "New Token Validation");
     try {
         if (!token || !email)
             throw new Error(`validate token failed ${token}`);
+        console.log("Token: ", token);
+        console.log("email: ", email);
         const valid = yield (0, user_1.validateUserToken)(email, token);
+        console.log("valid: ", valid);
         if (!valid) {
             res.send({ valid });
             return;
         }
+        console.log("\x1b[31m", "End Token Validation");
+        console.log("\x1b[31m", "--------------------------------------------------------");
         res.send({ valid, role: yield (0, user_1.getUserRole)(email) });
     }
     catch (error) {
@@ -88,12 +111,17 @@ const validateToken = (req, res) => __awaiter(void 0, void 0, void 0, function* 
 });
 const handleLogout = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { token, email } = req.headers;
+    console.log("\x1b[31m", "--------------------------------------------------------");
+    console.log("\x1b[31m", "New Log Out");
     try {
         if (!token || !email)
             throw new Error(`Failed to log out user \n TOKEN: ${token}\n EMAIL: ${email}`);
         const loggedout = yield (0, user_1.setTokenToNull)(email, token);
+        console.log("logged out: ", loggedout);
         if (!loggedout)
             throw new Error(`Failed to log out user ${loggedout}`);
+        console.log("\x1b[31m", "End Log Out");
+        console.log("\x1b[31m", "--------------------------------------------------------");
         res.send({ status: 1 });
     }
     catch (error) {
