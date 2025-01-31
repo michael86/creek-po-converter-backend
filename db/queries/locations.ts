@@ -3,6 +3,8 @@ import { runQuery } from "../connection";
 import { SelectLocation, SelectLocationId, SelectPartLocationId } from "@types_sql/queries";
 
 export const selectLocationIdForPart = async (order: number, part: number) => {
+  
+
   try {
     const location = await runQuery<SelectPartLocationId>(
       `SELECT location FROM po_pn_location WHERE purchase_order = ? AND part_number = ?`,
@@ -19,14 +21,16 @@ export const selectLocationIdForPart = async (order: number, part: number) => {
 };
 
 export const selectLocationId = async (location: string) => {
+
   try {
+    
     const id = await runQuery<SelectLocationId>(
       `SELECT id FROM locations WHERE location = ?`,
       location
     );
     if ("code" in id)
       throw new Error(`Failed to select location id for ${location} \n${id.message}`);
-
+    
     return +id[0].id;
   } catch (error) {
     console.error(error);
