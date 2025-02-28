@@ -1,40 +1,20 @@
 {
   "name": "creek-po-converter-backend",
   "version": "1.0.0",
-  "description": "The backend for creek-po-converter. Takes in a pdf/HTML file, parses information required and presents as a docx file",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "description": "Back end for [Creek PO Converter]([docs/CONTRIBUTING.md](https://github.com/michael86/creek-po-converter/tree/main)).",
+  "homepage": "https://github.com/michael86/creek-po-converter-backend#readme",
+  "bugs": {
+    "url": "https://github.com/michael86/creek-po-converter-backend/issues"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/michael86/creek-po-converter-backend.git"
   },
-  "author": "",
   "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/michael86/creek-po-converter-backend/issues"
-  },
-  "homepage": "https://github.com/michael86/creek-po-converter-backend#readme",
-  "dependencies": {
-    "@pdfme/common": "^3.4.1",
-    "@pdfme/generator": "^3.4.1",
-    "@types/express": "^4.17.21",
-    "@types/mysql": "^2.15.26",
-    "cors": "^2.8.5",
-    "dotenv": "^16.4.5",
-    "express": "^4.19.1",
-    "express-validator": "^7.0.1",
-    "multer": "^1.4.5-lts.1",
-    "mysql": "^2.18.1",
-    "pdf-parse": "^1.1.1",
-    "pdf2table": "^0.0.2",
-    "pdfjs-dist": "^4.0.379",
-    "sha256": "^0.2.0",
-    "typescript": "^5.4.2"
-  },
-  "devDependencies": {
-    "@types/multer": "^1.4.11",
-    "@types/node": "^20.11.30"
+  "author": "",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
   }
 }
