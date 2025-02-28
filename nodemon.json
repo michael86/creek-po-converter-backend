@@ -1,0 +1,12 @@
+{
+  "watch": ["src"],
+  "ext": "ts,json",
+  "exec": "ts-node src/index.ts",
+  "ignore": ["node_modules", "dist"],
+  "restartable": "rs",
+  "verbose": true,
+  "env": {
+    "NODE_ENV": "development",
+    "PORT": "5000"
+  }
+}
