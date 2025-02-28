@@ -57,7 +57,10 @@ export const getUserId = async (email: string) => {
 export const createUser: CreateUser = async (email: string, password: string) => {
   try {
     const [user, token] = await Promise.all([
-      runQuery<PutRequest>("insert into users (email, password) values (?, ?)", [email, password]),
+      runQuery<PutRequest>("insert into users (email, password, role) values (?, ?, 2)", [
+        email,
+        password,
+      ]),
       generateToken(),
     ]);
 

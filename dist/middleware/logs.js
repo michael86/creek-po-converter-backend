@@ -15,8 +15,8 @@ const logs_1 = require("../db/queries/logs");
 const utils_1 = require("../utils");
 function addLog(log) {
     return function (req, res, next) {
+        var _a;
         return __awaiter(this, void 0, void 0, function* () {
-            var _a;
             let { email } = req.headers;
             if (!email || !email.length) {
                 email = req.body.email || req.body.data.email;

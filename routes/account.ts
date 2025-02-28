@@ -22,7 +22,7 @@ const router = express.Router();
 const handleRegister: RequestHandler = async (req, res) => {
   try {
     let { email, password } = req.body.data;
-    if (!email || !password || !email.includes("@creekviewelectronics.co.uk")) {
+    if (!email || !password) {
       res.send({ status: 0 });
       return;
     }
@@ -48,7 +48,7 @@ const handleLogin: RequestHandler = async (req, res) => {
   try {
     let { email, password } = req.body.data;
 
-    if (!email || !password || !email.includes("@creekviewelectronics.co.uk")) {
+    if (!email || !password) {
       res.send({ status: 0 });
       return;
     }

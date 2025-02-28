@@ -20,7 +20,7 @@ const router = express.Router();
 const handleRegister = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         let { email, password } = req.body.data;
-        if (!email || !password || !email.includes("@creekviewelectronics.co.uk")) {
+        if (!email || !password) {
             res.send({ status: 0 });
             return;
         }
@@ -43,7 +43,7 @@ const handleRegister = (req, res) => __awaiter(void 0, void 0, void 0, function*
 const handleLogin = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         let { email, password } = req.body.data;
-        if (!email || !password || !email.includes("@creekviewelectronics.co.uk")) {
+        if (!email || !password) {
             res.send({ status: 0 });
             return;
         }

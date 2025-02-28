@@ -63,7 +63,10 @@ exports.getUserId = getUserId;
 const createUser = (email, password) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const [user, token] = yield Promise.all([
-            (0, connection_1.runQuery)("insert into users (email, password) values (?, ?)", [email, password]),
+            (0, connection_1.runQuery)("insert into users (email, password, role) values (?, ?, 2)", [
+                email,
+                password,
+            ]),
             (0, tokens_1.generateToken)(),
         ]);
         if ("code" in user || !token)
