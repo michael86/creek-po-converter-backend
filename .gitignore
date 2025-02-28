@@ -1,4 +1,4 @@
 pdf/
 *.pdf
 node_modules/
-.envgit co
+.env
