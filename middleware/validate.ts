@@ -1,5 +1,5 @@
 import express from "express";
-import { body, validationResult, ContextRunner } from "express-validator";
+import { validationResult, ContextRunner } from "express-validator";
 // can be reused by many routes
 
 // sequential processing, stops running validations chain if the previous one fails.
