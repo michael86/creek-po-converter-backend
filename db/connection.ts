@@ -5,7 +5,7 @@ require("dotenv").config();
 const mysql = require("mysql");
 
 const pool: Pool = mysql.createPool({
-  connectionLimit: 10,
+  connectionLimit: 50,
   port: process.env.SQL_PORT,
   database: process.env.SQL_NAME,
   user: process.env.SQL_USER,
@@ -29,17 +29,22 @@ const asyncMySQL: AsyncMySql = (query, vars) => {
     pool.getConnection(function (err, connection) {
       if (err) throw err;
 
-      connection.query(query, vars, (error, results) => {
-        if (error) {
-          reject(error);
-          return;
-        }
+      try {
+        connection.query(query, vars, (error, results) => {
+          if (error) {
+            reject(error);
+            return;
+          }
 
-        resolve(results);
+          resolve(results);
 
-        //REturn the connection to the pool
+          //REturn the connection to the pool
+          connection.release();
+        });
+      } catch (error) {
+        console.error(error);
         connection.release();
-      });
+      }
     });
   });
 };

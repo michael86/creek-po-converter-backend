@@ -13,7 +13,7 @@ exports.runQuery = exports.createSqlConnection = void 0;
 require("dotenv").config();
 const mysql = require("mysql");
 const pool = mysql.createPool({
-    connectionLimit: 10,
+    connectionLimit: 50,
     port: process.env.SQL_PORT,
     database: process.env.SQL_NAME,
     user: process.env.SQL_USER,
@@ -36,15 +36,21 @@ const asyncMySQL = (query, vars) => {
         pool.getConnection(function (err, connection) {
             if (err)
                 throw err;
-            connection.query(query, vars, (error, results) => {
-                if (error) {
-                    reject(error);
-                    return;
-                }
-                resolve(results);
-                //REturn the connection to the pool
+            try {
+                connection.query(query, vars, (error, results) => {
+                    if (error) {
+                        reject(error);
+                        return;
+                    }
+                    resolve(results);
+                    //REturn the connection to the pool
+                    connection.release();
+                });
+            }
+            catch (error) {
+                console.error(error);
                 connection.release();
-            });
+            }
         });
     });
 };
