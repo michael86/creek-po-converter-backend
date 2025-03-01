@@ -1,7 +1,8 @@
-import { generateToken } from "../utils/tokens";
+import { generateToken, setJwtCookie } from "../utils/tokens";
 import { registerUser, selectUserByEmail } from "../queries/users";
 import { LoginUserController, RegisterUserController } from "../types/users/controllers";
 import { isMySQLError } from "../utils";
+
 import bcrypt from "bcrypt";
 
 export const handleLogin: LoginUserController = async (req, res) => {
@@ -19,6 +20,9 @@ export const handleLogin: LoginUserController = async (req, res) => {
       res.status(401).json({ status: "error", message: "Invalid email or password" });
       return;
     }
+
+    const jwtToken = await generateToken({ email: user.email });
+    setJwtCookie(res, jwtToken);
 
     res.status(200).json({
       status: "success",
@@ -45,7 +49,8 @@ export const handleRegister: RegisterUserController = async (req, res) => {
 
     if (!userRegistered) throw new Error("User not registered");
 
-    const jwtToken = await generateToken({ email, name });
+    const jwtToken = await generateToken({ email });
+    setJwtCookie(res, jwtToken);
 
     res.status(200).json({ status: "success", message: "user registered" });
   } catch (error) {
