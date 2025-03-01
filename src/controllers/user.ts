@@ -1,14 +1,40 @@
-import { RequestHandler } from "express";
-import { registerUser } from "../queries/users";
-import { RegisterUserController } from "../types/users/controllers";
+import { registerUser, selectUserByEmail } from "../queries/users";
+import { LoginUserController, RegisterUserController } from "../types/users/controllers";
 import { isMySQLError } from "../utils";
 import bcrypt from "bcrypt";
 
-export const handleLogin: RequestHandler = async (req, res) => {
+export const handleLogin: LoginUserController = async (req, res) => {
   try {
-    res.status(200).json({ status: "success", message: "user logged in" });
+    const { email, password } = req.body;
+    const user = await selectUserByEmail(email);
+
+    if (!user) {
+      res.status(404).json({ status: "error", message: "Invalid email or password" });
+      return;
+    }
+
+    const passwordMatch = await bcrypt.compare(password, user.password);
+    if (!passwordMatch) {
+      res.status(401).json({ status: "error", message: "Invalid email or password" });
+      return;
+    }
+
+    res
+      .status(200)
+      .json({
+        status: "success",
+        message: "User logged in",
+        data: { email: user.email, name: user.name },
+      });
   } catch (error) {
-    res.status(500).json({ status: "error", message: "internal server error" });
+    if (isMySQLError(error)) {
+      console.error("MySQL Error:", error);
+      res.status(500).json({ status: "error", message: "Database error" });
+      return;
+    }
+
+    console.error("Internal Server Error:", error);
+    res.status(500).json({ status: "error", message: "Internal server error" });
   }
 };
 

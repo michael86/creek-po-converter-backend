@@ -9,3 +9,4 @@ interface UserRequest extends Request {
 }
 
 export type RegisterUserController = (req: UserRequest, res: Response) => Promise<void>;
+export type LoginUserController = (req: UserRequest, res: Response) => Promise<void>;
