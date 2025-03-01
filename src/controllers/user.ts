@@ -1,3 +1,4 @@
+import { generateToken } from "../utils/tokens";
 import { registerUser, selectUserByEmail } from "../queries/users";
 import { LoginUserController, RegisterUserController } from "../types/users/controllers";
 import { isMySQLError } from "../utils";
@@ -19,13 +20,11 @@ export const handleLogin: LoginUserController = async (req, res) => {
       return;
     }
 
-    res
-      .status(200)
-      .json({
-        status: "success",
-        message: "User logged in",
-        data: { email: user.email, name: user.name },
-      });
+    res.status(200).json({
+      status: "success",
+      message: "User logged in",
+      data: { email: user.email, name: user.name },
+    });
   } catch (error) {
     if (isMySQLError(error)) {
       console.error("MySQL Error:", error);
@@ -45,6 +44,8 @@ export const handleRegister: RegisterUserController = async (req, res) => {
     const userRegistered = await registerUser(email, hashedPassword, name);
 
     if (!userRegistered) throw new Error("User not registered");
+
+    const jwtToken = await generateToken({ email, name });
 
     res.status(200).json({ status: "success", message: "user registered" });
   } catch (error) {
