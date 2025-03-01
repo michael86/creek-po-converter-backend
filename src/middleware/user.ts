@@ -23,6 +23,8 @@ export const validateUser = (route: "login" | "register") => [
   ...userBodies[route],
   (req: Request, res: Response, next: NextFunction) => {
     const errors = validationResult(req);
+    console.log(errors);
+    console.log(req.body);
     if (!errors.isEmpty()) {
       res.status(400).json({ status: "error", errors: errors.array() });
       return;
