@@ -1,12 +1,22 @@
-import express from "express";
 import dotenv from "dotenv";
-import userRoutes from "./routes/user";
+dotenv.config(); //load env variabls first
 
-dotenv.config();
+import express from "express";
+import userRoutes from "./routes/user";
+import pool from "./db/config";
 
 const PORT = process.env.API_PORT || 3000;
-
 const app = express();
+
+pool
+  .getConnection()
+  .then(async (conn) => {
+    console.log("✅ Database connected successfully!");
+  })
+  .catch((err) => {
+    console.error("❌ Database connection failed:", err);
+    process.exit(1);
+  });
 
 app.use(express.json());
 

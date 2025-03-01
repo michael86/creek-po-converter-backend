@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
-import { body, validationResult } from "express-validator";
+import { body, ValidationChain, validationResult } from "express-validator";
 
-const userBodies: Record<string, any[]> = {
+const userBodies: Record<string, ValidationChain[]> = {
   login: [
     body("email")
       .notEmpty()
