@@ -5,16 +5,17 @@ const userBodies: Record<string, ValidationChain[]> = {
   login: [
     body("email")
       .notEmpty()
+      .trim()
       .withMessage("Email is required")
       .isEmail()
       .withMessage("Invalid email format"),
-    body("password").notEmpty().withMessage("Password is required"),
+    body("password").trim().notEmpty().withMessage("Password is required"),
   ],
 };
 
 userBodies.register = [
   ...userBodies.login,
-  body("name").notEmpty().withMessage("Name is required"),
+  body("name").trim().notEmpty().withMessage("Name is required"),
 ];
 
 // Middleware to validate request body fields

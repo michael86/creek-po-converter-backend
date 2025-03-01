@@ -1,12 +1,6 @@
 // Get the client
 import mysql from "mysql2/promise";
 
-console.log("host: ", process.env.SQL_URL);
-console.log("user: ", process.env.SQL_USER);
-console.log("database: ", process.env.SQL_NAME);
-console.log("port: ", Number(process.env.SQL_PORT));
-console.log("password: ", process.env.SQL_PASS);
-
 // Create the connection to database
 const pool = mysql.createPool({
   host: process.env.SQL_URL || "localhost",
