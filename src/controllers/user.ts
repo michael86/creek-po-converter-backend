@@ -24,10 +24,12 @@ export const handleLogin: LoginUserController = async (req, res) => {
     const jwtToken = await generateToken({ email: user.email });
     setJwtCookie(res, jwtToken);
 
+    console.log(user);
+
     res.status(200).json({
       status: "success",
       message: "User logged in",
-      data: { email: user.email, name: user.name },
+      data: { email: user.email, name: user.name, role: user.role },
     });
   } catch (error) {
     if (isMySQLError(error)) {

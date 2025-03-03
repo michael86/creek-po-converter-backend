@@ -11,4 +11,5 @@ export interface SelectUserByEmail extends RowDataPacket {
   email: string;
   password: string;
   name: string;
+  role: number;
 }
