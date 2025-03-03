@@ -34,6 +34,9 @@ app.use(express.json());
 app.use("/user", userRoutes);
 app.use("/auth", authRoutes);
 
-app.listen(PORT, () => {
-  console.log("App started, listening on port ", PORT);
-});
+if (process.env.NODE_ENV !== "test") {
+  app.listen(PORT, () => {
+    console.log("App started, listening on port", PORT);
+  });
+}
+export default app;

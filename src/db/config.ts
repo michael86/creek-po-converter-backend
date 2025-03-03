@@ -11,4 +11,8 @@ const pool = mysql.createPool({
   connectionLimit: 50,
 });
 
+export const closeDBConnection = async () => {
+  await pool.end();
+};
+
 export default pool;
