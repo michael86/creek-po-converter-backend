@@ -6,7 +6,7 @@ import { SelectUserByEmail } from "src/types/queries";
 export const registerUser: RegisterUser = async (email, password, name) => {
   try {
     const [res] = await pool.execute<ResultSetHeader>(
-      "INSERT INTO users (email, password, name) VALUES (?,?,?)",
+      "INSERT INTO users (email, password, name, role) VALUES (?,?,?, 2)",
       [email, password, name]
     );
 
@@ -19,7 +19,7 @@ export const registerUser: RegisterUser = async (email, password, name) => {
 export const selectUserByEmail = async (email: string) => {
   try {
     const [user] = await pool.execute<SelectUserByEmail[]>(
-      "SELECT email, password, name FROM users WHERE email = ?",
+      "SELECT email, password, role, name FROM users WHERE email = ?",
       [email]
     );
 
