@@ -13,3 +13,7 @@ export interface SelectUserByEmail extends RowDataPacket {
   name: string;
   role: number;
 }
+
+export interface Prefix extends RowDataPacket {
+  prefix: string;
+}
