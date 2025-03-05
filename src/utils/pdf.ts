@@ -1,135 +1,93 @@
-import pdfParser from "pdf2json";
-import { PdfData } from "../types/pdf";
+const pdf2table = require("pdf2table");
+import fs from "fs/promises";
+import { selectPrefixes } from "../queries/prefixes";
+import { Prefix } from "../types/queries";
+import { ParsedPdf, Part, PurchaseOrderData } from "../types/pdf";
+import { isValidDate } from ".";
 
-export const extractPurchaseAndOrderRef = (text: string) => {
-  const po = text.match(/Our P\.O\. No:\s*([\d]+)/);
-  const order = text.match(/Order reference:\s*([\S]+)/);
+let PREFIXES: Prefix[] | null = null;
 
-  return {
-    poNumber: po ? po[1].trim() : null,
-    orderNumber: order ? order[1].trim() : null,
-  };
+(async () => {
+  PREFIXES = await selectPrefixes();
+  if (!PREFIXES || PREFIXES.length === 0) {
+    console.error("No prefixes available. Exiting application.");
+    process.exit(1);
+  }
+})();
+
+export const processFile = async (file: string): Promise<ParsedPdf | null> => {
+  if (!PREFIXES) return null; // safeguard
+
+  try {
+    const fileData = await fs.readFile(file);
+
+    return new Promise((resolve, reject) => {
+      pdf2table.parse(fileData, async (err: string, rows: string[][]) => {
+        if (err) {
+          console.error(`Error parsing PDF ${file}:`, err);
+          return reject(new Error("Parsing error"));
+        }
+
+        const poArr = rows.find((row) => row[0] === "Our P.O. No:");
+        const refArr = rows.find((row) => row[0] === "Order reference:");
+
+        if (!poArr || poArr.length < 2 || !refArr || refArr.length < 2) {
+          return reject(new Error("Missing order references"));
+        }
+
+        const purchaseOrder = poArr[1];
+        const orderRef = refArr[1];
+
+        const tableStartIndex = rows.findIndex(
+          (row) => row[0].toLowerCase() === "product description and notes"
+        );
+
+        if (tableStartIndex === -1) return reject(new Error("Table start not found"));
+
+        const table = rows.splice(tableStartIndex);
+        const data = await getTableData(table);
+
+        if (!data.length) return reject(new Error("No valid table data"));
+
+        resolve({ data, purchaseOrder, orderRef });
+      });
+    });
+  } catch (error) {
+    console.error(`Error processing file ${file}:`, error);
+    return null;
+  }
 };
 
-export const extractTableData = (text: string) => {
-  const lines = text.split("\n");
-  const items = [];
-  let capture = false;
-  let tempItem: any = {};
+const getTableData = async (table: string[][]): Promise<PurchaseOrderData> => {
+  const data: PurchaseOrderData = [];
 
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i].trim();
-    console.log("Processing Line:", line);
-
-    // ✅ Detect table start dynamically
-    if (line.includes("LineOur part number")) {
-      capture = true;
+  for (const [i, row] of table.entries()) {
+    // Check if the part number index contains any of the prefixes
+    if (!row[1] || !PREFIXES!.some((p) => row[1].toLowerCase().includes(p.prefix.toLowerCase()))) {
       continue;
     }
 
-    if (capture) {
-      // ✅ Ensure we have a valid row with numbers
-      const hasNumbers = /\d/.test(line);
-      if (!hasNumbers) continue;
+    // Check quantity is a number
+    if (isNaN(+row[5])) continue;
 
-      // ✅ Manually extract each value using precise positioning
-      const parts = line.match(/^(\d+)?([A-Z\d]+)\D+([\d,.]+)\D+([\d,.]+)\D+([\d,.]+)\D+([\d,.]+)/);
+    const partNumber = row[1];
+    const quantity = +row[5];
 
-      if (parts) {
-        let partNumber = parts[2]; // ✅ Extract correct part number
-        let dueQuantity = parts[4]; // ✅ Extract **FOURTH** number (correct position)
+    // get the due date from the next row
+    const nextRow = table[i + 1];
+    if (!nextRow || !nextRow[1]) continue;
+    const dueDate = nextRow[1];
 
-        // ✅ Fix part number if it's merged with extra text
-        partNumber = partNumber.replace(/REEL.*$/, "").trim();
+    if (!isValidDate(dueDate)) continue;
 
-        // ✅ Ensure `dueQuantity` is correctly formatted
-        dueQuantity = dueQuantity.replace(/^0+/, "").replace(",", ".");
+    const part: Part = {
+      partNumber,
+      quantity,
+      dueDate,
+    };
 
-        tempItem = {
-          partNumber,
-          dueQuantity,
-          deliveryDueDate: null, // ✅ Placeholder for date
-        };
-      }
-
-      // ✅ Look ahead for a separate date line
-      const nextLine = lines[i + 1]?.trim();
-      if (nextLine && /\d{2}\/\d{2}\/\d{4}/.test(nextLine)) {
-        tempItem.deliveryDueDate = nextLine;
-        items.push(tempItem);
-        tempItem = {}; // Reset for next row
-      }
-    }
+    data.push(part);
   }
 
-  console.log("Extracted Items:", items);
-  return items;
-};
-
-export const extractDataFromPDF = (extractedText: string[]) => {
-  let purchaseOrderNumber: string | null = null;
-  let orderReferenceNumber: string | null = null;
-  let extractedTable: any[] = [];
-
-  // ✅ Find the Purchase Order Number
-  const poIndex = extractedText.findIndex((text) => text.includes("Our P.O. No:"));
-  if (poIndex !== -1 && poIndex + 1 < extractedText.length) {
-    purchaseOrderNumber = extractedText[poIndex + 1].trim();
-  }
-
-  // ✅ Find the Order Reference
-  const orderRefIndex = extractedText.findIndex((text) => text.includes("Order reference:"));
-  if (orderRefIndex !== -1 && orderRefIndex + 1 < extractedText.length) {
-    orderReferenceNumber = extractedText[orderRefIndex + 1].trim();
-  }
-
-  // ✅ Locate the Table Start Dynamically
-  let tableStartIndex = extractedText.findIndex((text) =>
-    text.includes("Product description and notesDelivery due date")
-  );
-  if (tableStartIndex === -1) {
-    console.error("❌ Table header not found.");
-    return { purchaseOrderNumber, orderReferenceNumber, items: [] };
-  }
-
-  // ✅ Extract Table Data from the Rows Below the Header
-  for (let i = tableStartIndex + 1; i < extractedText.length; i++) {
-    let row = extractedText[i].trim();
-    if (!row || row.length < 10) continue; // ✅ Skip empty or irrelevant rows
-
-    // ✅ Ensure this is an actual data row (must contain numbers)
-    if (!/\d/.test(row)) continue;
-
-    // ✅ Extract values using improved regex
-    const match = row.match(/^(\d+)\s*([A-Z\d-]+)\s*[A-Z]+\s*(\d+\.\d{4})\s*(\d+\.\d{3})/);
-
-    if (match) {
-      let partNumber = match[2]; // ✅ Extract correct part number
-      let dueQuantity = match[4]; // ✅ Extract **fourth** number as quantity
-
-      // ✅ Final Fix: Remove unwanted descriptors (REE, CHIP, SMT, EACH)
-      partNumber = partNumber.replace(/\b(REE|CHIP|SMT|EACH)\b/g, "").trim();
-
-      // ✅ Ensure `dueQuantity` is properly formatted
-      dueQuantity = dueQuantity.replace(/^0+/, "").replace(",", ".");
-
-      // attempt to find delivery date in current or next row as some pdfs have a random new line
-      let deliveryDueDate =
-        row.match(/\d{2}\/\d{2}\/\d{4}/)?.[0] || // Look in current row
-        extractedText[i + 1]?.match(/\d{2}\/\d{2}\/\d{4}/)?.[0] || // Look in next row
-        null;
-
-      extractedTable.push({
-        partNumber,
-        dueQuantity,
-        deliveryDueDate,
-      });
-    }
-  }
-
-  return {
-    purchaseOrderNumber,
-    orderReferenceNumber,
-    items: extractedTable.filter((item) => item.partNumber && !isNaN(parseFloat(item.dueQuantity))), // ✅ Remove invalid rows
-  };
+  return data;
 };
