@@ -4,6 +4,7 @@ import { selectPrefixes } from "../queries/prefixes";
 import { Prefix } from "../types/queries";
 import { ParsedPdf, Part, PurchaseOrderData } from "../types/pdf";
 import { isValidDate } from ".";
+import { PdfError } from "./pdfError";
 
 let PREFIXES: Prefix[] | null = null;
 
@@ -32,7 +33,7 @@ export const processFile = async (file: string): Promise<ParsedPdf | null> => {
         const refArr = rows.find((row) => row[0] === "Order reference:");
 
         if (!poArr || poArr.length < 2 || !refArr || refArr.length < 2) {
-          return reject(new Error("Missing order references"));
+          return reject(new PdfError("Missing order references"));
         }
 
         const purchaseOrder = poArr[1];
@@ -42,7 +43,7 @@ export const processFile = async (file: string): Promise<ParsedPdf | null> => {
           (row) => row[0].toLowerCase() === "product description and notes"
         );
 
-        if (tableStartIndex === -1) return reject(new Error("Table start not found"));
+        if (tableStartIndex === -1) return reject(new PdfError("Table start not found"));
 
         const table = rows.splice(tableStartIndex);
         const data = await getTableData(table);
@@ -54,7 +55,7 @@ export const processFile = async (file: string): Promise<ParsedPdf | null> => {
     });
   } catch (error) {
     console.error(`Error processing file ${file}:`, error);
-    return null;
+    throw new PdfError("Error processing PDF", 500);
   }
 };
 
