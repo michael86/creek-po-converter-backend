@@ -2,3 +2,4 @@ pdf/
 *.pdf
 node_modules/
 .env
+uploads/*
