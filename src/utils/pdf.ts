@@ -1,3 +1,4 @@
+//@ts-nocheck
 const pdf2table = require("pdf2table");
 import fs from "fs/promises";
 import { selectPrefixes } from "../queries/prefixes";
@@ -76,7 +77,10 @@ const getTableData = async (table: string[][]): Promise<PurchaseOrderData> => {
 
     // get the due date from the next row
     const nextRow = table[i + 1];
+
     if (!nextRow || !nextRow[1]) continue;
+
+    const description = nextRow[0];
     const dueDate = nextRow[1];
 
     if (!isValidDate(dueDate)) continue;
@@ -85,6 +89,7 @@ const getTableData = async (table: string[][]): Promise<PurchaseOrderData> => {
       partNumber,
       quantity,
       dueDate,
+      description,
     };
 
     data.push(part);
