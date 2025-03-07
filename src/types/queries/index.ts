@@ -17,3 +17,9 @@ export interface SelectUserByEmail extends RowDataPacket {
 export interface Prefix extends RowDataPacket {
   prefix: string;
 }
+
+//number is success, string is sql error, null is server error 500
+export type InsertPurchaseOrder = (
+  purchaseOrder: string,
+  orderRef: string
+) => Promise<number | string | null>;

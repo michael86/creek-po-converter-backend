@@ -1,6 +1,6 @@
 import { RequestHandler } from "express";
 import { PdfUpload } from "../types/pdf";
-import { insertPurchaseOrder } from "../queries/pdf";
+import { insertOrderItems, insertPurchaseOrder } from "../queries/pdf";
 
 export const insertPdf: RequestHandler = async (req: PdfUpload, res) => {
   try {
@@ -13,13 +13,21 @@ export const insertPdf: RequestHandler = async (req: PdfUpload, res) => {
     const { purchaseOrder, orderRef, data } = pdfData;
 
     const purchaseId = await insertPurchaseOrder(purchaseOrder, orderRef);
+
+    if (typeof purchaseId === "string") {
+      res.status(400).json({ status: "error", message: purchaseId });
+      return;
+    }
+
     if (!purchaseId) {
       throw new Error("Error inserting purchase order");
     }
 
-    console.log("Inserted Purchase Order ID:", purchaseId);
+    const result = await insertOrderItems(purchaseOrder, data);
 
-    res.status(201).json({
+    if (!result) throw new Error(`Error inserting items for PO ${purchaseOrder}`);
+
+    res.status(200).json({
       status: "success",
       message: "Purchase order inserted successfully",
     });
