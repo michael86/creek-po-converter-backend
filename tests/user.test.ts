@@ -1,11 +1,11 @@
 import request from "supertest";
-import app from "../src/index"; // Ensure you import the Express app
+import app from "../src/index";
 import { closeDBConnection } from "../src/db/config";
 
 let server: any;
 
 beforeAll(() => {
-  server = app.listen(4000); // Start the server before running tests
+  server = app.listen(0); // Start the server before running tests
 });
 
 describe("User API Tests", () => {
@@ -56,6 +56,6 @@ describe("User API Tests", () => {
 });
 
 afterAll(async () => {
-  await closeDBConnection(); // ✅ Close MySQL connection
-  server.close(); // ✅ Close Express server
+  await closeDBConnection();
+  server.close();
 });
