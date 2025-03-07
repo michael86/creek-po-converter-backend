@@ -24,3 +24,8 @@ export const isValidDate = (dateString: string) => {
   // Check if the date components match. This handles invalid dates like 32/13/2024.
   return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day;
 };
+
+export const parseDate = (dateStr: string) => {
+  const [day, month, year] = dateStr.split("/").map(Number);
+  return new Date(year, month - 1, day);
+};

@@ -1,4 +1,3 @@
-//@ts-nocheck
 const pdf2table = require("pdf2table");
 import fs from "fs/promises";
 import { selectPrefixes } from "../queries/prefixes";
@@ -6,6 +5,7 @@ import { Prefix } from "../types/queries";
 import { ParsedPdf, Part, PurchaseOrderData } from "../types/pdf";
 import { isValidDate } from ".";
 import { PdfError } from "./pdfError";
+import { parseDate } from "../utils/index";
 
 let PREFIXES: Prefix[] | null = null;
 
@@ -88,7 +88,7 @@ const getTableData = async (table: string[][]): Promise<PurchaseOrderData> => {
     const part: Part = {
       partNumber,
       quantity,
-      dueDate,
+      dueDate: parseDate(dueDate),
       description,
     };
 
