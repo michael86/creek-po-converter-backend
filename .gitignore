@@ -3,3 +3,4 @@ pdf/
 node_modules/
 .env
 uploads/*
+tests/pdfs/*

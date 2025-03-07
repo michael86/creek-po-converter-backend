@@ -38,6 +38,8 @@ export const processFile = async (file: string): Promise<ParsedPdf | null> => {
         }
 
         const purchaseOrder = poArr[1];
+        if (isNaN(+purchaseOrder)) reject(new PdfError("Invalid purchase order"));
+
         const orderRef = refArr[1];
 
         const tableStartIndex = rows.findIndex(
