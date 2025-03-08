@@ -6,13 +6,13 @@ import { InsertPurchaseOrder } from "src/types/queries";
 export const insertPurchaseOrder: InsertPurchaseOrder = async (purchaseOrder, orderRef) => {
   try {
     const [res] = await pool.execute<ResultSetHeader>(
-      `INSERT INTO purchase_orders (po_number, order_ref) VALUES (?, ?)`,
+      `INSERT INTO purchase_orders (po_number, order_ref, uuid) VALUES (?, ?, uuid())`,
       [purchaseOrder, orderRef]
     );
 
     if (!res.insertId) throw new Error("Error inserting purchase order");
 
-    return res.insertId;
+    return true;
   } catch (error) {
     if (error instanceof Error && "code" in error) {
       return error.code as string;
@@ -31,7 +31,7 @@ export const insertOrderItems = async (poNumber: string, items: Part[]) => {
       INSERT INTO order_items (po_number, part_number, description, quantity, due_date) 
       VALUES (?, ?, ?, ?, ?)
     `;
-    console.log(items);
+
     for (const item of items) {
       await connection.execute<ResultSetHeader>(sql, [
         poNumber,
