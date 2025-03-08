@@ -3,7 +3,7 @@ import { deletePurchaseOrderById } from "../queries/purchaseOrders";
 
 export const deletePurchaseOrder = async (req: Request, res: Response) => {
   try {
-    const { orderId }: { orderId: number } = res.locals as { orderId: number };
+    const { orderId } = res.locals as { orderId: string };
 
     const deleted = await deletePurchaseOrderById(orderId);
 

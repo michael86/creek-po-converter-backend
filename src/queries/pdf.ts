@@ -10,7 +10,7 @@ export const insertPurchaseOrder: InsertPurchaseOrder = async (purchaseOrder, or
       [purchaseOrder, orderRef]
     );
 
-    if (!res.insertId) throw new Error("Error inserting purchase order");
+    if (!res.affectedRows) throw new Error(`Error inserting purchase order`);
 
     return true;
   } catch (error) {
