@@ -3,9 +3,9 @@ import { deletePurchaseOrderById } from "../queries/purchaseOrders";
 
 export const deletePurchaseOrder = async (req: Request, res: Response) => {
   try {
-    const { orderId } = res.locals as { orderId: string };
+    const { id } = req.params;
 
-    const deleted = await deletePurchaseOrderById(orderId);
+    const deleted = await deletePurchaseOrderById(id);
 
     if (!deleted) {
       res.status(404).json({ status: "error", message: "Purchase order not found" });
