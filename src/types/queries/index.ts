@@ -22,4 +22,4 @@ export interface Prefix extends RowDataPacket {
 export type InsertPurchaseOrder = (
   purchaseOrder: string,
   orderRef: string
-) => Promise<number | string | null>;
+) => Promise<true | string | null>;
