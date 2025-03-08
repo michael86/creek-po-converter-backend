@@ -27,3 +27,14 @@ export type InsertPurchaseOrder = (
 export interface SelectPoNames extends RowDataPacket {
   poNumber: string;
 }
+
+export interface SelectPoByUuid extends RowDataPacket {
+  poNumber: string;
+  orderRef: string;
+  partNumber: string;
+  description: string;
+  quantity: string;
+  quantityReceived: string;
+  storageLocation: string;
+  dueDate: string;
+}

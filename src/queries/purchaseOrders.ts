@@ -1,6 +1,6 @@
 import { ResultSetHeader } from "mysql2";
 import pool from "../db/config";
-import { SelectPoNames } from "src/types/queries";
+import { SelectPoByUuid, SelectPoNames } from "src/types/queries";
 
 export const deletePurchaseOrderById = async (uuid: string): Promise<boolean> => {
   try {
@@ -35,6 +35,49 @@ export const selectPurchaseOrderNames = async () => {
     return names;
   } catch (error) {
     console.error("Error fetching purchase order names:", error);
+    return null;
+  }
+};
+
+export const selectPurchaseOrderByUuid = async (uuid: string) => {
+  try {
+    const [rows] = await pool.query<SelectPoByUuid[]>(
+      `SELECT 
+          po.po_number AS poNumber, 
+          po.order_ref AS orderRef, 
+          oi.part_number AS partNumber, 
+          oi.description AS description, 
+          oi.quantity AS quantity, 
+          oi.quantity_received AS quantityReceived, 
+          oi.storage_location AS storageLocation, 
+          oi.due_date AS dueDate
+       FROM purchase_orders po
+       LEFT JOIN order_items oi ON po.po_number = oi.po_number
+       WHERE po.uuid = ?`,
+      [uuid]
+    );
+
+    if (!rows.length) return null; // ✅ Return null if PO doesn't exist
+
+    // ✅ Group the items under a single PO object
+    const purchaseOrder = {
+      poNumber: rows[0].poNumber,
+      orderRef: rows[0].orderRef,
+      items: rows
+        .filter((row) => row.partNumber) // Remove rows where there's no item
+        .map((row) => ({
+          partNumber: row.partNumber,
+          description: row.description,
+          quantity: row.quantity,
+          quantityReceived: row.quantityReceived,
+          storageLocation: row.storageLocation,
+          dueDate: row.dueDate,
+        })),
+    };
+
+    return purchaseOrder;
+  } catch (error) {
+    console.error("Error fetching purchase order details:", error);
     return null;
   }
 };
