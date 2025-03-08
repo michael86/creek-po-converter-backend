@@ -23,3 +23,7 @@ export type InsertPurchaseOrder = (
   purchaseOrder: string,
   orderRef: string
 ) => Promise<true | string | null>;
+
+export interface SelectPoNames extends RowDataPacket {
+  poNumber: string;
+}

@@ -1,5 +1,6 @@
 import { ResultSetHeader } from "mysql2";
 import pool from "../db/config";
+import { SelectPoNames } from "src/types/queries";
 
 export const deletePurchaseOrderById = async (uuid: string): Promise<boolean> => {
   try {
@@ -21,5 +22,19 @@ export const deletePurchaseOrderById = async (uuid: string): Promise<boolean> =>
       console.error(`Error deleting purchase order ${uuid}:`, error);
     }
     return false;
+  }
+};
+
+export const selectPurchaseOrderNames = async () => {
+  try {
+    const [names] = await pool.query<SelectPoNames[]>(
+      "SELECT po_number AS poNumber, uuid FROM purchase_orders"
+    );
+
+    //don't safe guard as potentially no po numbers exist so simply return empty array
+    return names;
+  } catch (error) {
+    console.error("Error fetching purchase order names:", error);
+    return null;
   }
 };
