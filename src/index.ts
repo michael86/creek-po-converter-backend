@@ -1,9 +1,6 @@
 import dotenv from "dotenv";
 dotenv.config(); //load env variabls first
 
-import multer from "multer";
-const upload = multer({ dest: "uploads/" });
-
 import cors from "cors";
 import pool from "./db/config";
 import express from "express";
@@ -12,7 +9,6 @@ import authRoutes from "./routes/auth";
 import pdfRoutes from "./routes/pdf";
 import cookieparser from "cookie-parser";
 import { validateMe } from "./middleware/auth";
-import { validatePDF } from "./middleware/pdf";
 
 const app = express();
 const PORT = process.env.API_PORT || 3000;
@@ -39,7 +35,7 @@ app.use(express.json());
 
 app.use("/user", userRoutes);
 app.use("/auth", authRoutes);
-app.use("/pdf", validateMe, upload.single("file"), validatePDF, pdfRoutes);
+app.use("/pdf", validateMe, pdfRoutes);
 
 if (process.env.NODE_ENV !== "test") {
   app.listen(PORT, () => {
