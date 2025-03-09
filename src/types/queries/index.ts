@@ -38,3 +38,7 @@ export interface SelectPoByUuid extends RowDataPacket {
   storageLocation: string;
   dueDate: string;
 }
+
+export interface SelectLocationId extends RowDataPacket {
+  id: number;
+}

@@ -57,14 +57,13 @@ export const selectPurchaseOrderByUuid = async (uuid: string) => {
       [uuid]
     );
 
-    if (!rows.length) return null; // ✅ Return null if PO doesn't exist
+    if (!rows.length) return null;
 
-    // ✅ Group the items under a single PO object
     const purchaseOrder = {
       poNumber: rows[0].poNumber,
       orderRef: rows[0].orderRef,
       items: rows
-        .filter((row) => row.partNumber) // Remove rows where there's no item
+        .filter((row) => row.partNumber)
         .map((row) => ({
           partNumber: row.partNumber,
           description: row.description,
