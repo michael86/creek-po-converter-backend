@@ -5,6 +5,9 @@ import {
   selectPurchaseOrderNames,
 } from "../queries/purchaseOrders";
 
+import { UpdateLocationRequest } from "../types/purchase_orders";
+import { setPartLocation } from "../queries/locations";
+
 export const deletePurchaseOrder = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -56,5 +59,27 @@ export const selectPurchaseOrder: RequestHandler = async (req, res, next) => {
     res.status(500).json({ status: "error", message: "Internale Server Error" });
 
     return;
+  }
+};
+
+export const updateLocation: RequestHandler = async (req: UpdateLocationRequest, res) => {
+  try {
+    const { partNumber } = req.params;
+    const { location } = req.body;
+
+    const locationSet = await setPartLocation(partNumber, location);
+
+    if (!locationSet) {
+      res.status(400).json({
+        status: "error",
+        message: `No parts updated. Invalid part number or same location already set.`,
+      });
+      return;
+    }
+
+    res.status(200).json({ status: "success", message: "Location updated" });
+  } catch (error) {
+    console.error("Error updating location", error);
+    res.status(500).json({ status: "error", message: "Internal Server Error" });
   }
 };
