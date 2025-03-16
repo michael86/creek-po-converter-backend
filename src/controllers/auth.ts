@@ -19,7 +19,7 @@ export const handleMe: MeRequestRoute = async (req, res) => {
     res.status(200).json({
       status: "success",
       message: "Token valid",
-      data: { email, name: user.name },
+      data: { email, name: user.name, role: user.role },
     });
   } catch (error) {
     console.error("Error in handleMe:", error);
