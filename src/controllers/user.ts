@@ -54,7 +54,13 @@ export const handleRegister: RegisterUserController = async (req, res) => {
     const jwtToken = await generateToken({ email });
     setJwtCookie(res, jwtToken);
 
-    res.status(200).json({ status: "success", message: "user registered" });
+    res
+      .status(200)
+      .json({
+        status: "success",
+        message: "user registered",
+        data: { email: email, name: name, role: 2 },
+      });
   } catch (error) {
     if (isMySQLError(error)) {
       if (error.code === "ER_DUP_ENTRY") {
