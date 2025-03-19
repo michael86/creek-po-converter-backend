@@ -6,6 +6,7 @@ import { PdfError } from "../utils/pdfError";
 export const validatePDF: RequestHandler = async (req: PdfUpload, res, next) => {
   try {
     const { file } = req;
+
     if (!file) {
       res.status(400).json({ status: "error", message: "No file provided" });
       return;
@@ -13,11 +14,6 @@ export const validatePDF: RequestHandler = async (req: PdfUpload, res, next) => 
 
     const { path: filePath } = file;
     const result = await processFile(filePath);
-
-    if (!result) {
-      res.status(400).json({ status: "error", message: "Invalid PDF" });
-      return;
-    }
 
     req.pdfData = result;
     next();

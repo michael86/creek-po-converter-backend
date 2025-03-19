@@ -17,7 +17,7 @@ let PREFIXES: Prefix[] | null = null;
   }
 })();
 
-export const processFile = async (file: string): Promise<ParsedPdf | null> => {
+export const processFile = async (file: string): Promise<ParsedPdf> => {
   if (!PREFIXES) return null; // safeguard
 
   try {
@@ -33,14 +33,14 @@ export const processFile = async (file: string): Promise<ParsedPdf | null> => {
         const poArr = rows.find((row) => row[0] === "Our P.O. No:");
         const refArr = rows.find((row) => row[0] === "Order reference:");
 
-        if (!poArr || poArr.length < 2 || !refArr || refArr.length < 2) {
-          return reject(new PdfError("Missing order references"));
-        }
+        if (!poArr || poArr.length < 2) return reject(new PdfError("Missing purchase order"));
+        if (!refArr || refArr.length < 2) return reject(new PdfError("Missing order reference"));
 
         const purchaseOrder = poArr[1];
-        if (isNaN(+purchaseOrder)) reject(new PdfError("Invalid purchase order"));
+        if (isNaN(+purchaseOrder))
+          reject(new PdfError("Invalid purchase order - must be a number"));
 
-        const orderRef = refArr[1];
+        const orderRef = refArr[1]; // We can't really check this is valid if missing as ordcer ref can be a number or string
 
         const tableStartIndex = rows.findIndex(
           (row) => row[0].toLowerCase() === "product description and notes"
@@ -48,12 +48,14 @@ export const processFile = async (file: string): Promise<ParsedPdf | null> => {
 
         if (tableStartIndex === -1) return reject(new PdfError("Table start not found"));
 
-        const table = rows.splice(tableStartIndex);
-        const data = await getTableData(table);
+        const table = rows.splice(tableStartIndex + 1); //Splice of the table start
 
-        if (!data.length) return reject(new Error("No valid table data"));
-
-        resolve({ data, purchaseOrder, orderRef });
+        try {
+          const data = await getTableData(table);
+          resolve({ data, purchaseOrder, orderRef });
+        } catch (err: any) {
+          return reject(new PdfError(err.message));
+        }
       });
     });
   } catch (error) {
@@ -66,9 +68,13 @@ const getTableData = async (table: string[][]): Promise<PurchaseOrderData> => {
   const data: PurchaseOrderData = [];
 
   for (const [i, row] of table.entries()) {
+    if (isNaN(+row[0])) continue; //table data is always a number for first index
+
     // Check if the part number index contains any of the prefixes
     if (!row[1] || !PREFIXES!.some((p) => row[1].toLowerCase().includes(p.prefix.toLowerCase()))) {
-      continue;
+      throw new Error(
+        "Failed to find part number. Does your table contain the relevant information?. Contact michael if so"
+      );
     }
 
     // Check quantity is a number

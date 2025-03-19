@@ -8,6 +8,7 @@ if (!JWT_KEY) {
 
 export const validateMe: MeRequestRoute = async (req, res, next) => {
   try {
+    console.log("validating me");
     const { authCookie } = req.cookies;
 
     if (!authCookie) {
