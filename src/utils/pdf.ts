@@ -68,7 +68,8 @@ const getTableData = async (table: string[][]): Promise<PurchaseOrderData> => {
   const data: PurchaseOrderData = [];
 
   for (const [i, row] of table.entries()) {
-    if (isNaN(+row[0])) continue; //table data is always a number for first index
+    //table data is always a number for first index and typically length is 7, this may need adjusting
+    if (isNaN(+row[0]) || row.length < 7) continue;
 
     // Check if the part number index contains any of the prefixes
     if (!row[1] || !PREFIXES!.some((p) => row[1].toLowerCase().includes(p.prefix.toLowerCase()))) {
