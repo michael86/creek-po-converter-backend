@@ -28,15 +28,32 @@ export interface SelectPoNames extends RowDataPacket {
   poNumber: string;
 }
 
+export type Delivery = {
+  quantityReceived: number;
+  dateReceived: Date | null;
+};
+
+export type Item = {
+  partNumber: string;
+  description: string;
+  quantity: number;
+  quantityReceived: number;
+  storageLocation: string | null;
+  dueDate: Date;
+  deliveries: Delivery[];
+};
+
 export interface SelectPoByUuid extends RowDataPacket {
   poNumber: string;
   orderRef: string;
   partNumber: string;
   description: string;
-  quantity: string;
-  quantityReceived: string;
-  storageLocation: string;
-  dueDate: string;
+  quantity: number;
+  quantityReceived: number;
+  storageLocation: string | null;
+  dueDate: Date;
+  deliveryQuantityReceived: number | null;
+  deliveryReceivedDate: Date | null;
 }
 
 export interface SelectLocationId extends RowDataPacket {

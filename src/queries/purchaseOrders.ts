@@ -1,6 +1,6 @@
 import { ResultSetHeader } from "mysql2";
 import pool from "../db/config";
-import { SelectPoByUuid, SelectPoNames } from "src/types/queries";
+import { Item, SelectPoByUuid, SelectPoNames } from "src/types/queries";
 
 export const deletePurchaseOrderById = async (uuid: string): Promise<boolean> => {
   try {
@@ -43,17 +43,21 @@ export const selectPurchaseOrderByUuid = async (uuid: string) => {
   try {
     const [rows] = await pool.query<SelectPoByUuid[]>(
       `SELECT 
-          po.po_number AS poNumber, 
-          po.order_ref AS orderRef, 
-          oi.part_number AS partNumber, 
-          oi.description AS description, 
-          oi.quantity AS quantity, 
-          oi.quantity_received AS quantityReceived, 
-          oi.storage_location AS storageLocation, 
-          oi.due_date AS dueDate
-       FROM purchase_orders po
-       LEFT JOIN order_items oi ON po.po_number = oi.po_number
-       WHERE po.uuid = ?`,
+        po.po_number AS poNumber, 
+        po.order_ref AS orderRef, 
+        oi.part_number AS partNumber, 
+        oi.description AS description, 
+        oi.quantity AS quantity, 
+        oi.quantity_received AS quantityReceived, 
+        oi.storage_location AS storageLocation, 
+        oi.due_date AS dueDate,
+        de.quantity_received AS deliveryQuantityReceived,
+        de.received_date AS deliveryReceivedDate
+      FROM purchase_orders po
+      LEFT JOIN order_items oi ON po.po_number = oi.po_number
+      LEFT JOIN deliveries de ON po.po_number = de.po_number 
+        AND oi.part_number = de.part_number
+      WHERE po.uuid = '01ac3f9d-0832-11f0-94ab-00d8612e8c27';`,
       [uuid]
     );
 
@@ -62,16 +66,30 @@ export const selectPurchaseOrderByUuid = async (uuid: string) => {
     const purchaseOrder = {
       poNumber: rows[0].poNumber,
       orderRef: rows[0].orderRef,
-      items: rows
-        .filter((row) => row.partNumber)
-        .map((row) => ({
-          partNumber: row.partNumber,
-          description: row.description,
-          quantity: row.quantity,
-          quantityReceived: row.quantityReceived,
-          storageLocation: row.storageLocation,
-          dueDate: row.dueDate,
-        })),
+      items: Object.values(
+        rows.reduce<Record<string, Item>>((acc, row) => {
+          if (!acc[row.partNumber]) {
+            acc[row.partNumber] = {
+              partNumber: row.partNumber,
+              description: row.description,
+              quantity: row.quantity,
+              quantityReceived: row.quantityReceived,
+              storageLocation: row.storageLocation,
+              dueDate: row.dueDate,
+              deliveries: [],
+            };
+          }
+
+          if (row.deliveryQuantityReceived !== null) {
+            acc[row.partNumber].deliveries.push({
+              quantityReceived: row.deliveryQuantityReceived,
+              dateReceived: row.deliveryReceivedDate,
+            });
+          }
+
+          return acc;
+        }, {})
+      ),
     };
 
     return purchaseOrder;
