@@ -57,7 +57,7 @@ export const selectPurchaseOrderByUuid = async (uuid: string) => {
       LEFT JOIN order_items oi ON po.po_number = oi.po_number
       LEFT JOIN deliveries de ON po.po_number = de.po_number 
         AND oi.part_number = de.part_number
-      WHERE po.uuid = '01ac3f9d-0832-11f0-94ab-00d8612e8c27';`,
+      WHERE po.uuid = ?;`,
       [uuid]
     );
 
