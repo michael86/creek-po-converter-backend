@@ -8,6 +8,7 @@ import userRoutes from "./routes/user";
 import authRoutes from "./routes/auth";
 import pdfRoutes from "./routes/pdf";
 import poRoutes from "./routes/purchaseOrders";
+import locationRoutes from "./routes/locations";
 import cookieparser from "cookie-parser";
 import { validateMe } from "./middleware/auth";
 
@@ -38,6 +39,7 @@ app.use("/user", userRoutes);
 app.use("/auth", authRoutes);
 app.use("/pdf", validateMe, pdfRoutes);
 app.use("/purchase-order", validateMe, poRoutes);
+app.use("/locations", validateMe, locationRoutes);
 
 if (process.env.NODE_ENV !== "test") {
   app.listen(PORT, () => {

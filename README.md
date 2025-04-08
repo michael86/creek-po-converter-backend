@@ -29,3 +29,4 @@ A simple CRUD API for interacting with a sql database storing information from p
 | GET    | `/purchase-order/names`      | Returnsd a list of purchase order names                                                         | Yes           |
 | PUT    | `/:uuid/items/:partNumber`   | updates a specific purchase orders item with a location                                         | Yes           |
 | GET    | `/:uuid`                     | returns a specific purchase order along with history                                            | Yes           |
+| GET    | `/locations`                 | returns an array of locations with their id                                                     | Yes           |

@@ -59,3 +59,8 @@ export interface SelectPoByUuid extends RowDataPacket {
 export interface SelectLocationId extends RowDataPacket {
   id: number;
 }
+
+export interface SelectLocations extends RowDataPacket {
+  name: string;
+  id: number;
+}
