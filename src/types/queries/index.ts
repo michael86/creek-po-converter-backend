@@ -29,11 +29,13 @@ export interface SelectPoNames extends RowDataPacket {
 }
 
 export type Delivery = {
+  id: number;
   quantityReceived: number;
   dateReceived: Date | null;
 };
 
 export type Item = {
+  id: number;
   partNumber: string;
   description: string;
   quantity: number;
@@ -46,6 +48,7 @@ export type Item = {
 export interface SelectPoByUuid extends RowDataPacket {
   poNumber: string;
   orderRef: string;
+  itemId: number;
   partNumber: string;
   description: string;
   quantity: number;

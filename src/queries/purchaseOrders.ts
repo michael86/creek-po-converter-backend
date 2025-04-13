@@ -45,12 +45,14 @@ export const selectPurchaseOrderByUuid = async (uuid: string) => {
       `SELECT 
         po.po_number AS poNumber, 
         po.order_ref AS orderRef, 
+        oi.id AS itemId,
         oi.part_number AS partNumber, 
         oi.description AS description, 
         oi.quantity AS quantity, 
         oi.quantity_received AS quantityReceived, 
         oi.storage_location AS storageLocation, 
         oi.due_date AS dueDate,
+        de.id AS deliveryId,
         de.quantity_received AS deliveryQuantityReceived,
         de.received_date AS deliveryReceivedDate
       FROM purchase_orders po
@@ -70,6 +72,7 @@ export const selectPurchaseOrderByUuid = async (uuid: string) => {
         rows.reduce<Record<string, Item>>((acc, row) => {
           if (!acc[row.partNumber]) {
             acc[row.partNumber] = {
+              id: row.itemId,
               partNumber: row.partNumber,
               description: row.description,
               quantity: row.quantity,
@@ -82,6 +85,7 @@ export const selectPurchaseOrderByUuid = async (uuid: string) => {
 
           if (row.deliveryQuantityReceived !== null) {
             acc[row.partNumber].deliveries.push({
+              id: row.deliveryId,
               quantityReceived: row.deliveryQuantityReceived,
               dateReceived: row.deliveryReceivedDate,
             });
