@@ -1,4 +1,4 @@
-pdf/
+/pdf/
 *.pdf
 node_modules/
 .env
