@@ -1,7 +1,7 @@
 import { validateToken } from "./middleware";
 
 import { testFiles } from "./utils/extract_pdf";
-const { createSqlConnection } = require("./sql/connection");
+const { createSqlConnection } = require("./db/connection");
 const express = require("express");
 const app = express();
 const cors = require("cors");

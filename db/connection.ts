@@ -5,7 +5,6 @@ require("dotenv").config();
 const mysql = require("mysql");
 
 const pool: Pool = mysql.createPool({
-  connectionLimit: 10,
   port: process.env.SQL_PORT,
   database: process.env.SQL_NAME,
   user: process.env.SQL_USER,
@@ -14,11 +13,12 @@ const pool: Pool = mysql.createPool({
 });
 
 export const createSqlConnection = () => {
-  pool.getConnection(function (err: Error, connection: any) {
+  pool.getConnection(async function (err: Error, connection: any) {
     if (err) {
       console.error(err);
       return;
     }
+    
     console.log(`Database started and connected as ${connection.threadId}\nReleasing connection`);
     connection.destroy();
   });
