@@ -72,6 +72,7 @@ export function addLog(log: Log) {
     }
 
     const rel = await insertNewLog(userId, <string>email, message);
+
     if (!rel) return res.status(400).send();
     next();
   };

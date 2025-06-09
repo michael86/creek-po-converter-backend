@@ -24,6 +24,7 @@ export const validateToken: RequestHandler = async (req, res, next) => {
 
     const newToken = generateToken();
     const updated = await updateUserToken(email, newToken);
+
     if (!updated) {
       console.error("Failed to update user token in middleware");
       return res.status(500).send({ error: "Failed to update user token" });
