@@ -129,7 +129,7 @@ const extractStickerTemplate: RequestHandler = async (req, res) => {
       const orderReferenceRow = rows.find((row) =>
         row.some((cell: string) => cell.toLowerCase().includes("order reference:"))
       );
-      const ORDER_REFERENCE: string = orderReferenceRow[3];
+      const orderReference: string = orderReferenceRow[3];
 
       const tableRowIndex = rows.findIndex(
         (row) =>
@@ -140,19 +140,19 @@ const extractStickerTemplate: RequestHandler = async (req, res) => {
 
       const tableRows = rows.slice(tableRowIndex + 1);
 
-      tableRows.map((row) => {
-        if (!isNaN(+row[0])) {
-          return row;
-        }
+      const data = tableRows
+        .filter((row) => !isNaN(row[0]) && row.length === 6)
+        .map(([_, partNumber, , , quantity]) => ({ partNumber, quantity: parseInt(quantity) }));
+
+      return res.send({
+        status: 1,
+        message: "Sticker template processed successfully",
+        token: req.headers.newToken,
+        data: {
+          orderReference,
+          parts: data,
+        },
       });
-
-      console.log(`Extracted tableRows: ${tableRows}`);
-    });
-
-    return res.send({
-      status: 1,
-      message: "Sticker template processed successfully",
-      token: req.headers.newToken,
     });
   } catch (err) {
     console.error(`Error Processing PDF (err) ${err}`);

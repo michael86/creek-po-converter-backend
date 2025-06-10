@@ -1,6 +1,8 @@
 {
-  "watch": ["src"],
+  "watch": ["."],
   "ext": "ts,json",
   "ignore": ["node_modules"],
-  "exec": "ts-node index.ts"
+  "exec": "ts-node index.ts",
+  "legacyWatch": true,
+  "verbose": true
 }
