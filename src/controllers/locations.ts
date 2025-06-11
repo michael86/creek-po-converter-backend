@@ -1,5 +1,5 @@
 import { RequestHandler } from "express";
-import { selectAllLocations, setPartLocationById } from "../queries/locations";
+import { selectAllLocations, setPartLocation } from "../queries/locations";
 
 export const fetchAllLocations: RequestHandler = async (req, res) => {
   try {
@@ -22,14 +22,14 @@ export const fetchAllLocations: RequestHandler = async (req, res) => {
 
 export const updateLocation: RequestHandler = async (req, res) => {
   try {
-    const { itemId, location } = req.body;
+    const { itemName, location } = req.body;
 
-    const updated = await setPartLocationById(itemId, location);
+    const updated = await setPartLocation(itemName, location);
     if (typeof updated === "string") throw new Error(updated);
 
     if (!updated)
       throw new Error(
-        `Updating location failed with null return value\npart id: ${itemId}\nLocation: ${location}`
+        `Updating location failed with null return value\npart id: ${itemName}\nLocation: ${location}`
       );
 
     res.status(200).json({ status: 1, message: "Location updated for part" });
