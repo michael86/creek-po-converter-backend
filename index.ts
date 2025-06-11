@@ -5,7 +5,7 @@ const { createSqlConnection } = require("./db/connection");
 const express = require("express");
 const app = express();
 const cors = require("cors");
-const port = process.env.PORT || 6005;
+const port = 3000;
 
 require("dotenv").config();
 app.use(express.json());
@@ -19,7 +19,7 @@ app.use("/parts/", validateToken, require("./routes/parts"));
 app.use("/locations/", validateToken, require("./routes/locations"));
 app.use("/logs/", validateToken, require("./routes/logs"));
 
-app.listen(6005, async () => {
+app.listen(3000, async () => {
   console.log(`listening port ${port}\nServer started`);
   console.log("connecting to database");
   createSqlConnection();
