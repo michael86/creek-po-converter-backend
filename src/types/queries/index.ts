@@ -56,7 +56,7 @@ export interface SelectPoByUuid extends RowDataPacket {
   storageLocation: string | null;
   dueDate: Date;
   deliveryQuantityReceived: number | null;
-  deliveryReceivedDate: Date | null;
+  deliveryReceivedDate: Date;
 }
 
 export interface SelectLocationId extends RowDataPacket {

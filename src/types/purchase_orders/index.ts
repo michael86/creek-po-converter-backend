@@ -5,3 +5,9 @@ export interface UpdateLocationRequest extends Request {
     location: string;
   };
 }
+
+export type Deliveries = {
+  id: number;
+  quantityReceived: number;
+  dateReceived: Date;
+}[];

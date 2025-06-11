@@ -17,11 +17,36 @@ export const setPartLocation = async (partNumber: string, location: string) => {
       "UPDATE order_items SET storage_location = ? WHERE part_number = ?",
       [location, partNumber]
     );
-    if (!res.affectedRows) return null;
+    if (!res.affectedRows) throw new Error(`Error setting location for ${partNumber}`);
 
     return res.affectedRows;
   } catch (error) {
     console.error(error);
+    return null;
+  }
+};
+
+export const setPartLocationById = async (partId: number, location: string) => {
+  try {
+    console.log(
+      "Query: ",
+      `UPDATE order_items SET storage_location = ${location} WHERE id = ${partId}`
+    );
+
+    const [res] = await pool.execute<ResultSetHeader>(
+      "UPDATE order_items SET storage_location = ? WHERE id = ?",
+      [location, partId]
+    );
+
+    if (!res.affectedRows)
+      throw new Error(`Error setting location for ${partId}\nStack Trace: ${JSON.stringify(res)}`);
+
+    return res.affectedRows;
+  } catch (error) {
+    if (error instanceof Error && "code" in error) {
+      return error.code as string;
+    }
+    console.error("Database Insert Error:", error);
     return null;
   }
 };

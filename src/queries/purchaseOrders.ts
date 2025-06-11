@@ -1,6 +1,7 @@
 import { ResultSetHeader } from "mysql2";
 import pool from "../db/config";
-import { Item, SelectPoByUuid, SelectPoNames } from "src/types/queries";
+import { SelectPoByUuid, SelectPoNames } from "../types/queries";
+import { Deliveries } from "../types/purchase_orders";
 
 export const deletePurchaseOrderById = async (uuid: string): Promise<boolean> => {
   try {
@@ -68,32 +69,28 @@ export const selectPurchaseOrderByUuid = async (uuid: string) => {
     const purchaseOrder = {
       poNumber: rows[0].poNumber,
       orderRef: rows[0].orderRef,
-      items: Object.values(
-        rows.reduce<Record<string, Item>>((acc, row) => {
-          if (!acc[row.partNumber]) {
-            acc[row.partNumber] = {
-              id: row.itemId,
-              partNumber: row.partNumber,
-              description: row.description,
-              quantity: row.quantity,
-              quantityReceived: row.quantityReceived,
-              storageLocation: row.storageLocation,
-              dueDate: row.dueDate,
-              deliveries: [],
-            };
-          }
+      items: rows.map((row, index) => {
+        const parent = {
+          id: row.itemId,
+          partNumber: row.partNumber,
+          description: row.description,
+          quantity: row.quantity,
+          quantityReceived: row.quantityReceived,
+          storageLocation: row.storageLocation,
+          dueDate: row.dueDate,
+          deliveries: [] as Deliveries,
+        };
 
-          if (row.deliveryQuantityReceived !== null) {
-            acc[row.partNumber].deliveries.push({
-              id: row.deliveryId,
-              quantityReceived: row.deliveryQuantityReceived,
-              dateReceived: row.deliveryReceivedDate,
-            });
-          }
+        if (row.deliveryQuantityReceived !== null) {
+          parent.deliveries.push({
+            id: row.deliveryId,
+            quantityReceived: row.deliveryQuantityReceived,
+            dateReceived: row.deliveryReceivedDate,
+          });
+        }
 
-          return acc;
-        }, {})
-      ),
+        return parent;
+      }),
     };
 
     return purchaseOrder;
