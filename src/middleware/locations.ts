@@ -5,7 +5,6 @@ export const validateLocationUpdate: RequestHandler = (req, res, next) => {
   try {
     const { itemName, location }: { itemName: string; location: string } = req.body;
 
-    console.log();
     if (
       typeof location !== "string" ||
       typeof itemName !== "string" ||
