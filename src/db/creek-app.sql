@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 5.2.0
+-- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 08, 2025 at 10:00 PM
--- Server version: 10.4.27-MariaDB
--- PHP Version: 8.2.0
+-- Generation Time: Jun 12, 2025 at 11:34 AM
+-- Server version: 10.4.32-MariaDB
+-- PHP Version: 8.2.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -18,7 +18,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `creek-converter`
+-- Database: `creek-app`
 --
 
 -- --------------------------------------------------------
@@ -32,18 +32,26 @@ CREATE TABLE `deliveries` (
   `po_number` varchar(50) NOT NULL,
   `part_number` varchar(50) NOT NULL,
   `quantity_received` int(11) NOT NULL CHECK (`quantity_received` > 0),
-  `received_date` timestamp NOT NULL DEFAULT current_timestamp()
+  `received_date` timestamp NOT NULL DEFAULT current_timestamp(),
+  `order_item_id` char(36) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `deliveries`
+--
+
+INSERT INTO `deliveries` (`id`, `po_number`, `part_number`, `quantity_received`, `received_date`, `order_item_id`) VALUES
+(14, '026678', 'ESWTC0071', 1233112, '2025-06-12 09:29:55', 'c3451d46-476e-11f0-be47-509a4c3e7162'),
+(15, '026228', 'EFIXG0860', 123456, '2025-06-12 09:33:26', '0f4f3e05-4770-11f0-be47-509a4c3e7162');
 
 --
 -- Triggers `deliveries`
 --
 DELIMITER $$
 CREATE TRIGGER `update_order_item_quantity_received` AFTER INSERT ON `deliveries` FOR EACH ROW BEGIN
-  -- Update the order_items table by incrementing the quantity_received
   UPDATE order_items
   SET quantity_received = quantity_received + NEW.quantity_received
-  WHERE po_number = NEW.po_number AND part_number = NEW.part_number;
+  WHERE id = NEW.order_item_id;
 END
 $$
 DELIMITER ;
@@ -277,36 +285,33 @@ INSERT INTO `locations` (`id`, `name`) VALUES
 --
 
 CREATE TABLE `order_items` (
-  `id` int(11) NOT NULL,
   `po_number` varchar(50) NOT NULL,
   `part_number` varchar(100) NOT NULL,
   `description` varchar(255) NOT NULL,
   `quantity` int(11) NOT NULL,
   `quantity_received` int(11) DEFAULT 0,
   `storage_location` varchar(50) DEFAULT NULL,
-  `due_date` date NOT NULL
+  `due_date` date NOT NULL,
+  `id` char(36) NOT NULL DEFAULT uuid()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `order_items`
 --
 
-INSERT INTO `order_items` (`id`, `po_number`, `part_number`, `description`, `quantity`, `quantity_received`, `storage_location`, `due_date`) VALUES
-(212, '025421', 'EREST0772', '18K 0603  1%  RESISTOR', 10000, 0, NULL, '2024-03-06'),
-(213, '025421', 'ECAPT0726', '100PF 0402 COG/NCO +/-5% CAP', 5000, 0, NULL, '2024-03-06'),
-(214, '025421', 'EREST1345', '100R 0402 50V 63MW 5% ', 3000, 0, NULL, '2024-03-06'),
-(215, '025421', 'EREST0984', '10M Generic 5% 0402', 5000, 0, NULL, '2024-03-06'),
-(229, '025442', 'ELEDS0237', '150080RS75000 RED 0805', 2000, 0, NULL, '2024-03-14'),
-(230, '025442', 'EREST1344', '1M 0402 63MW 50V 5%', 10000, 0, NULL, '2024-03-14'),
-(231, '025442', 'EREST1347', '2.2k 1206 EXB-38V222JV', 2000, 0, NULL, '2024-03-14'),
-(235, '025450', 'EINCI0800', 'CD4093BCM', 410, 0, NULL, '2024-03-14'),
-(236, '025450', 'ECAPT0997', '3.9PF 0402 COG/NPO 50V 0.1PF', 5000, 0, NULL, '2024-03-14'),
-(237, '025450', 'ECAPT0998', '10pF 0402 COG/NPO 50V 2%', 1000, 0, NULL, '2024-03-14'),
-(238, '025450', 'ECAPT1021', '18PF 0402 COG/NPO 2% 50V', 1000, 0, NULL, '2024-03-14'),
-(239, '025450', 'EINDU0137', '22nF 0402 5%', 1000, 0, NULL, '2024-03-14'),
-(240, '025450', 'EINDU0138', '27nF 0402N 5%', 1000, 0, NULL, '2024-03-14'),
-(241, '025464', 'EREST1115', 'MOV-14D(5.2MM-T)', 105, 0, NULL, '2024-03-19'),
-(242, '025464', 'ERELY0105', 'TE_1-1393243-8', 100, 0, NULL, '2024-03-19');
+INSERT INTO `order_items` (`po_number`, `part_number`, `description`, `quantity`, `quantity_received`, `storage_location`, `due_date`, `id`) VALUES
+('026228', 'EFIXG0860', 'ANTI VIB BOBBIN M6 MALE-MALE 20X20', 1380, 123456, 'AC-1', '2025-02-10', '0f4f3e05-4770-11f0-be47-509a4c3e7162'),
+('026228', 'EFIXG0860', 'ANTI VIB BOBBIN M6 MALE-MALE 20X20', 1200, 0, 'AC-1', '2025-03-10', '0f4f67b5-4770-11f0-be47-509a4c3e7162'),
+('026228', 'EFIXG0860', 'ANTI VIB BOBBIN M6 MALE-MALE 20X20', 1200, 0, 'AC-1', '2025-04-07', '0f50acdb-4770-11f0-be47-509a4c3e7162'),
+('026228', 'EFIXG0860', 'ANTI VIB BOBBIN M6 MALE-MALE 20X20', 1410, 0, 'AC-1', '2025-05-05', '0f50bcd9-4770-11f0-be47-509a4c3e7162'),
+('026678', 'ESWTC0071', 'SWITCH DTSM-21Y-V-T/R [12 week', 30100, 1233112, NULL, '2025-08-08', 'c3451d46-476e-11f0-be47-509a4c3e7162'),
+('026697', 'EWIRE0680', 'BLACK 13AWG 2.5mm [14-0059 P/A', 200, 0, NULL, '2025-05-14', 'c870e30e-476e-11f0-be47-509a4c3e7162'),
+('026697', 'EWIRE0681', 'RED 13AWG 2.5MM  [14-0058 P/A', 500, 0, NULL, '2025-05-14', 'c871d8d9-476e-11f0-be47-509a4c3e7162'),
+('026723', 'ECONN0607', '8 Way Socket', 8, 0, NULL, '2025-06-03', 'd14d2c63-476e-11f0-be47-509a4c3e7162'),
+('026723', 'EFIXG0682', 'M3X20 PAN HEAD SCREW', 100, 0, NULL, '2025-06-03', 'd1507ce9-476e-11f0-be47-509a4c3e7162'),
+('026723', 'EFUSE0094', 'Fuse, 2A, Speed T, 5 x 20mm', 20, 0, NULL, '2025-06-03', 'd151c620-476e-11f0-be47-509a4c3e7162'),
+('026723', 'EFIXG0786', 'MICA ELECTRICAL INS FILM', 1, 0, NULL, '2025-06-03', 'd152101d-476e-11f0-be47-509a4c3e7162'),
+('026723', 'EFIXG0689', 'M3 FLAT WASHER', 250, 0, NULL, '2025-06-03', 'd1525875-476e-11f0-be47-509a4c3e7162');
 
 -- --------------------------------------------------------
 
@@ -386,11 +391,11 @@ CREATE TABLE `purchase_orders` (
 --
 
 INSERT INTO `purchase_orders` (`po_number`, `order_ref`, `created_at`, `uuid`) VALUES
-('025421', '067103/067094', '2025-03-28 15:44:23', '85de4550-0beb-11f0-9485-00d8612e8c27'),
-('025441', '067090', '2025-03-28 15:44:34', '8c6971ee-0beb-11f0-9485-00d8612e8c27'),
-('025442', 'S/F-PETRU', '2025-03-28 15:44:37', '8dc281a4-0beb-11f0-9485-00d8612e8c27'),
-('025450', '067149/067090', '2025-03-28 15:44:41', '905919f1-0beb-11f0-9485-00d8612e8c27'),
-('025464', '067089', '2025-03-28 15:44:43', '9199ad61-0beb-11f0-9485-00d8612e8c27');
+('026228', '59/650/1020=RS', '2025-06-12 09:31:46', '0f4e4ee5-4770-11f0-be47-509a4c3e7162'),
+('026678', 'CONNECT', '2025-06-12 09:22:28', 'c3432944-476e-11f0-be47-509a4c3e7162'),
+('026697', '63791-93/67456', '2025-06-12 09:22:37', 'c86fab30-476e-11f0-be47-509a4c3e7162'),
+('026708', 'CONNECT', '2025-06-12 09:22:45', 'cce03249-476e-11f0-be47-509a4c3e7162'),
+('026723', '067466', '2025-06-12 09:22:52', 'd14c35a4-476e-11f0-be47-509a4c3e7162');
 
 -- --------------------------------------------------------
 
@@ -412,7 +417,7 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `email`, `password`, `name`, `role`, `date_created`) VALUES
-(42, 'michael8t6@gmail.com', '$2b$10$ZPgdCJowFMAxvIExhM.Yq..WeXfqkEt5JTSUJKV56pU4T7hXCaF1a', 'Michael Hodgson', 4, '2025-03-16 19:41:24');
+(43, 'michael8t6@gmail.com', '$2b$10$6E3Fet0WxN5ftpX8bi0AduAioF9xxN8uNSXA2PA6Nl/aHe.WEPYnO', 'Michael Hodgson', 4, '2025-06-11 11:18:40');
 
 --
 -- Indexes for dumped tables
@@ -423,7 +428,8 @@ INSERT INTO `users` (`id`, `email`, `password`, `name`, `role`, `date_created`) 
 --
 ALTER TABLE `deliveries`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `po_number` (`po_number`,`part_number`);
+  ADD KEY `po_number` (`po_number`,`part_number`),
+  ADD KEY `fk_delivery_order_item` (`order_item_id`);
 
 --
 -- Indexes for table `locations`
@@ -470,19 +476,13 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `deliveries`
 --
 ALTER TABLE `deliveries`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT for table `locations`
 --
 ALTER TABLE `locations`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=207;
-
---
--- AUTO_INCREMENT for table `order_items`
---
-ALTER TABLE `order_items`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=243;
 
 --
 -- AUTO_INCREMENT for table `prefixes`
@@ -494,7 +494,7 @@ ALTER TABLE `prefixes`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=43;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=44;
 
 --
 -- Constraints for dumped tables
@@ -504,7 +504,8 @@ ALTER TABLE `users`
 -- Constraints for table `deliveries`
 --
 ALTER TABLE `deliveries`
-  ADD CONSTRAINT `deliveries_ibfk_1` FOREIGN KEY (`po_number`,`part_number`) REFERENCES `order_items` (`po_number`, `part_number`) ON DELETE CASCADE;
+  ADD CONSTRAINT `deliveries_ibfk_1` FOREIGN KEY (`po_number`,`part_number`) REFERENCES `order_items` (`po_number`, `part_number`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_delivery_order_item` FOREIGN KEY (`order_item_id`) REFERENCES `order_items` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `order_items`
