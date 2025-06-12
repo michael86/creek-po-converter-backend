@@ -12,7 +12,6 @@ import locationRoutes from "./routes/locations";
 import deliveriesRoute from "./routes/deliveries";
 import cookieparser from "cookie-parser";
 import { validateMe } from "./middleware/auth";
-import { validateDeliveryInformation } from "./middleware/deliveries";
 
 const app = express();
 const PORT = process.env.API_PORT || 3000;
@@ -42,7 +41,7 @@ app.use("/auth", authRoutes);
 app.use("/pdf", validateMe, pdfRoutes);
 app.use("/purchase-order", validateMe, poRoutes);
 app.use("/locations", validateMe, locationRoutes);
-app.use("/deliveries", validateMe, validateDeliveryInformation, deliveriesRoute);
+app.use("/deliveries", validateMe, deliveriesRoute);
 
 if (process.env.NODE_ENV !== "test") {
   app.listen(PORT, () => {

@@ -48,7 +48,7 @@ export type Item = {
 export interface SelectPoByUuid extends RowDataPacket {
   poNumber: string;
   orderRef: string;
-  itemId: number;
+  itemId: string;
   partNumber: string;
   description: string;
   quantity: number;
@@ -67,3 +67,12 @@ export interface SelectLocations extends RowDataPacket {
   name: string;
   id: number;
 }
+
+//number is success, string is sql error, null is server error 500
+export type InsertDeliveries = (
+  poNumber: string,
+  deliveries: number[],
+  uuid: string,
+  partNumber: string,
+  date: Date
+) => Promise<true | string | null>;

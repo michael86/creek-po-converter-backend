@@ -1,6 +1,7 @@
 /pdf/
 *.pdf
 node_modules/
+dist/
 .env
 uploads/*
 tests/pdfs/*

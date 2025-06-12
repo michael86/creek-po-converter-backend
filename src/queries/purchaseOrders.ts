@@ -44,56 +44,75 @@ export const selectPurchaseOrderByUuid = async (uuid: string) => {
   try {
     const [rows] = await pool.query<SelectPoByUuid[]>(
       `SELECT 
-        po.po_number AS poNumber, 
-        po.order_ref AS orderRef, 
-        oi.id AS itemId,
-        oi.part_number AS partNumber, 
-        oi.description AS description, 
-        oi.quantity AS quantity, 
-        oi.quantity_received AS quantityReceived, 
-        oi.storage_location AS storageLocation, 
-        oi.due_date AS dueDate,
-        de.id AS deliveryId,
-        de.quantity_received AS deliveryQuantityReceived,
-        de.received_date AS deliveryReceivedDate
-      FROM purchase_orders po
-      LEFT JOIN order_items oi ON po.po_number = oi.po_number
-      LEFT JOIN deliveries de ON po.po_number = de.po_number 
-        AND oi.part_number = de.part_number
-      WHERE po.uuid = ?;`,
+         po.po_number AS poNumber, 
+         po.order_ref AS orderRef, 
+         oi.id AS itemId,
+         oi.part_number AS partNumber, 
+         oi.description AS description, 
+         oi.quantity AS quantity, 
+         oi.quantity_received AS quantityReceived, 
+         oi.storage_location AS storageLocation, 
+         oi.due_date AS dueDate,
+         de.id AS deliveryId,
+         de.quantity_received AS deliveryQuantityReceived,
+         de.received_date AS deliveryReceivedDate
+       FROM purchase_orders po
+       LEFT JOIN order_items oi ON po.po_number = oi.po_number
+       LEFT JOIN deliveries de ON oi.id = de.order_item_id 
+       WHERE po.uuid = ?;`,
       [uuid]
     );
 
     if (!rows.length) return null;
 
-    const purchaseOrder = {
+    const itemsMap = new Map<
+      string,
+      {
+        id: string;
+        partNumber: string;
+        description: string;
+        quantity: number;
+        quantityReceived: number;
+        storageLocation: string | null;
+        dueDate: Date;
+        deliveries: {
+          id: number;
+          quantityReceived: number;
+          dateReceived: Date;
+        }[];
+      }
+    >();
+
+    for (const r of rows) {
+      if (!itemsMap.has(r.itemId)) {
+        itemsMap.set(r.itemId, {
+          id: r.itemId,
+          partNumber: r.partNumber,
+          description: r.description,
+          quantity: r.quantity,
+          quantityReceived: r.quantityReceived,
+          storageLocation: r.storageLocation,
+          dueDate: r.dueDate,
+          deliveries: [],
+        });
+      }
+
+      if (r.deliveryId !== null) {
+        itemsMap.get(r.itemId)!.deliveries.push({
+          id: r.deliveryId,
+          quantityReceived: r.deliveryQuantityReceived!,
+          dateReceived: r.deliveryReceivedDate!,
+        });
+      }
+    }
+
+    const items = Array.from(itemsMap.values());
+
+    return {
       poNumber: rows[0].poNumber,
       orderRef: rows[0].orderRef,
-      items: rows.map((row, index) => {
-        const parent = {
-          id: row.itemId,
-          partNumber: row.partNumber,
-          description: row.description,
-          quantity: row.quantity,
-          quantityReceived: row.quantityReceived,
-          storageLocation: row.storageLocation,
-          dueDate: row.dueDate,
-          deliveries: [] as Deliveries,
-        };
-
-        if (row.deliveryQuantityReceived !== null) {
-          parent.deliveries.push({
-            id: row.deliveryId,
-            quantityReceived: row.deliveryQuantityReceived,
-            dateReceived: row.deliveryReceivedDate,
-          });
-        }
-
-        return parent;
-      }),
+      items,
     };
-
-    return purchaseOrder;
   } catch (error) {
     console.error("Error fetching purchase order details:", error);
     return null;

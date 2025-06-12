@@ -1,10 +1,9 @@
 import { Router } from "express";
+import { validateDeliveryInformation } from "../middleware/deliveries";
+import { addDeliveryToOrder } from "../controllers/deliveries";
 
 const router = Router();
 
-router.post("/add", async (resizeBy, res) => {
-  console.log("add delivery");
-  res.status(200).json({ status: 1, message: "All okay" });
-});
+router.post("/add", validateDeliveryInformation, addDeliveryToOrder);
 
 export default router;
