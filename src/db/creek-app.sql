@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jun 12, 2025 at 11:34 AM
+-- Generation Time: Jun 16, 2025 at 12:54 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -35,14 +35,6 @@ CREATE TABLE `deliveries` (
   `received_date` timestamp NOT NULL DEFAULT current_timestamp(),
   `order_item_id` char(36) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `deliveries`
---
-
-INSERT INTO `deliveries` (`id`, `po_number`, `part_number`, `quantity_received`, `received_date`, `order_item_id`) VALUES
-(14, '026678', 'ESWTC0071', 1233112, '2025-06-12 09:29:55', 'c3451d46-476e-11f0-be47-509a4c3e7162'),
-(15, '026228', 'EFIXG0860', 123456, '2025-06-12 09:33:26', '0f4f3e05-4770-11f0-be47-509a4c3e7162');
 
 --
 -- Triggers `deliveries`
@@ -295,24 +287,6 @@ CREATE TABLE `order_items` (
   `id` char(36) NOT NULL DEFAULT uuid()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `order_items`
---
-
-INSERT INTO `order_items` (`po_number`, `part_number`, `description`, `quantity`, `quantity_received`, `storage_location`, `due_date`, `id`) VALUES
-('026228', 'EFIXG0860', 'ANTI VIB BOBBIN M6 MALE-MALE 20X20', 1380, 123456, 'AC-1', '2025-02-10', '0f4f3e05-4770-11f0-be47-509a4c3e7162'),
-('026228', 'EFIXG0860', 'ANTI VIB BOBBIN M6 MALE-MALE 20X20', 1200, 0, 'AC-1', '2025-03-10', '0f4f67b5-4770-11f0-be47-509a4c3e7162'),
-('026228', 'EFIXG0860', 'ANTI VIB BOBBIN M6 MALE-MALE 20X20', 1200, 0, 'AC-1', '2025-04-07', '0f50acdb-4770-11f0-be47-509a4c3e7162'),
-('026228', 'EFIXG0860', 'ANTI VIB BOBBIN M6 MALE-MALE 20X20', 1410, 0, 'AC-1', '2025-05-05', '0f50bcd9-4770-11f0-be47-509a4c3e7162'),
-('026678', 'ESWTC0071', 'SWITCH DTSM-21Y-V-T/R [12 week', 30100, 1233112, NULL, '2025-08-08', 'c3451d46-476e-11f0-be47-509a4c3e7162'),
-('026697', 'EWIRE0680', 'BLACK 13AWG 2.5mm [14-0059 P/A', 200, 0, NULL, '2025-05-14', 'c870e30e-476e-11f0-be47-509a4c3e7162'),
-('026697', 'EWIRE0681', 'RED 13AWG 2.5MM  [14-0058 P/A', 500, 0, NULL, '2025-05-14', 'c871d8d9-476e-11f0-be47-509a4c3e7162'),
-('026723', 'ECONN0607', '8 Way Socket', 8, 0, NULL, '2025-06-03', 'd14d2c63-476e-11f0-be47-509a4c3e7162'),
-('026723', 'EFIXG0682', 'M3X20 PAN HEAD SCREW', 100, 0, NULL, '2025-06-03', 'd1507ce9-476e-11f0-be47-509a4c3e7162'),
-('026723', 'EFUSE0094', 'Fuse, 2A, Speed T, 5 x 20mm', 20, 0, NULL, '2025-06-03', 'd151c620-476e-11f0-be47-509a4c3e7162'),
-('026723', 'EFIXG0786', 'MICA ELECTRICAL INS FILM', 1, 0, NULL, '2025-06-03', 'd152101d-476e-11f0-be47-509a4c3e7162'),
-('026723', 'EFIXG0689', 'M3 FLAT WASHER', 250, 0, NULL, '2025-06-03', 'd1525875-476e-11f0-be47-509a4c3e7162');
-
 -- --------------------------------------------------------
 
 --
@@ -386,17 +360,6 @@ CREATE TABLE `purchase_orders` (
   `uuid` varchar(36) NOT NULL DEFAULT uuid()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `purchase_orders`
---
-
-INSERT INTO `purchase_orders` (`po_number`, `order_ref`, `created_at`, `uuid`) VALUES
-('026228', '59/650/1020=RS', '2025-06-12 09:31:46', '0f4e4ee5-4770-11f0-be47-509a4c3e7162'),
-('026678', 'CONNECT', '2025-06-12 09:22:28', 'c3432944-476e-11f0-be47-509a4c3e7162'),
-('026697', '63791-93/67456', '2025-06-12 09:22:37', 'c86fab30-476e-11f0-be47-509a4c3e7162'),
-('026708', 'CONNECT', '2025-06-12 09:22:45', 'cce03249-476e-11f0-be47-509a4c3e7162'),
-('026723', '067466', '2025-06-12 09:22:52', 'd14c35a4-476e-11f0-be47-509a4c3e7162');
-
 -- --------------------------------------------------------
 
 --
@@ -411,13 +374,6 @@ CREATE TABLE `users` (
   `role` int(11) DEFAULT NULL,
   `date_created` datetime NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `users`
---
-
-INSERT INTO `users` (`id`, `email`, `password`, `name`, `role`, `date_created`) VALUES
-(43, 'michael8t6@gmail.com', '$2b$10$6E3Fet0WxN5ftpX8bi0AduAioF9xxN8uNSXA2PA6Nl/aHe.WEPYnO', 'Michael Hodgson', 4, '2025-06-11 11:18:40');
 
 --
 -- Indexes for dumped tables
@@ -476,7 +432,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `deliveries`
 --
 ALTER TABLE `deliveries`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=120;
 
 --
 -- AUTO_INCREMENT for table `locations`

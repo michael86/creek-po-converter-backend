@@ -8,29 +8,49 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-const middleware_1 = require("./middleware");
-const { createSqlConnection } = require("./db/connection");
-const express = require("express");
-const app = express();
-const cors = require("cors");
-const port = 6005;
-require("dotenv").config();
-app.use(express.json());
-app.use(express.static("./public"));
-app.use(cors());
-app.use("/pdf", middleware_1.validateToken, require("./routes/pdf"));
-app.use("/account", require("./routes/account"));
-app.use("/purchase/", middleware_1.validateToken, require("./routes/purchase_orders"));
-app.use("/parts/", middleware_1.validateToken, require("./routes/parts"));
-app.use("/locations/", middleware_1.validateToken, require("./routes/locations"));
-app.use("/logs/", middleware_1.validateToken, require("./routes/logs"));
-app.listen(port, () => __awaiter(void 0, void 0, void 0, function* () {
-    console.log(`listening port ${port}\nServer started`);
-    console.log("connecting to database");
-    createSqlConnection();
+const dotenv_1 = __importDefault(require("dotenv"));
+dotenv_1.default.config(); //load env variabls first
+const cors_1 = __importDefault(require("cors"));
+const config_1 = __importDefault(require("./db/config"));
+const express_1 = __importDefault(require("express"));
+const user_1 = __importDefault(require("./routes/user"));
+const auth_1 = __importDefault(require("./routes/auth"));
+const pdf_1 = __importDefault(require("./routes/pdf"));
+const purchaseOrders_1 = __importDefault(require("./routes/purchaseOrders"));
+const locations_1 = __importDefault(require("./routes/locations"));
+const deliveries_1 = __importDefault(require("./routes/deliveries"));
+const cookie_parser_1 = __importDefault(require("cookie-parser"));
+const auth_2 = require("./middleware/auth");
+const app = (0, express_1.default)();
+const PORT = process.env.API_PORT || 3000;
+config_1.default
+    .getConnection()
+    .then((conn) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log("Database connected successfully!");
+}))
+    .catch((err) => {
+    console.error("Database connection failed:", err);
+    process.exit(1);
+});
+app.use((0, cors_1.default)({
+    origin: process.env.FRONTEND_URL,
+    credentials: true,
 }));
-//uncomment to test files
-// (async () => {
-//   const data = await testFiles();
-// })();
+app.use((0, cookie_parser_1.default)());
+app.use(express_1.default.json());
+app.use("/user", user_1.default);
+app.use("/auth", auth_1.default);
+app.use("/pdf", auth_2.validateMe, pdf_1.default);
+app.use("/purchase-order", auth_2.validateMe, purchaseOrders_1.default);
+app.use("/locations", auth_2.validateMe, locations_1.default);
+app.use("/deliveries", auth_2.validateMe, deliveries_1.default);
+if (process.env.NODE_ENV !== "test") {
+    app.listen(PORT, () => {
+        console.log("App started, listening on port", PORT);
+    });
+}
+exports.default = app;

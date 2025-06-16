@@ -3,11 +3,7 @@ import { PdfUpload } from "../types/pdf";
 import { processFile } from "../utils/pdf";
 import { PdfError } from "../utils/pdfError";
 
-export const validatePDF: RequestHandler = async (
-  req: PdfUpload,
-  res,
-  next
-) => {
+export const validatePDF: RequestHandler = async (req: PdfUpload, res, next) => {
   try {
     const { file } = req;
 
@@ -23,9 +19,7 @@ export const validatePDF: RequestHandler = async (
     next();
   } catch (error) {
     if (error instanceof PdfError) {
-      res
-        .status(error.status)
-        .json({ status: "error", message: error.message });
+      res.status(error.status).json({ status: "error", message: JSON.stringify(error.message) });
       return;
     }
 

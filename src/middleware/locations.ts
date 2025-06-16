@@ -2,6 +2,7 @@ import { RequestHandler } from "express";
 import { containsSpecialExceptHyphen } from "../utils";
 
 export const validateLocationUpdate: RequestHandler = (req, res, next) => {
+  console.log("validateLocationUpdate called");
   try {
     const { itemName, location }: { itemName: string; location: string } = req.body;
 

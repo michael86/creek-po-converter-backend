@@ -21,6 +21,7 @@ export const fetchAllLocations: RequestHandler = async (req, res) => {
 };
 
 export const updateLocation: RequestHandler = async (req, res) => {
+  console.log("updateLocation called");
   try {
     const { itemName, location } = req.body;
 

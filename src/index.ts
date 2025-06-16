@@ -10,6 +10,7 @@ import pdfRoutes from "./routes/pdf";
 import poRoutes from "./routes/purchaseOrders";
 import locationRoutes from "./routes/locations";
 import deliveriesRoute from "./routes/deliveries";
+import manageRoute from "./routes/manage";
 import cookieparser from "cookie-parser";
 import { validateMe } from "./middleware/auth";
 
@@ -42,6 +43,7 @@ app.use("/pdf", validateMe, pdfRoutes);
 app.use("/purchase-order", validateMe, poRoutes);
 app.use("/locations", validateMe, locationRoutes);
 app.use("/deliveries", validateMe, deliveriesRoute);
+app.use("/manage", validateMe, manageRoute);
 
 if (process.env.NODE_ENV !== "test") {
   app.listen(PORT, () => {
