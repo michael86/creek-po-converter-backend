@@ -5,7 +5,6 @@ interface MeRequest extends Request {
     email: string;
   };
 }
-
 export type DecodedToken = {
   email: string;
   iat: number;
@@ -13,3 +12,7 @@ export type DecodedToken = {
 };
 
 export type MeRequestRoute = (req: MeRequest, res: Response, next: NextFunction) => Promise<void>;
+
+export type RoleRequestRoute = (
+  allowedRoles: number[]
+) => (req: MeRequest, res: Response, next: NextFunction) => void | Promise<void>;
