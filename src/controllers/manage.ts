@@ -1,5 +1,6 @@
 import { RequestHandler } from "express";
-import { selectUsers } from "../queries/manage";
+import { selectUsers, updateUserRole } from "../queries/manage";
+import { stat } from "fs";
 
 export const getUsers: RequestHandler = async (req, res, next) => {
   try {
@@ -25,10 +26,19 @@ export const updateRole: RequestHandler = async (req, res, next) => {
   const { id } = req.params;
   const { role } = req.body;
 
-  // Here you would typically call a service or query to update the user's role
-  // For now, we will just return a success message
-  res.status(200).json({
-    status: 1,
-    message: `User with ID ${id} updated to role ${role}`,
-  });
+  try {
+    await updateUserRole(Number(id), Number(role));
+
+    res.status(200).json({
+      status: 1,
+      message: `User with ID ${id} updated to role ${role}`,
+    });
+  } catch (error) {
+    console.error("Error updating user role:", error);
+    res.status(500).json({
+      status: 0,
+      message: "Internal server error",
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
 };
