@@ -4,7 +4,7 @@ import pool from "../db/config";
 export const selectUsers = async () => {
   try {
     const [users] = await pool.query<GetUsers[]>(
-      "SELECT *, date_created as dateCreated FROM users"
+      "SELECT id, email, name, role, date_created as dateCreated FROM users"
     );
     return users;
   } catch (error) {
