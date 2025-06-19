@@ -53,6 +53,7 @@ export const selectPurchaseOrderByUuid = async (uuid: string) => {
          oi.quantity_received AS quantityReceived, 
          oi.storage_location AS storageLocation, 
          oi.due_date AS dueDate,
+         oi.threshold_overide as threshold,
          de.id AS deliveryId,
          de.quantity_received AS deliveryQuantityReceived,
          de.received_date AS deliveryReceivedDate
@@ -75,6 +76,7 @@ export const selectPurchaseOrderByUuid = async (uuid: string) => {
         quantityReceived: number;
         storageLocation: string | null;
         dueDate: Date;
+        threshold: number;
         deliveries: {
           id: number;
           quantityReceived: number;
@@ -93,6 +95,7 @@ export const selectPurchaseOrderByUuid = async (uuid: string) => {
           quantityReceived: r.quantityReceived,
           storageLocation: r.storageLocation,
           dueDate: r.dueDate,
+          threshold: r.threshold,
           deliveries: [],
         });
       }
@@ -117,4 +120,8 @@ export const selectPurchaseOrderByUuid = async (uuid: string) => {
     console.error("Error fetching purchase order details:", error);
     return null;
   }
+};
+
+export const putThreshold = async (uuid: string, state: boolean) => {
+  await pool.query("UPDATE order_items SET threshold_overide = ? WHERE id = ?", [state, uuid]);
 };

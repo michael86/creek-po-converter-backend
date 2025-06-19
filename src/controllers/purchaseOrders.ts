@@ -1,6 +1,7 @@
 import { Request, RequestHandler, Response } from "express";
 import {
   deletePurchaseOrderById,
+  putThreshold,
   selectPurchaseOrderByUuid,
   selectPurchaseOrderNames,
 } from "../queries/purchaseOrders";
@@ -81,5 +82,19 @@ export const updateLocation: RequestHandler = async (req: UpdateLocationRequest,
   } catch (error) {
     console.error("Error updating location", error);
     res.status(500).json({ status: "error", message: "Internal Server Error" });
+  }
+};
+
+export const setThreshold: RequestHandler = async (req, res) => {
+  try {
+    const { uuid } = req.params;
+    const { state } = req.body;
+
+    await putThreshold(uuid, state);
+
+    res.status(200).json({ status: 1, message: "State updated successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ status: 0, message: "internal server error" });
   }
 };

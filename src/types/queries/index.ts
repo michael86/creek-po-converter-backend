@@ -54,6 +54,7 @@ export interface SelectPoByUuid extends RowDataPacket {
   quantity: number;
   quantityReceived: number;
   storageLocation: string | null;
+  threshold: number;
   dueDate: Date;
   deliveryQuantityReceived: number | null;
   deliveryReceivedDate: Date;

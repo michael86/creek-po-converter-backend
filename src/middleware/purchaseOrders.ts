@@ -1,6 +1,7 @@
-import { RequestHandler } from "express";
+import { RequestHandler, Request, Response, NextFunction } from "express";
 import { UpdateLocationRequest } from "../types/purchase_orders";
 import { selectLocationIdByName } from "../queries/locations";
+import { body, param, validationResult } from "express-validator";
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -51,3 +52,24 @@ export const validateUpdateLocation: RequestHandler = async (
     return;
   }
 };
+
+export const validateThreshold = [
+  body("state")
+    .exists()
+    .withMessage("state must be present")
+    .bail()
+    .isBoolean()
+    .withMessage("state must be a boolean"),
+  param("uuid").trim().isString().withMessage("Order Id must be present and valid"),
+
+  (req: Request, res: Response, next: NextFunction) => {
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+      res.status(400).json({ status: "error", errors: errors.array() });
+      return;
+    }
+
+    next();
+  },
+];
