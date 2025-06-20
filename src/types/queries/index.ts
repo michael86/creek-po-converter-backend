@@ -76,4 +76,10 @@ export type InsertDeliveries = (
   uuid: string,
   partNumber: string,
   date: Date
-) => Promise<true | string | null>;
+) => Promise<DeliveryRow[] | string | null>;
+
+export interface DeliveryRow extends RowDataPacket {
+  id: string;
+  dateReceived: string;
+  quantityReceived: number;
+}

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jun 16, 2025 at 12:54 PM
+-- Generation Time: Jun 20, 2025 at 01:06 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -28,12 +28,12 @@ SET time_zone = "+00:00";
 --
 
 CREATE TABLE `deliveries` (
-  `id` int(11) NOT NULL,
   `po_number` varchar(50) NOT NULL,
   `part_number` varchar(50) NOT NULL,
   `quantity_received` int(11) NOT NULL CHECK (`quantity_received` > 0),
   `received_date` timestamp NOT NULL DEFAULT current_timestamp(),
-  `order_item_id` char(36) NOT NULL
+  `order_item_id` char(36) NOT NULL,
+  `uuid` char(36) NOT NULL DEFAULT uuid()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -283,6 +283,7 @@ CREATE TABLE `order_items` (
   `quantity` int(11) NOT NULL,
   `quantity_received` int(11) DEFAULT 0,
   `storage_location` varchar(50) DEFAULT NULL,
+  `threshold_overide` tinyint(1) NOT NULL DEFAULT 0,
   `due_date` date NOT NULL,
   `id` char(36) NOT NULL DEFAULT uuid()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -363,6 +364,32 @@ CREATE TABLE `purchase_orders` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `roles`
+--
+
+CREATE TABLE `roles` (
+  `id` int(11) NOT NULL,
+  `name` varchar(50) NOT NULL,
+  `description` varchar(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `roles`
+--
+
+INSERT INTO `roles` (`id`, `name`, `description`) VALUES
+(1, 'admin', 'Full system access including all departments and user management'),
+(2, 'purchasing', 'Can upload and manage purchase orders'),
+(3, 'stores_admin', 'Stores team lead with full stores access and ability to assign stores roles'),
+(4, 'stores_moderator', 'Full stores access except assigning roles'),
+(5, 'stores_editor', 'Can upload and edit store purchase orders but not delete'),
+(6, 'stores_viewer', 'Read-only access to store purchase orders'),
+(7, 'production', 'Access to Viasat labels only'),
+(8, 'test', 'Access to Hex test stickers only');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `users`
 --
 
@@ -371,9 +398,17 @@ CREATE TABLE `users` (
   `email` varchar(255) NOT NULL,
   `password` varchar(255) NOT NULL,
   `name` varchar(255) NOT NULL,
-  `role` int(11) DEFAULT NULL,
-  `date_created` datetime NOT NULL DEFAULT current_timestamp()
+  `date_created` datetime NOT NULL DEFAULT current_timestamp(),
+  `role_id` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `users`
+--
+
+INSERT INTO `users` (`id`, `email`, `password`, `name`, `date_created`, `role_id`) VALUES
+(44, 'michael8t6@gmail.com', '$2b$10$FwxrkZ9nqPXprgu8krrgy.BQ1VZ83M1MjpZS63PLSowgcxZLMTQJG', 'Michael', '2025-06-16 12:03:23', 1),
+(45, 'michaelh@creekviewelectronics.co.uk', '$2b$10$nMGkbLX28fXR8dDLkvhteeP9IEA5PV7/inEfecY9T31X0dZjia7gS', 'test account', '2025-06-16 15:39:08', 7);
 
 --
 -- Indexes for dumped tables
@@ -383,7 +418,6 @@ CREATE TABLE `users` (
 -- Indexes for table `deliveries`
 --
 ALTER TABLE `deliveries`
-  ADD PRIMARY KEY (`id`),
   ADD KEY `po_number` (`po_number`,`part_number`),
   ADD KEY `fk_delivery_order_item` (`order_item_id`);
 
@@ -418,21 +452,23 @@ ALTER TABLE `purchase_orders`
   ADD UNIQUE KEY `uuid` (`uuid`);
 
 --
+-- Indexes for table `roles`
+--
+ALTER TABLE `roles`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `name` (`name`);
+
+--
 -- Indexes for table `users`
 --
 ALTER TABLE `users`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `email` (`email`);
+  ADD UNIQUE KEY `email` (`email`),
+  ADD KEY `fk_user_role` (`role_id`);
 
 --
 -- AUTO_INCREMENT for dumped tables
 --
-
---
--- AUTO_INCREMENT for table `deliveries`
---
-ALTER TABLE `deliveries`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=120;
 
 --
 -- AUTO_INCREMENT for table `locations`
@@ -447,10 +483,16 @@ ALTER TABLE `prefixes`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=44;
 
 --
+-- AUTO_INCREMENT for table `roles`
+--
+ALTER TABLE `roles`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+
+--
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=44;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=46;
 
 --
 -- Constraints for dumped tables
@@ -469,6 +511,12 @@ ALTER TABLE `deliveries`
 ALTER TABLE `order_items`
   ADD CONSTRAINT `fk_storage_location` FOREIGN KEY (`storage_location`) REFERENCES `locations` (`name`) ON DELETE SET NULL,
   ADD CONSTRAINT `order_items_ibfk_1` FOREIGN KEY (`po_number`) REFERENCES `purchase_orders` (`po_number`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `users`
+--
+ALTER TABLE `users`
+  ADD CONSTRAINT `fk_user_role` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
