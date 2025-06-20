@@ -54,7 +54,7 @@ export const selectPurchaseOrderByUuid = async (uuid: string) => {
          oi.storage_location AS storageLocation, 
          oi.due_date AS dueDate,
          oi.threshold_overide as threshold,
-         de.id AS deliveryId,
+         de.uuid AS deliveryId,
          de.quantity_received AS deliveryQuantityReceived,
          de.received_date AS deliveryReceivedDate
        FROM purchase_orders po
