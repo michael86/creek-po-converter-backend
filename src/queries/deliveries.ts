@@ -25,8 +25,6 @@ export const insertDeliveries: InsertDeliveries = async (
       [uuid]
     );
 
-    // const newItemRow = { [uuid]: { deliveries: rows } };
-
     return rows;
   } catch (error) {
     if (isMySQLError(error)) {

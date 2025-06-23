@@ -64,25 +64,29 @@ export const processFile = async (file: string): Promise<ParsedPdf> => {
   }
 };
 
+export const hasValidPrefix = (value: string) => {
+  try {
+    if (!PREFIXES) throw new Error("Prefix table is empty, please populate it and restart server");
+
+    return PREFIXES.some((entry) => value.toLowerCase().startsWith(entry.prefix.toLowerCase()));
+  } catch (error) {
+    console.error(error);
+    process.exit(1);
+  }
+};
+
 const getTableData = async (table: string[][]): Promise<PurchaseOrderData> => {
   const data: PurchaseOrderData = [];
 
   for (const [i, row] of table.entries()) {
-    //table data is always a number for first index and typically length is 7, this may need adjusting
-    if (isNaN(+row[0]) || row.length < 7) continue;
-
-    // Check if the part number index contains any of the prefixes
-    if (!row[1] || !PREFIXES!.some((p) => row[1].toLowerCase().includes(p.prefix.toLowerCase()))) {
-      throw new Error(
-        "Failed to find part number. Does your table contain the relevant information?. Contact michael if so"
-      );
-    }
+    //table data is always a number for first index and index 1 is the prefix
+    if (isNaN(+row[0]) || !hasValidPrefix(row[1])) continue;
 
     // Check quantity is a number
     if (isNaN(+row[5])) continue;
 
     const partNumber = row[1];
-    const quantity = +row[5];
+    const quantity = +row[row.length - 2];
 
     // get the due date from the next row
     const nextRow = table[i + 1];
