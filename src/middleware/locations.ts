@@ -30,11 +30,12 @@ export const validateAddLocation = [
   (req: Request, res: Response, next: NextFunction) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({
+      res.status(400).json({
         status: 0,
         message: "Invalid query",
-        errors: errors.array(), // More readable format
+        errors: errors.array(),
       });
+      return;
     }
     next();
   },

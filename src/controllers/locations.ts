@@ -1,5 +1,5 @@
 import { RequestHandler } from "express";
-import { selectAllLocations, setPartLocation } from "../queries/locations";
+import { insertLocation, selectAllLocations, setPartLocation } from "../queries/locations";
 
 export const fetchAllLocations: RequestHandler = async (req, res) => {
   try {
@@ -41,7 +41,9 @@ export const updateLocation: RequestHandler = async (req, res) => {
 
 export const addLocation: RequestHandler = async (req, res) => {
   try {
-    const { location } = req.body;
+    const { location, amount } = req.body;
+    await insertLocation(location, amount);
+    res.status(200).json({ status: 1, message: "location added" });
   } catch (error) {
     console.error(error);
     res.status(500).json({ status: 0, message: "internal Server Error" });

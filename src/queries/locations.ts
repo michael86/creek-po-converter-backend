@@ -65,3 +65,20 @@ export const selectAllLocations = async () => {
     return null;
   }
 };
+
+export const insertLocation = async (location: string, amount: number) => {
+  const params: string[] = [];
+
+  if (amount > 0) {
+    for (let i = 1; i <= amount; i++) {
+      console.log(i, " ", amount);
+      params.push(`${location}-${i}`);
+    }
+  } else {
+    params.push(location);
+  }
+
+  const query = "INSERT INTO locations (name) VALUES " + params.map(() => "(?)").join(", ");
+
+  pool.query(query, params);
+};
