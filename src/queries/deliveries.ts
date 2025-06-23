@@ -21,9 +21,11 @@ export const insertDeliveries: InsertDeliveries = async (
     if (!res.affectedRows) throw new Error(`Error inserting deliveries`);
 
     const [rows] = await pool.query<DeliveryRow[]>(
-      "SELECT uuid AS id, received_date AS dateReceived, quantity_received as quantityReceived FROM deliveries WHERE po_number = ? AND part_number = ?",
-      [poNumber, partNumber]
+      "SELECT uuid AS id, received_date AS dateReceived, quantity_received as quantityReceived FROM deliveries WHERE order_item_id = ? ",
+      [uuid]
     );
+
+    // const newItemRow = { [uuid]: { deliveries: rows } };
 
     return rows;
   } catch (error) {
