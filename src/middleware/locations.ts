@@ -1,5 +1,6 @@
-import { RequestHandler } from "express";
+import { NextFunction, RequestHandler, Request, Response } from "express";
 import { containsSpecialExceptHyphen } from "../utils";
+import { body, validationResult } from "express-validator";
 
 export const validateLocationUpdate: RequestHandler = (req, res, next) => {
   console.log("validateLocationUpdate called");
@@ -22,3 +23,19 @@ export const validateLocationUpdate: RequestHandler = (req, res, next) => {
     return;
   }
 };
+
+export const validateAddLocation = [
+  body("location").trim().notEmpty().withMessage("Location can't be empty"),
+  body("amount").isNumeric().withMessage("Amount must be a number"),
+  (req: Request, res: Response, next: NextFunction) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        status: 0,
+        message: "Invalid query",
+        errors: errors.array(), // More readable format
+      });
+    }
+    next();
+  },
+];

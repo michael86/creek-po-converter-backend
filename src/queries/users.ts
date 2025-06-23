@@ -6,7 +6,7 @@ import { SelectUserByEmail } from "src/types/queries";
 export const registerUser: RegisterUser = async (email, password, name) => {
   try {
     const [res] = await pool.execute<ResultSetHeader>(
-      "INSERT INTO users (email, password, name) VALUES (?,?,?, 2)",
+      "INSERT INTO users (email, password, name) VALUES (?,?,?)",
       [email, password, name]
     );
 

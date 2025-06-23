@@ -21,7 +21,6 @@ export const fetchAllLocations: RequestHandler = async (req, res) => {
 };
 
 export const updateLocation: RequestHandler = async (req, res) => {
-  console.log("updateLocation called");
   try {
     const { itemName, location } = req.body;
 
@@ -37,5 +36,14 @@ export const updateLocation: RequestHandler = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ status: 0, message: "Internal Server Error" });
+  }
+};
+
+export const addLocation: RequestHandler = async (req, res) => {
+  try {
+    const { location } = req.body;
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ status: 0, message: "internal Server Error" });
   }
 };
