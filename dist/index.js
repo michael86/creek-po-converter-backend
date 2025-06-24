@@ -22,6 +22,7 @@ const auth_1 = __importDefault(require("./routes/auth"));
 const pdf_1 = __importDefault(require("./routes/pdf"));
 const purchaseOrders_1 = __importDefault(require("./routes/purchaseOrders"));
 const locations_1 = __importDefault(require("./routes/locations"));
+const prefixes_1 = __importDefault(require("./routes/prefixes"));
 const deliveries_1 = __importDefault(require("./routes/deliveries"));
 const manage_1 = __importDefault(require("./routes/manage"));
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
@@ -48,6 +49,7 @@ app.use("/auth", auth_1.default);
 app.use("/pdf", auth_2.validateMe, pdf_1.default);
 app.use("/purchase-order", auth_2.validateMe, purchaseOrders_1.default);
 app.use("/locations", auth_2.validateMe, locations_1.default);
+app.use("/prefix", auth_2.validateMe, prefixes_1.default);
 app.use("/deliveries", auth_2.validateMe, deliveries_1.default);
 app.use("/manage", auth_2.validateMe, manage_1.default);
 if (process.env.NODE_ENV !== "test") {
