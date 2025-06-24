@@ -5,6 +5,6 @@ import { validateAddPrefix } from "../middleware/prefixes";
 
 const router = Router();
 
-router.put("/add", validateUserRole([1, 3, 4]), validateAddPrefix, addPrefix);
+router.put("/add", validateUserRole, validateAddPrefix, addPrefix);
 
 export default router;

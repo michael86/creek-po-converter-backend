@@ -11,8 +11,14 @@ export type DecodedToken = {
   exp: number;
 };
 
-export type MeRequestRoute = (req: MeRequest, res: Response, next: NextFunction) => Promise<void>;
+export type MeRequestRoute = (
+  req: MeRequest,
+  res: Response,
+  next: NextFunction
+) => Promise<void>;
 
 export type RoleRequestRoute = (
-  allowedRoles: number[]
-) => (req: MeRequest, res: Response, next: NextFunction) => void | Promise<void>;
+  req: MeRequest,
+  res: Response,
+  next: NextFunction
+) => void;
