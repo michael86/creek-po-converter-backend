@@ -15,6 +15,7 @@
   "type": "commonjs",
   "main": "index.js",
   "scripts": {
+    "dev": "nodemon",
     "test": "jest",
     "test:watch": "jest --watch"
   },

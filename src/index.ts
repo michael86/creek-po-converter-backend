@@ -9,6 +9,7 @@ import authRoutes from "./routes/auth";
 import pdfRoutes from "./routes/pdf";
 import poRoutes from "./routes/purchaseOrders";
 import locationRoutes from "./routes/locations";
+import prefixRoutes from "./routes/prefixes";
 import deliveriesRoute from "./routes/deliveries";
 import manageRoute from "./routes/manage";
 import cookieparser from "cookie-parser";
@@ -42,6 +43,7 @@ app.use("/auth", authRoutes);
 app.use("/pdf", validateMe, pdfRoutes);
 app.use("/purchase-order", validateMe, poRoutes);
 app.use("/locations", validateMe, locationRoutes);
+app.use("/prefix", validateMe, prefixRoutes);
 app.use("/deliveries", validateMe, deliveriesRoute);
 app.use("/manage", validateMe, manageRoute);
 
