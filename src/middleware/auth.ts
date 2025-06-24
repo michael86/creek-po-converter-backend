@@ -26,6 +26,7 @@ const PROTECTED_ROUTES = {
   "prefix-add": [1, 3, 4],
   "purchase-orders": [1, 2, 3, 4, 5, 6],
   "manage-users": [1, 3],
+  "hex-stickers": [1, 8],
   viasat: [1, 7],
 };
 
