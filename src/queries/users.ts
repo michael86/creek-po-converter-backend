@@ -19,7 +19,7 @@ export const registerUser: RegisterUser = async (email, password, name) => {
 export const selectUserByEmail = async (email: string) => {
   try {
     const [user] = await pool.execute<SelectUserByEmail[]>(
-      "SELECT email, password, role_id as role, name FROM users WHERE email = ?",
+      "SELECT id, email, password, role_id as role, name FROM users WHERE email = ?",
       [email]
     );
 

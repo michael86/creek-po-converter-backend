@@ -4,7 +4,7 @@ import { Response } from "express";
 type Payload = Record<string, any>;
 
 const isProduction = process.env.NODE_ENV === "production";
-console.log(isProduction);
+
 export const generateToken = (payload: Payload) =>
   jwt.sign(payload, process.env.JWT_KEY!, { expiresIn: 60 * 60 * 6 });
 

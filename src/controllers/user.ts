@@ -1,6 +1,9 @@
 import { generateToken, setJwtCookie } from "../utils/tokens";
 import { registerUser, selectUserByEmail } from "../queries/users";
-import { LoginUserController, RegisterUserController } from "../types/users/controllers";
+import {
+  LoginUserController,
+  RegisterUserController,
+} from "../types/users/controllers";
 import { isMySQLError } from "../utils";
 
 import bcrypt from "bcrypt";
@@ -11,17 +14,22 @@ export const handleLogin: LoginUserController = async (req, res) => {
     const user = await selectUserByEmail(email);
 
     if (!user) {
-      res.status(404).json({ status: "error", message: "Invalid email or password" });
+      res
+        .status(404)
+        .json({ status: "error", message: "Invalid email or password" });
       return;
     }
 
     const passwordMatch = await bcrypt.compare(password, user.password);
     if (!passwordMatch) {
-      res.status(401).json({ status: "error", message: "Invalid email or password" });
+      res
+        .status(401)
+        .json({ status: "error", message: "Invalid email or password" });
       return;
     }
 
-    const jwtToken = await generateToken({ email: user.email });
+    console.log(user);
+    const jwtToken = await generateToken({ email: user.email, id: user.id });
     setJwtCookie(res, jwtToken);
 
     console.log(user);
@@ -54,17 +62,17 @@ export const handleRegister: RegisterUserController = async (req, res) => {
     const jwtToken = await generateToken({ email });
     setJwtCookie(res, jwtToken);
 
-    res
-      .status(200)
-      .json({
-        status: "success",
-        message: "user registered",
-        data: { email: email, name: name, role: 2 },
-      });
+    res.status(200).json({
+      status: "success",
+      message: "user registered",
+      data: { email: email, name: name, role: 2 },
+    });
   } catch (error) {
     if (isMySQLError(error)) {
       if (error.code === "ER_DUP_ENTRY") {
-        res.status(409).json({ status: "error", message: "user already exists" });
+        res
+          .status(409)
+          .json({ status: "error", message: "user already exists" });
         return;
       }
       res.status(400).json({ status: "error", message: error.message });
